@@ -11,6 +11,7 @@
     confirmado: 'Confirmada', estimado: 'Estimada', pendente: 'Pendente', cancelado: 'Cancelada',
     'em andamento': 'Confirmada', 'concluído': 'Confirmada',
   };
+  const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
   const moneyFormatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   const elements = {};
   let dashboard;
@@ -25,6 +26,10 @@
     'calculatedNet', 'formError', 'saveReservationButton', 'cancelEditButton', 'expensesSection',
     'newExpenseButton', 'expensesTotal', 'expenses', 'expenseForm', 'expenseId', 'expenseDate',
     'expenseCategory', 'expenseDescription', 'expenseValue', 'expenseFormError', 'saveExpenseButton', 'cancelExpenseButton',
+    'reportMonth', 'reportYear', 'generateReportButton', 'reportPeriod', 'reportReservationsCount',
+    'reportOccupiedNights', 'reportAvailableDays', 'reportOccupancyRate', 'reportGross', 'reportAverageDailyRate',
+    'reportCleaning', 'reportCommission', 'reportSummaryGross', 'reportSummaryCleaning', 'reportSummaryCommission',
+    'reportBeforeExpenses', 'reportOtherExpenses', 'reportFinalPayout', 'reportReservations', 'reportExpenses',
   ];
 
   function getElements() {
@@ -112,6 +117,37 @@
   function removeExpense(expenses, id) { return expenses.filter((item) => item.id !== id); }
   function calculateExpensesTotal(expenses) { return roundMoney(expenses.reduce((total, expense) => total + requireNonNegativeNumber(expense.value, 'Valor'), 0)); }
   function calculateFinalPayout(netPayout, expensesTotal) { return roundMoney(Number(netPayout) - Number(expensesTotal)); }
+
+  function isInMonth(dateValue, year, month) {
+    const date = parseDate(dateValue, 'Data');
+    return date.getUTCFullYear() === year && date.getUTCMonth() + 1 === month;
+  }
+
+  function nightsInMonth(checkIn, checkOut, year, month) {
+    const start = parseDate(checkIn, 'Check-in');
+    const end = parseDate(checkOut, 'Check-out');
+    const monthStart = new Date(Date.UTC(year, month - 1, 1));
+    const monthEnd = new Date(Date.UTC(year, month, 1));
+    return Math.max(0, (Math.min(end, monthEnd) - Math.max(start, monthStart)) / 86400000);
+  }
+
+  function calculateMonthlyReport(reservations, expenses, yearValue, monthValue) {
+    const year = Number(yearValue); const month = Number(monthValue);
+    if (!Number.isInteger(year) || year < 2000 || year > 9999) throw new Error('Ano do relatório é inválido.');
+    if (!Number.isInteger(month) || month < 1 || month > 12) throw new Error('Mês do relatório é inválido.');
+    const selectedReservations = reservations.filter((item) => item.status !== 'Cancelada' && isInMonth(item.checkIn, year, month));
+    const selectedExpenses = expenses.filter((item) => isInMonth(item.date, year, month));
+    const totals = calculateTotals(selectedReservations);
+    const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    const occupiedNights = Math.min(daysInMonth, selectedReservations.reduce((sum, item) => sum + nightsInMonth(item.checkIn, item.checkOut, year, month), 0));
+    const expensesTotal = calculateExpensesTotal(selectedExpenses);
+    return {
+      year, month, daysInMonth, reservations: selectedReservations, expenses: selectedExpenses,
+      reservationCount: selectedReservations.length, occupiedNights, availableDays: daysInMonth - occupiedNights,
+      occupancyRate: roundMoney((occupiedNights / daysInMonth) * 100), averageDailyRate: occupiedNights ? roundMoney(totals.gross / occupiedNights) : 0,
+      ...totals, expensesTotal, finalPayout: calculateFinalPayout(totals.net, expensesTotal),
+    };
+  }
 
   function validateDashboard(data) {
     if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('O arquivo de dados não contém um objeto válido.');
@@ -236,6 +272,49 @@
     actions.append(edit, remove); article.append(date, category, description, value, actions); return article;
   }
 
+  function reportListItem(columns) {
+    const article = createElement('article', 'report-list-item');
+    columns.forEach(([label, value, emphasis]) => {
+      const item = createElement('p'); item.append(createElement('small', '', label), createElement(emphasis ? 'b' : 'span', '', value)); article.append(item);
+    });
+    return article;
+  }
+
+  function renderMonthlyReport() {
+    const report = calculateMonthlyReport(dashboard.reservations, dashboard.expenses, elements.reportYear.value, elements.reportMonth.value);
+    elements.reportPeriod.textContent = `${MONTH_NAMES[report.month - 1]} de ${report.year}`;
+    elements.reportReservationsCount.textContent = String(report.reservationCount);
+    elements.reportOccupiedNights.textContent = String(report.occupiedNights);
+    elements.reportAvailableDays.textContent = String(report.availableDays);
+    elements.reportOccupancyRate.textContent = `${report.occupancyRate.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}%`;
+    elements.reportGross.textContent = formatMoney(report.gross); elements.reportAverageDailyRate.textContent = formatMoney(report.averageDailyRate);
+    elements.reportCleaning.textContent = formatMoney(report.cleaning); elements.reportCommission.textContent = formatMoney(report.commission);
+    elements.reportSummaryGross.textContent = formatMoney(report.gross); elements.reportSummaryCleaning.textContent = formatMoney(report.cleaning);
+    elements.reportSummaryCommission.textContent = formatMoney(report.commission); elements.reportBeforeExpenses.textContent = formatMoney(report.net);
+    elements.reportOtherExpenses.textContent = formatMoney(report.expensesTotal); elements.reportFinalPayout.textContent = formatMoney(report.finalPayout);
+    elements.reportFinalPayout.classList.toggle('negative', report.finalPayout < 0);
+    const reservations = document.createDocumentFragment();
+    report.reservations.forEach((item) => reservations.append(reportListItem([
+      ['Hóspede', item.guest, true], ['Plataforma', item.platform], ['Período', `${formatDate(item.checkIn)} a ${formatDate(item.checkOut)}`],
+      ['Noites', String(nightsInMonth(item.checkIn, item.checkOut, report.year, report.month))], ['Valor bruto', formatMoney(item.gross), true],
+    ])));
+    elements.reportReservations.replaceChildren(reservations);
+    const expenses = document.createDocumentFragment();
+    report.expenses.forEach((item) => expenses.append(reportListItem([
+      ['Data', formatDate(item.date), true], ['Categoria', item.category], ['Descrição', item.description], ['Valor', formatMoney(item.value), true],
+    ])));
+    elements.reportExpenses.replaceChildren(expenses);
+  }
+
+  function prepareReportFilters() {
+    MONTH_NAMES.forEach((name, index) => { const option = createElement('option', '', name); option.value = String(index + 1); elements.reportMonth.append(option); });
+    const datedYears = [...dashboard.reservations.map((item) => Number(item.checkIn.slice(0, 4))), ...dashboard.expenses.map((item) => Number(item.date.slice(0, 4)))];
+    const currentYear = new Date().getFullYear(); const years = [...new Set([currentYear - 1, currentYear, currentYear + 1, ...datedYears])].sort((a, b) => b - a);
+    years.forEach((year) => { const option = createElement('option', '', String(year)); option.value = String(year); elements.reportYear.append(option); });
+    const match = dashboard.month.match(/([A-Za-zÀ-ÿ]+)\s+(\d{4})/); const defaultMonth = match ? MONTH_NAMES.findIndex((name) => name.toLowerCase() === match[1].toLowerCase()) + 1 : new Date().getMonth() + 1;
+    elements.reportMonth.value = String(defaultMonth || new Date().getMonth() + 1); elements.reportYear.value = match?.[2] || String(currentYear);
+  }
+
   function render() {
     const totals = calculateTotals(dashboard.reservations);
     const expensesTotal = calculateExpensesTotal(dashboard.expenses);
@@ -257,6 +336,7 @@
     elements.reservations.replaceChildren(fragment);
     const expenseFragment = document.createDocumentFragment(); dashboard.expenses.forEach((item) => expenseFragment.append(renderExpense(item)));
     elements.expenses.replaceChildren(expenseFragment);
+    renderMonthlyReport();
   }
 
   function resetExpenseForm(hide = true) {
@@ -357,6 +437,9 @@
     elements.cancelExpenseButton.addEventListener('click', () => resetExpenseForm());
     elements.expenses.addEventListener('click', (event) => { const button = event.target.closest('button[data-action]'); if (!button) return;
       if (button.dataset.action === 'edit') editExpense(button.dataset.id); else deleteExpense(button.dataset.id); });
+    elements.reportMonth.addEventListener('change', renderMonthlyReport); elements.reportYear.addEventListener('change', renderMonthlyReport);
+    elements.generateReportButton.addEventListener('click', () => { renderMonthlyReport(); document.body.classList.add('printing-report'); window.print(); });
+    window.addEventListener('afterprint', () => document.body.classList.remove('printing-report'));
   }
 
   function showError(error) { elements.appStatus.className = 'app-status error'; elements.appStatus.textContent = `Não foi possível carregar o painel. ${error.message}`; elements.appStatus.hidden = false; }
@@ -370,13 +453,14 @@
       const source = loadStoredReservations(dashboard.reservations);
       dashboard.reservations = source.map((item, index) => normalizeReservation(item, index, dashboard));
       dashboard.expenses = loadStoredExpenses().map(normalizeExpense);
-      bindEvents(); render(); resetForm(); resetExpenseForm(); elements.appStatus.hidden = true;
+      prepareReportFilters(); bindEvents(); render(); resetForm(); resetExpenseForm(); elements.appStatus.hidden = true;
     } catch (error) { if (elements.appStatus) showError(error instanceof Error ? error : new Error('Erro inesperado.')); else console.error(error); }
   }
 
   if (typeof module !== 'undefined') module.exports = {
     countNights, calculateFinancials, calculateTotals, normalizeReservation, removeReservation, upsertReservation, validateDashboard,
     normalizeExpense, upsertExpense, removeExpense, calculateExpensesTotal, calculateFinalPayout,
+    isInMonth, nightsInMonth, calculateMonthlyReport,
   };
   if (typeof document !== 'undefined') initialize();
 })();

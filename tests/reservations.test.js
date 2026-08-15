@@ -5,6 +5,7 @@ const assert = require('node:assert/strict');
 const {
   countNights, calculateFinancials, calculateTotals, normalizeReservation, removeReservation, upsertReservation, validateDashboard,
   normalizeExpense, upsertExpense, removeExpense, calculateExpensesTotal, calculateFinalPayout,
+  nightsInMonth, calculateMonthlyReport,
 } = require('../app.js');
 
 const defaults = { cleaningFee: 135, commissionRate: 0.15 };
@@ -83,4 +84,29 @@ test('calcula repasse final e permite resultado negativo', () => {
 test('rejeita despesa negativa e categoria inválida', () => {
   assert.throws(() => normalizeExpense({ ...expense, value: -1 }), /maior ou igual a zero/);
   assert.throws(() => normalizeExpense({ ...expense, category: 'Inválida' }), /Categoria/);
+});
+
+test('calcula somente as noites da reserva que pertencem ao mês', () => {
+  assert.equal(nightsInMonth('2026-08-29', '2026-09-03', 2026, 8), 3);
+  assert.equal(nightsInMonth('2026-08-29', '2026-09-03', 2026, 9), 2);
+});
+
+test('gera fechamento mensal sem reservas canceladas e com despesas do mês da data', () => {
+  const reservations = [
+    { id: 'a', guest: 'Ana', platform: 'Direto', status: 'Confirmada', checkIn: '2026-08-10', checkOut: '2026-08-13', nights: 3, gross: 600, cleaning: 100, commission: 75, net: 425 },
+    { id: 'b', guest: 'Bia', platform: 'Airbnb', status: 'Cancelada', checkIn: '2026-08-15', checkOut: '2026-08-20', nights: 5, gross: 1000, cleaning: 100, commission: 135, net: 765 },
+    { id: 'c', guest: 'Caio', platform: 'Airbnb', status: 'Confirmada', checkIn: '2026-09-01', checkOut: '2026-09-03', nights: 2, gross: 400, cleaning: 100, commission: 45, net: 255 },
+  ];
+  const expenses = [expense, { ...expense, id: 'expense-2', date: '2026-09-01', value: 90 }];
+  const report = calculateMonthlyReport(reservations, expenses, 2026, 8);
+  assert.equal(report.reservationCount, 1); assert.equal(report.occupiedNights, 3); assert.equal(report.daysInMonth, 31);
+  assert.equal(report.availableDays, 28); assert.equal(report.occupancyRate, 9.68); assert.equal(report.averageDailyRate, 200);
+  assert.equal(report.gross, 600); assert.equal(report.cleaning, 100); assert.equal(report.commission, 75); assert.equal(report.net, 425);
+  assert.equal(report.expensesTotal, 42.5); assert.equal(report.finalPayout, 382.5); assert.deepEqual(report.expenses, [expense]);
+});
+
+test('relatório mensal vazio mantém médias e totais em zero', () => {
+  const report = calculateMonthlyReport([], [], 2026, 2);
+  assert.equal(report.daysInMonth, 28); assert.equal(report.availableDays, 28); assert.equal(report.occupancyRate, 0);
+  assert.equal(report.averageDailyRate, 0); assert.equal(report.finalPayout, 0);
 });
