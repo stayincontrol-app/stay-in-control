@@ -12,7 +12,7 @@
       "status": "estimado",
       "gross": 582
     },
-    {
+    {"guest": "Marconi",
       "checkIn": "2026-08-14",
       "checkOut": "2026-08-17",
       "status": "estimado",
