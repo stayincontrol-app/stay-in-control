@@ -88,18 +88,18 @@
             <select id="platform" name="platform" required>
               <option value="Airbnb">Airbnb</option>
               <option value="Booking.com">Booking.com</option>
-              <option value="Direta">Direta</option>
-              <option value="Outra">Outra</option>
+              <option value="Vrbo">Vrbo</option>
+              <option value="Direto">Direto</option>
+              <option value="Outro">Outro</option>
             </select>
           </div>
           <div class="field">
             <label for="status">Status</label>
             <select id="status" name="status" required>
-              <option value="estimado">Estimado</option>
-              <option value="confirmado">Confirmado</option>
-              <option value="em andamento">Em andamento</option>
-              <option value="concluído">Concluído</option>
-              <option value="cancelado">Cancelado</option>
+              <option value="Confirmada">Confirmada</option>
+              <option value="Estimada">Estimada</option>
+              <option value="Pendente">Pendente</option>
+              <option value="Cancelada">Cancelada</option>
             </select>
           </div>
           <div class="field">
@@ -123,15 +123,15 @@
             <input id="cleaningFee" name="cleaningFee" type="number" min="0" max="99999999.99" step="0.01" inputmode="decimal" required>
           </div>
           <div class="field">
-            <label for="commissionRate">Comissão de gestão (%)</label>
+            <label for="commissionRate">Comissão (%)</label>
             <input id="commissionRate" name="commissionRate" type="number" min="0" max="100" step="0.01" inputmode="decimal" required>
           </div>
           <div class="field output-field">
-            <span>Comissão calculada</span>
+            <span>Comissão em R$</span>
             <output id="calculatedCommission">R$ 0,00</output>
           </div>
           <div class="field output-field">
-            <span>Repasse ao proprietário</span>
+            <span>Repasse líquido</span>
             <output id="calculatedNet" class="green">R$ 0,00</output>
           </div>
           <p id="formError" class="form-error field-wide" role="alert" hidden></p>

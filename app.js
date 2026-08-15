@@ -2,8 +2,13 @@
   'use strict';
 
   const STORAGE_KEY = 'ap207-dashboard-reservations-v1';
-  const PLATFORMS = ['Airbnb', 'Booking.com', 'Direta', 'Outra'];
-  const STATUSES = ['estimado', 'confirmado', 'em andamento', 'concluído', 'cancelado'];
+  const PLATFORMS = ['Airbnb', 'Booking.com', 'Vrbo', 'Direto', 'Outro'];
+  const STATUSES = ['Confirmada', 'Estimada', 'Pendente', 'Cancelada'];
+  const LEGACY_PLATFORMS = { Direta: 'Direto', Outra: 'Outro' };
+  const LEGACY_STATUSES = {
+    confirmado: 'Confirmada', estimado: 'Estimada', pendente: 'Pendente', cancelado: 'Cancelada',
+    'em andamento': 'Confirmada', 'concluído': 'Confirmada',
+  };
   const moneyFormatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   const elements = {};
   let dashboard;
@@ -73,6 +78,20 @@
     return { gross, cleaning, commissionRate: rate, commission, net: roundMoney(commissionBase - commission) };
   }
 
+  function calculateTotals(reservations) {
+    return reservations.filter((item) => item.status !== 'Cancelada').reduce((total, item) => ({
+      nights: total.nights + item.nights, gross: total.gross + item.gross, cleaning: total.cleaning + item.cleaning,
+      commission: total.commission + item.commission, net: total.net + item.net,
+    }), { nights: 0, gross: 0, cleaning: 0, commission: 0, net: 0 });
+  }
+
+  function upsertReservation(reservations, reservation) {
+    const index = reservations.findIndex((item) => item.id === reservation.id);
+    return index < 0 ? [...reservations, reservation] : reservations.map((item, itemIndex) => itemIndex === index ? reservation : item);
+  }
+
+  function removeReservation(reservations, id) { return reservations.filter((item) => item.id !== id); }
+
   function validateDashboard(data) {
     if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('O arquivo de dados não contém um objeto válido.');
     const commissionRate = requireNonNegativeNumber(data.commissionRate, 'Comissão padrão');
@@ -96,8 +115,8 @@
     const checkIn = requireText(reservation.checkIn, `Check-in da reserva ${index + 1}`);
     const checkOut = requireText(reservation.checkOut, `Check-out da reserva ${index + 1}`);
     const nights = countNights(checkIn, checkOut);
-    const platform = reservation.platform || 'Airbnb';
-    const status = reservation.status || 'estimado';
+    const platform = LEGACY_PLATFORMS[reservation.platform] || reservation.platform || 'Airbnb';
+    const status = LEGACY_STATUSES[reservation.status] || reservation.status || 'Estimada';
     if (!PLATFORMS.includes(platform)) throw new Error(`Plataforma da reserva ${index + 1} é inválida.`);
     if (!STATUSES.includes(status)) throw new Error(`Status da reserva ${index + 1} é inválido.`);
     const cleaningFee = reservation.cleaningFee ?? (Number(reservation.gross) > 0 ? defaults.cleaningFee : 0);
@@ -173,10 +192,7 @@
   }
 
   function render() {
-    const totals = dashboard.reservations.reduce((total, item) => ({
-      nights: total.nights + item.nights, gross: total.gross + item.gross, cleaning: total.cleaning + item.cleaning,
-      commission: total.commission + item.commission, net: total.net + item.net,
-    }), { nights: 0, gross: 0, cleaning: 0, commission: 0, net: 0 });
+    const totals = calculateTotals(dashboard.reservations);
     elements.propertyName.textContent = dashboard.property;
     elements.subtitle.textContent = `Painel do Proprietário • ${dashboard.city}`;
     elements.monthLabel.textContent = dashboard.month;
@@ -226,7 +242,7 @@
     try {
       const reservation = readForm();
       const index = dashboard.reservations.findIndex((item) => item.id === reservation.id);
-      if (index >= 0) dashboard.reservations[index] = reservation; else dashboard.reservations.push(reservation);
+      dashboard.reservations = upsertReservation(dashboard.reservations, reservation);
       saveReservations(); render(); resetForm(); announce(index >= 0 ? 'Reserva atualizada com sucesso.' : 'Reserva cadastrada com sucesso.');
     } catch (error) { showFormError(error instanceof Error ? error : new Error('Não foi possível salvar a reserva.')); }
   }
@@ -243,7 +259,7 @@
   function deleteReservation(id) {
     const item = dashboard.reservations.find((reservation) => reservation.id === id);
     if (!item || !window.confirm(`Excluir a reserva de ${item.guest}? Esta ação não pode ser desfeita.`)) return;
-    dashboard.reservations = dashboard.reservations.filter((reservation) => reservation.id !== id);
+    dashboard.reservations = removeReservation(dashboard.reservations, id);
     saveReservations(); render(); if (elements.reservationId.value === id) resetForm(); announce('Reserva excluída com sucesso.');
   }
 
@@ -272,6 +288,8 @@
     } catch (error) { if (elements.appStatus) showError(error instanceof Error ? error : new Error('Erro inesperado.')); else console.error(error); }
   }
 
-  if (typeof module !== 'undefined') module.exports = { countNights, calculateFinancials, normalizeReservation, validateDashboard };
+  if (typeof module !== 'undefined') module.exports = {
+    countNights, calculateFinancials, calculateTotals, normalizeReservation, removeReservation, upsertReservation, validateDashboard,
+  };
   if (typeof document !== 'undefined') initialize();
 })();
