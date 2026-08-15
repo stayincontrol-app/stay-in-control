@@ -1,4 +1,24 @@
 {
+  "currentUserId": "user-super-admin",
+  "users": [
+    { "id": "user-super-admin", "name": "Super Administrador", "role": "super_admin", "active": true },
+    { "id": "user-gestor", "name": "Gestor AP207", "role": "admin", "active": true },
+    { "id": "user-marcelo", "name": "Marcelo Estevão", "role": "owner", "active": true }
+  ],
+  "properties": [
+    {
+      "id": "property-ap207",
+      "ownerName": "Marcelo Estevão",
+      "name": "AP207",
+      "unit": "AP207",
+      "city": "Curitiba",
+      "state": "PR",
+      "address": "Endereço a atualizar",
+      "commissionRate": 0.15,
+      "administratorId": "user-gestor",
+      "ownerId": "user-marcelo"
+    }
+  ],
   "property": "AP207",
   "city": "Curitiba",
   "month": "Agosto 2026",
