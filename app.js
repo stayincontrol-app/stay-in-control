@@ -2,6 +2,8 @@
   'use strict';
 
   const STORAGE_KEY = 'ap207-dashboard-reservations-v1';
+  const EXPENSES_STORAGE_KEY = 'ap207-dashboard-expenses-v1';
+  const EXPENSE_CATEGORIES = ['Manutenção/Reparo', 'Compra para o apartamento', 'Reposição', 'Condomínio', 'Material', 'Serviço', 'Outro'];
   const PLATFORMS = ['Airbnb', 'Booking.com', 'Vrbo', 'Direto', 'Outro'];
   const STATUSES = ['Confirmada', 'Estimada', 'Pendente', 'Cancelada'];
   const LEGACY_PLATFORMS = { Direta: 'Direto', Outra: 'Outro' };
@@ -16,11 +18,13 @@
   const elementIds = [
     'appStatus', 'propertyName', 'subtitle', 'monthLabel', 'periodCount', 'nightCount',
     'nightRange', 'grossTotal', 'netTotal', 'reservations', 'summaryGross',
-    'summaryCleaning', 'summaryCommission', 'summaryNet', 'ruleCleaning',
+    'summaryCleaning', 'summaryCommission', 'summaryNetBeforeExpenses', 'summaryExpenses', 'summaryNet', 'ruleCleaning',
     'ruleCommission', 'newReservationButton', 'adminSection', 'reservationForm',
     'reservationId', 'guest', 'platform', 'status', 'checkIn', 'checkOut', 'gross',
     'cleaningFee', 'commissionRate', 'calculatedNights', 'calculatedCommission',
-    'calculatedNet', 'formError', 'saveReservationButton', 'cancelEditButton',
+    'calculatedNet', 'formError', 'saveReservationButton', 'cancelEditButton', 'expensesSection',
+    'newExpenseButton', 'expensesTotal', 'expenses', 'expenseForm', 'expenseId', 'expenseDate',
+    'expenseCategory', 'expenseDescription', 'expenseValue', 'expenseFormError', 'saveExpenseButton', 'cancelExpenseButton',
   ];
 
   function getElements() {
@@ -92,6 +96,23 @@
 
   function removeReservation(reservations, id) { return reservations.filter((item) => item.id !== id); }
 
+  function normalizeExpense(expense, index = 0) {
+    if (!expense || typeof expense !== 'object' || Array.isArray(expense)) throw new Error(`Despesa ${index + 1} é inválida.`);
+    const date = requireText(expense.date, 'Data'); parseDate(date, 'Data');
+    const category = requireText(expense.category, 'Categoria');
+    if (!EXPENSE_CATEGORIES.includes(category)) throw new Error('Categoria da despesa é inválida.');
+    return { id: typeof expense.id === 'string' && expense.id ? expense.id : createId(), date, category,
+      description: requireText(expense.description, 'Descrição'), value: roundMoney(requireNonNegativeNumber(expense.value, 'Valor')) };
+  }
+
+  function upsertExpense(expenses, expense) {
+    const index = expenses.findIndex((item) => item.id === expense.id);
+    return index < 0 ? [...expenses, expense] : expenses.map((item, itemIndex) => itemIndex === index ? expense : item);
+  }
+  function removeExpense(expenses, id) { return expenses.filter((item) => item.id !== id); }
+  function calculateExpensesTotal(expenses) { return roundMoney(expenses.reduce((total, expense) => total + requireNonNegativeNumber(expense.value, 'Valor'), 0)); }
+  function calculateFinalPayout(netPayout, expensesTotal) { return roundMoney(Number(netPayout) - Number(expensesTotal)); }
+
   function validateDashboard(data) {
     if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('O arquivo de dados não contém um objeto válido.');
     const commissionRate = requireNonNegativeNumber(data.commissionRate, 'Comissão padrão');
@@ -157,6 +178,18 @@
     }
   }
 
+  function saveExpenses() {
+    if (!storageAvailable()) throw new Error('O armazenamento local não está disponível neste navegador.');
+    localStorage.setItem(EXPENSES_STORAGE_KEY, JSON.stringify({ version: 1, expenses: dashboard.expenses }));
+  }
+
+  function loadStoredExpenses() {
+    if (!storageAvailable()) return [];
+    const stored = localStorage.getItem(EXPENSES_STORAGE_KEY); if (!stored) return [];
+    try { const parsed = JSON.parse(stored); if (parsed?.version !== 1 || !Array.isArray(parsed.expenses)) throw new Error(); return parsed.expenses; }
+    catch { localStorage.removeItem(EXPENSES_STORAGE_KEY); return []; }
+  }
+
   function createElement(tag, className, text) {
     const element = document.createElement(tag);
     if (className) element.className = className;
@@ -191,20 +224,67 @@
     actions.append(edit, remove); article.append(top, breakdown, actions); return article;
   }
 
+  function renderExpense(expense) {
+    const article = createElement('article', 'expense-item');
+    const date = createElement('p'); date.append(createElement('small', '', 'Data'), createElement('b', '', formatDate(expense.date)));
+    const category = createElement('p'); category.append(createElement('small', '', 'Categoria'), createElement('span', '', expense.category));
+    const description = createElement('p'); description.append(createElement('small', '', 'Descrição'), createElement('span', '', expense.description));
+    const value = createElement('p', 'expense-value', formatMoney(expense.value));
+    const actions = createElement('div', 'expense-actions');
+    const edit = createElement('button', 'button button-secondary', 'Editar'); edit.type = 'button'; edit.dataset.action = 'edit'; edit.dataset.id = expense.id;
+    const remove = createElement('button', 'button button-danger', 'Excluir'); remove.type = 'button'; remove.dataset.action = 'delete'; remove.dataset.id = expense.id;
+    actions.append(edit, remove); article.append(date, category, description, value, actions); return article;
+  }
+
   function render() {
     const totals = calculateTotals(dashboard.reservations);
+    const expensesTotal = calculateExpensesTotal(dashboard.expenses);
+    const finalPayout = calculateFinalPayout(totals.net, expensesTotal);
     elements.propertyName.textContent = dashboard.property;
     elements.subtitle.textContent = `Painel do Proprietário • ${dashboard.city}`;
     elements.monthLabel.textContent = dashboard.month;
     elements.periodCount.textContent = String(dashboard.reservations.length);
     elements.nightCount.textContent = String(totals.nights);
     elements.nightRange.textContent = `${dashboard.reservations.length} ${dashboard.reservations.length === 1 ? 'período' : 'períodos'}`;
-    elements.grossTotal.textContent = formatMoney(totals.gross); elements.netTotal.textContent = formatMoney(totals.net);
+    elements.grossTotal.textContent = formatMoney(totals.gross); elements.netTotal.textContent = formatMoney(finalPayout);
     elements.summaryGross.textContent = formatMoney(totals.gross); elements.summaryCleaning.textContent = formatMoney(totals.cleaning);
-    elements.summaryCommission.textContent = formatMoney(totals.commission); elements.summaryNet.textContent = formatMoney(totals.net);
+    elements.summaryCommission.textContent = formatMoney(totals.commission); elements.summaryNetBeforeExpenses.textContent = formatMoney(totals.net);
+    elements.summaryExpenses.textContent = formatMoney(expensesTotal); elements.summaryNet.textContent = formatMoney(finalPayout);
+    elements.expensesTotal.textContent = formatMoney(expensesTotal);
+    elements.netTotal.classList.toggle('negative', finalPayout < 0); elements.summaryNet.classList.toggle('negative', finalPayout < 0);
     elements.ruleCleaning.textContent = formatMoney(dashboard.cleaningFee); elements.ruleCommission.textContent = `${dashboard.commissionRate * 100}%`;
     const fragment = document.createDocumentFragment(); dashboard.reservations.forEach((item) => fragment.append(renderReservation(item)));
     elements.reservations.replaceChildren(fragment);
+    const expenseFragment = document.createDocumentFragment(); dashboard.expenses.forEach((item) => expenseFragment.append(renderExpense(item)));
+    elements.expenses.replaceChildren(expenseFragment);
+  }
+
+  function resetExpenseForm(hide = true) {
+    elements.expenseForm.reset(); elements.expenseId.value = ''; elements.saveExpenseButton.textContent = 'Salvar despesa';
+    elements.expenseFormError.hidden = true; elements.expenseForm.hidden = hide;
+  }
+  function openExpenseForm() { resetExpenseForm(false); elements.expenseDate.focus({ preventScroll: true }); }
+  function readExpenseForm() {
+    if (!elements.expenseForm.reportValidity()) throw new Error('Preencha corretamente todos os campos obrigatórios.');
+    return normalizeExpense({ id: elements.expenseId.value || createId(), date: elements.expenseDate.value,
+      category: elements.expenseCategory.value, description: elements.expenseDescription.value, value: elements.expenseValue.value });
+  }
+  function submitExpense(event) {
+    event.preventDefault(); elements.expenseFormError.hidden = true;
+    try { const expense = readExpenseForm(); const editing = dashboard.expenses.some((item) => item.id === expense.id);
+      dashboard.expenses = upsertExpense(dashboard.expenses, expense); saveExpenses(); render(); resetExpenseForm(); announce(editing ? 'Despesa atualizada com sucesso.' : 'Despesa cadastrada com sucesso.');
+    } catch (error) { elements.expenseFormError.textContent = error.message; elements.expenseFormError.hidden = false; }
+  }
+  function editExpense(id) {
+    const item = dashboard.expenses.find((expense) => expense.id === id); if (!item) return;
+    elements.expenseForm.hidden = false; elements.expenseId.value = item.id; elements.expenseDate.value = item.date;
+    elements.expenseCategory.value = item.category; elements.expenseDescription.value = item.description; elements.expenseValue.value = item.value;
+    elements.saveExpenseButton.textContent = 'Atualizar despesa'; elements.expenseFormError.hidden = true; elements.expenseForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  function deleteExpense(id) {
+    const item = dashboard.expenses.find((expense) => expense.id === id);
+    if (!item || !window.confirm(`Excluir a despesa “${item.description}”? Esta ação não pode ser desfeita.`)) return;
+    dashboard.expenses = removeExpense(dashboard.expenses, id); saveExpenses(); render(); if (elements.expenseId.value === id) resetExpenseForm(); announce('Despesa excluída com sucesso.');
   }
 
   function updatePreview() {
@@ -272,6 +352,11 @@
       const button = event.target.closest('button[data-action]'); if (!button) return;
       if (button.dataset.action === 'edit') editReservation(button.dataset.id); else deleteReservation(button.dataset.id);
     });
+    elements.newExpenseButton.addEventListener('click', openExpenseForm);
+    elements.expenseForm.addEventListener('submit', submitExpense);
+    elements.cancelExpenseButton.addEventListener('click', () => resetExpenseForm());
+    elements.expenses.addEventListener('click', (event) => { const button = event.target.closest('button[data-action]'); if (!button) return;
+      if (button.dataset.action === 'edit') editExpense(button.dataset.id); else deleteExpense(button.dataset.id); });
   }
 
   function showError(error) { elements.appStatus.className = 'app-status error'; elements.appStatus.textContent = `Não foi possível carregar o painel. ${error.message}`; elements.appStatus.hidden = false; }
@@ -284,12 +369,14 @@
       dashboard = validateDashboard(await response.json());
       const source = loadStoredReservations(dashboard.reservations);
       dashboard.reservations = source.map((item, index) => normalizeReservation(item, index, dashboard));
-      bindEvents(); render(); resetForm(); elements.appStatus.hidden = true;
+      dashboard.expenses = loadStoredExpenses().map(normalizeExpense);
+      bindEvents(); render(); resetForm(); resetExpenseForm(); elements.appStatus.hidden = true;
     } catch (error) { if (elements.appStatus) showError(error instanceof Error ? error : new Error('Erro inesperado.')); else console.error(error); }
   }
 
   if (typeof module !== 'undefined') module.exports = {
     countNights, calculateFinancials, calculateTotals, normalizeReservation, removeReservation, upsertReservation, validateDashboard,
+    normalizeExpense, upsertExpense, removeExpense, calculateExpensesTotal, calculateFinalPayout,
   };
   if (typeof document !== 'undefined') initialize();
 })();

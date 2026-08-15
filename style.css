@@ -141,12 +141,14 @@ h2 { margin-bottom: 18px; font-size: 1.125rem; line-height: 1.3; }
 .breakdown div { min-width: 0; padding: 12px; border-radius: 12px; background: var(--surface-muted); }
 .breakdown b { display: block; margin-top: 5px; overflow-wrap: anywhere; }
 .green { color: var(--green); }
+.negative { color: var(--red) !important; }
 
 .summary-list { margin: 0; }
 .line { display: flex; justify-content: space-between; gap: 16px; margin: 0; padding: 11px 0; border-bottom: 1px solid var(--border); }
 .line dt, .line dd { margin: 0; }
 .line dd { font-weight: 700; text-align: right; }
 .line.total { border-bottom: 0; color: var(--green); font-size: 1.05rem; }
+.line.expense-total { color: var(--red); }
 
 .rules { margin-top: 16px; }
 .rule-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
@@ -190,6 +192,18 @@ h2 { margin-bottom: 18px; font-size: 1.125rem; line-height: 1.3; }
 .button-danger { border-color: #fecdca; background: var(--red-soft); color: var(--red); }
 .app-status.success { border-color: #abefc6; background: var(--green-soft); color: var(--green); }
 .admin { margin-top: 16px; scroll-margin-top: 16px; }
+.expenses-section { margin-top: 16px; scroll-margin-top: 16px; }
+.expenses-total { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; padding: 14px; border-radius: 12px; background: var(--red-soft); color: var(--red); }
+.expenses-total strong { font-size: 1.15rem; text-align: right; }
+.expenses:empty::after { content: "Nenhuma outra despesa cadastrada."; display: block; padding: 12px 0; color: var(--muted); }
+.expense-item { display: grid; grid-template-columns: minmax(110px, .6fr) minmax(150px, 1fr) minmax(0, 1.5fr) auto auto; gap: 12px; align-items: center; padding: 14px 0; border-top: 1px solid var(--border); }
+.expense-item p { margin: 0; overflow-wrap: anywhere; }
+.expense-item small { display: block; color: var(--muted); }
+.expense-value { font-weight: 700; white-space: nowrap; }
+.expense-actions { display: flex; gap: 8px; }
+.expense-actions .button { min-height: 38px; padding-block: 7px; }
+.expense-form { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); }
+.expense-form[hidden] { display: none; }
 .admin-intro { max-width: 720px; color: var(--muted); }
 .reservation-form { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
 .field { min-width: 0; }
@@ -207,11 +221,18 @@ h2 { margin-bottom: 18px; font-size: 1.125rem; line-height: 1.3; }
 .booking-actions .button { min-height: 38px; padding-block: 7px; }
 
 @media (max-width: 800px) { .reservation-form { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 800px) {
+  .expense-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .expense-item { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .expense-actions { justify-content: flex-end; }
+}
 @media (max-width: 480px) {
   .panel-heading { align-items: stretch; flex-direction: column; }
   .panel-heading .button { width: 100%; }
   .reservation-form { grid-template-columns: 1fr; }
+  .expense-form, .expense-item { grid-template-columns: 1fr; }
   .field-wide { grid-column: span 1; }
   .form-actions .button, .booking-actions .button { flex: 1 1 0; min-height: 48px; }
+  .expense-actions .button { flex: 1 1 0; min-height: 48px; }
   input, select { font-size: 16px !important; }
 }
