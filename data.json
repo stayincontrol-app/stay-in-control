@@ -1,0 +1,15 @@
+{
+  "property": "AP207",
+  "city": "Curitiba",
+  "month": "Agosto 2026",
+  "cleaningFee": 135,
+  "commissionRate": 0.15,
+  "reservations": [
+    {
+      "checkIn": "2026-08-14",
+      "checkOut": "2026-08-17",
+      "status": "estimado",
+      "gross": 582
+    }
+  ]
+}
