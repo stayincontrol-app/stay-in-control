@@ -39,9 +39,9 @@
           <span>mês atual</span>
         </article>
         <article>
-          <small>Repasse estimado</small>
+          <small>Repasse final</small>
           <strong class="green" id="netTotal">R$ 0,00</strong>
-          <span>após custos</span>
+          <span>após todas as despesas</span>
         </article>
       </section>
 
@@ -64,9 +64,59 @@
             <div class="line"><dt>Bruto</dt><dd id="summaryGross">R$ 0,00</dd></div>
             <div class="line"><dt>Limpeza</dt><dd id="summaryCleaning">R$ 0,00</dd></div>
             <div class="line"><dt>Comissão</dt><dd id="summaryCommission">R$ 0,00</dd></div>
-            <div class="line total"><dt>Seu repasse</dt><dd id="summaryNet">R$ 0,00</dd></div>
+            <div class="line"><dt>Repasse antes de despesas</dt><dd id="summaryNetBeforeExpenses">R$ 0,00</dd></div>
+            <div class="line expense-total"><dt>Outras despesas</dt><dd id="summaryExpenses">R$ 0,00</dd></div>
+            <div class="line total"><dt>Repasse final</dt><dd id="summaryNet">R$ 0,00</dd></div>
           </dl>
         </aside>
+      </section>
+
+      <section class="panel expenses-section" id="expensesSection" aria-labelledby="expensesTitle">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Controle financeiro</p>
+            <h2 id="expensesTitle">Outras despesas</h2>
+          </div>
+          <button class="button button-primary" id="newExpenseButton" type="button">Nova despesa</button>
+        </div>
+        <div class="expenses-total" aria-live="polite">
+          <span>Total de outras despesas</span>
+          <strong id="expensesTotal">R$ 0,00</strong>
+        </div>
+        <div id="expenses" class="expenses" aria-live="polite"></div>
+
+        <form id="expenseForm" class="expense-form" novalidate hidden>
+          <input id="expenseId" type="hidden">
+          <div class="field">
+            <label for="expenseDate">Data</label>
+            <input id="expenseDate" name="expenseDate" type="date" required>
+          </div>
+          <div class="field">
+            <label for="expenseCategory">Categoria</label>
+            <select id="expenseCategory" name="expenseCategory" required>
+              <option value="Manutenção/Reparo">Manutenção/Reparo</option>
+              <option value="Compra para o apartamento">Compra para o apartamento</option>
+              <option value="Reposição">Reposição</option>
+              <option value="Condomínio">Condomínio</option>
+              <option value="Material">Material</option>
+              <option value="Serviço">Serviço</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+          <div class="field field-wide">
+            <label for="expenseDescription">Descrição</label>
+            <input id="expenseDescription" name="expenseDescription" type="text" maxlength="160" required>
+          </div>
+          <div class="field">
+            <label for="expenseValue">Valor (R$)</label>
+            <input id="expenseValue" name="expenseValue" type="number" min="0" max="99999999.99" step="0.01" inputmode="decimal" required>
+          </div>
+          <p id="expenseFormError" class="form-error field-wide" role="alert" hidden></p>
+          <div class="form-actions field-wide">
+            <button class="button button-primary" id="saveExpenseButton" type="submit">Salvar despesa</button>
+            <button class="button button-secondary" id="cancelExpenseButton" type="button">Cancelar</button>
+          </div>
+        </form>
       </section>
 
       <section class="panel admin" id="adminSection" aria-labelledby="adminTitle">
