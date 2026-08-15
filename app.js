@@ -1,17 +1,21 @@
 (() => {
   'use strict';
 
-  const moneyFormatter = new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  });
-
+  const STORAGE_KEY = 'ap207-dashboard-reservations-v1';
+  const PLATFORMS = ['Airbnb', 'Booking.com', 'Direta', 'Outra'];
+  const STATUSES = ['estimado', 'confirmado', 'em andamento', 'concluído', 'cancelado'];
+  const moneyFormatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   const elements = {};
+  let dashboard;
+
   const elementIds = [
-    'appStatus', 'propertyName', 'subtitle', 'monthLabel', 'periodCount',
-    'nightCount', 'nightRange', 'grossTotal', 'netTotal', 'reservations',
-    'summaryGross', 'summaryCleaning', 'summaryCommission', 'summaryNet',
-    'ruleCleaning', 'ruleCommission',
+    'appStatus', 'propertyName', 'subtitle', 'monthLabel', 'periodCount', 'nightCount',
+    'nightRange', 'grossTotal', 'netTotal', 'reservations', 'summaryGross',
+    'summaryCleaning', 'summaryCommission', 'summaryNet', 'ruleCleaning',
+    'ruleCommission', 'newReservationButton', 'adminSection', 'reservationForm',
+    'reservationId', 'guest', 'platform', 'status', 'checkIn', 'checkOut', 'gross',
+    'cleaningFee', 'commissionRate', 'calculatedNights', 'calculatedCommission',
+    'calculatedNet', 'formError', 'saveReservationButton', 'cancelEditButton',
   ];
 
   function getElements() {
@@ -22,101 +26,116 @@
     });
   }
 
-  function formatMoney(value) {
-    return moneyFormatter.format(Number.isFinite(value) ? value : 0);
-  }
+  function roundMoney(value) { return Math.round((value + Number.EPSILON) * 100) / 100; }
+  function formatMoney(value) { return moneyFormatter.format(Number.isFinite(value) ? value : 0); }
 
   function parseDate(value, fieldName) {
     if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
       throw new Error(`${fieldName} deve usar o formato AAAA-MM-DD.`);
     }
-
     const [year, month, day] = value.split('-').map(Number);
     const date = new Date(Date.UTC(year, month - 1, day));
-    if (
-      date.getUTCFullYear() !== year
-      || date.getUTCMonth() !== month - 1
-      || date.getUTCDate() !== day
-    ) {
+    if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
       throw new Error(`${fieldName} contém uma data inválida.`);
     }
     return date;
   }
 
   function formatDate(value) {
-    const date = parseDate(value, 'Data');
-    return new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC' }).format(date);
+    return new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC' }).format(parseDate(value, 'Data'));
   }
 
   function countNights(checkIn, checkOut) {
-    const start = parseDate(checkIn, 'Check-in');
-    const end = parseDate(checkOut, 'Check-out');
-    const total = (end.getTime() - start.getTime()) / 86400000;
-    if (!Number.isInteger(total) || total <= 0) {
-      throw new Error('O check-out deve ocorrer depois do check-in.');
-    }
+    const total = (parseDate(checkOut, 'Check-out') - parseDate(checkIn, 'Check-in')) / 86400000;
+    if (!Number.isInteger(total) || total <= 0) throw new Error('O check-out deve ocorrer depois do check-in.');
     return total;
   }
 
   function requireText(value, fieldName) {
-    if (typeof value !== 'string' || !value.trim()) {
-      throw new Error(`${fieldName} não foi informado.`);
-    }
+    if (typeof value !== 'string' || !value.trim()) throw new Error(`${fieldName} não foi informado.`);
     return value.trim();
   }
 
   function requireNonNegativeNumber(value, fieldName) {
-    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
-      throw new Error(`${fieldName} deve ser um número maior ou igual a zero.`);
-    }
-    return value;
+    const number = typeof value === 'number' ? value : Number(value);
+    if (!Number.isFinite(number) || number < 0) throw new Error(`${fieldName} deve ser maior ou igual a zero.`);
+    return number;
+  }
+
+  function calculateFinancials(grossValue, cleaningValue, commissionPercentage) {
+    const gross = requireNonNegativeNumber(grossValue, 'Valor bruto');
+    const cleaning = requireNonNegativeNumber(cleaningValue, 'Taxa de limpeza');
+    const rate = requireNonNegativeNumber(commissionPercentage, 'Comissão');
+    if (rate > 100) throw new Error('A comissão deve estar entre 0% e 100%.');
+    if (cleaning > gross) throw new Error('A taxa de limpeza não pode superar o valor bruto.');
+    const commissionBase = gross - cleaning;
+    const commission = roundMoney(commissionBase * (rate / 100));
+    return { gross, cleaning, commissionRate: rate, commission, net: roundMoney(commissionBase - commission) };
   }
 
   function validateDashboard(data) {
-    if (!data || typeof data !== 'object' || Array.isArray(data)) {
-      throw new Error('O arquivo de dados não contém um objeto válido.');
-    }
-
-    const commissionRate = requireNonNegativeNumber(data.commissionRate, 'Comissão');
-    if (commissionRate > 1) throw new Error('A comissão deve estar entre 0 e 1.');
+    if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('O arquivo de dados não contém um objeto válido.');
+    const commissionRate = requireNonNegativeNumber(data.commissionRate, 'Comissão padrão');
+    if (commissionRate > 1) throw new Error('A comissão padrão deve estar entre 0 e 1.');
     if (!Array.isArray(data.reservations)) throw new Error('A lista de reservas é inválida.');
-
     return {
-      property: requireText(data.property, 'Propriedade'),
-      city: requireText(data.city, 'Cidade'),
-      month: requireText(data.month, 'Mês'),
-      cleaningFee: requireNonNegativeNumber(data.cleaningFee, 'Taxa de limpeza'),
-      commissionRate,
-      reservations: data.reservations,
+      property: requireText(data.property, 'Propriedade'), city: requireText(data.city, 'Cidade'),
+      month: requireText(data.month, 'Mês'), cleaningFee: requireNonNegativeNumber(data.cleaningFee, 'Taxa de limpeza padrão'),
+      commissionRate, reservations: data.reservations,
     };
   }
 
-  function normalizeReservation(reservation, index, dashboard) {
-    if (!reservation || typeof reservation !== 'object' || Array.isArray(reservation)) {
-      throw new Error(`Reserva ${index + 1} é inválida.`);
-    }
+  function createId() {
+    if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+    return `res-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }
 
-    const gross = requireNonNegativeNumber(reservation.gross, `Valor bruto da reserva ${index + 1}`);
+  function normalizeReservation(reservation, index, defaults) {
+    if (!reservation || typeof reservation !== 'object' || Array.isArray(reservation)) throw new Error(`Reserva ${index + 1} é inválida.`);
+    const guest = requireText(reservation.guest, `Nome do hóspede da reserva ${index + 1}`);
     const checkIn = requireText(reservation.checkIn, `Check-in da reserva ${index + 1}`);
     const checkOut = requireText(reservation.checkOut, `Check-out da reserva ${index + 1}`);
     const nights = countNights(checkIn, checkOut);
-    const cleaning = gross > 0 ? dashboard.cleaningFee : 0;
-    const commissionBase = Math.max(0, gross - cleaning);
-    const commission = commissionBase * dashboard.commissionRate;
-
+    const platform = reservation.platform || 'Airbnb';
+    const status = reservation.status || 'estimado';
+    if (!PLATFORMS.includes(platform)) throw new Error(`Plataforma da reserva ${index + 1} é inválida.`);
+    if (!STATUSES.includes(status)) throw new Error(`Status da reserva ${index + 1} é inválido.`);
+    const cleaningFee = reservation.cleaningFee ?? (Number(reservation.gross) > 0 ? defaults.cleaningFee : 0);
+    const commissionRate = reservation.commissionRate ?? defaults.commissionRate * 100;
     return {
-      guest: typeof reservation.guest === 'string' ? reservation.guest.trim() : '',
-      checkIn,
-      checkOut,
-      status: typeof reservation.status === 'string' && reservation.status.trim()
-        ? reservation.status.trim()
-        : 'estimado',
-      nights,
-      gross,
-      cleaning,
-      commission,
-      net: commissionBase - commission,
+      id: typeof reservation.id === 'string' && reservation.id ? reservation.id : createId(),
+      guest, platform, checkIn, checkOut, status, nights,
+      ...calculateFinancials(reservation.gross, cleaningFee, commissionRate),
     };
+  }
+
+  function storageAvailable() {
+    try {
+      const testKey = `${STORAGE_KEY}-test`;
+      localStorage.setItem(testKey, '1'); localStorage.removeItem(testKey); return true;
+    } catch { return false; }
+  }
+
+  function saveReservations() {
+    if (!storageAvailable()) throw new Error('O armazenamento local não está disponível neste navegador.');
+    const records = dashboard.reservations.map(({ id, guest, platform, checkIn, checkOut, status, gross, cleaning, commissionRate }) => ({
+      id, guest, platform, checkIn, checkOut, status, gross, cleaningFee: cleaning, commissionRate,
+    }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, reservations: records }));
+  }
+
+  function loadStoredReservations(defaults) {
+    if (!storageAvailable()) return defaults;
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return defaults;
+    try {
+      const parsed = JSON.parse(stored);
+      if (parsed?.version !== 1 || !Array.isArray(parsed.reservations)) throw new Error();
+      return parsed.reservations;
+    } catch {
+      localStorage.removeItem(STORAGE_KEY);
+      return defaults;
+    }
   }
 
   function createElement(tag, className, text) {
@@ -127,125 +146,132 @@
   }
 
   function statusClass(status) {
-    return status
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '');
+    return status.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   }
 
   function breakdownItem(label, value, className = '') {
-    const item = createElement('div');
-    item.append(createElement('small', '', label));
-    item.append(createElement('b', className, value));
-    return item;
+    const item = createElement('div'); item.append(createElement('small', '', label)); item.append(createElement('b', className, value)); return item;
   }
 
-  function renderReservation(reservation, commissionRate) {
+  function renderReservation(reservation) {
     const article = createElement('article', 'booking');
     const top = createElement('div', 'bookingtop');
     const heading = createElement('div');
-
-    if (reservation.guest) heading.append(createElement('span', 'guest', reservation.guest));
-    heading.append(createElement(
-      'b',
-      '',
-      `${formatDate(reservation.checkIn)} → ${formatDate(reservation.checkOut)}`,
-    ));
-    heading.append(createElement(
-      'p',
-      '',
-      `${reservation.nights} ${reservation.nights === 1 ? 'noite' : 'noites'}`,
-    ));
-
-    const badge = createElement(
-      'span',
-      `status status-${statusClass(reservation.status)}`,
-      reservation.status,
-    );
-    top.append(heading, badge);
-
+    heading.append(createElement('span', 'guest', `${reservation.guest} • ${reservation.platform}`));
+    heading.append(createElement('b', '', `${formatDate(reservation.checkIn)} → ${formatDate(reservation.checkOut)}`));
+    heading.append(createElement('p', '', `${reservation.nights} ${reservation.nights === 1 ? 'noite' : 'noites'}`));
+    top.append(heading, createElement('span', `status status-${statusClass(reservation.status)}`, reservation.status));
     const breakdown = createElement('div', 'breakdown');
     breakdown.append(
-      breakdownItem('Valor bruto', formatMoney(reservation.gross)),
-      breakdownItem('Limpeza', `− ${formatMoney(reservation.cleaning)}`),
-      breakdownItem(`Comissão ${Math.round(commissionRate * 100)}%`, `− ${formatMoney(reservation.commission)}`),
-      breakdownItem('Seu repasse', formatMoney(reservation.net), 'green'),
+      breakdownItem('Valor bruto', formatMoney(reservation.gross)), breakdownItem('Limpeza', `− ${formatMoney(reservation.cleaning)}`),
+      breakdownItem(`Comissão ${reservation.commissionRate}%`, `− ${formatMoney(reservation.commission)}`), breakdownItem('Seu repasse', formatMoney(reservation.net), 'green'),
     );
-    article.append(top, breakdown);
-    return article;
+    const actions = createElement('div', 'booking-actions');
+    const edit = createElement('button', 'button button-secondary', 'Editar'); edit.type = 'button'; edit.dataset.action = 'edit'; edit.dataset.id = reservation.id;
+    const remove = createElement('button', 'button button-danger', 'Excluir'); remove.type = 'button'; remove.dataset.action = 'delete'; remove.dataset.id = reservation.id;
+    actions.append(edit, remove); article.append(top, breakdown, actions); return article;
   }
 
-  function render(data) {
-    const warnings = [];
-    const reservations = [];
-    data.reservations.forEach((reservation, index) => {
-      try {
-        reservations.push(normalizeReservation(reservation, index, data));
-      } catch (error) {
-        warnings.push(error.message);
-      }
-    });
-
-    const totals = reservations.reduce((result, reservation) => ({
-      nights: result.nights + reservation.nights,
-      gross: result.gross + reservation.gross,
-      cleaning: result.cleaning + reservation.cleaning,
-      commission: result.commission + reservation.commission,
-      net: result.net + reservation.net,
+  function render() {
+    const totals = dashboard.reservations.reduce((total, item) => ({
+      nights: total.nights + item.nights, gross: total.gross + item.gross, cleaning: total.cleaning + item.cleaning,
+      commission: total.commission + item.commission, net: total.net + item.net,
     }), { nights: 0, gross: 0, cleaning: 0, commission: 0, net: 0 });
-
-    elements.propertyName.textContent = data.property;
-    elements.subtitle.textContent = `Painel do Proprietário • ${data.city}`;
-    elements.monthLabel.textContent = data.month;
-    elements.periodCount.textContent = String(reservations.length);
+    elements.propertyName.textContent = dashboard.property;
+    elements.subtitle.textContent = `Painel do Proprietário • ${dashboard.city}`;
+    elements.monthLabel.textContent = dashboard.month;
+    elements.periodCount.textContent = String(dashboard.reservations.length);
     elements.nightCount.textContent = String(totals.nights);
-    elements.nightRange.textContent = reservations.length === 1
-      ? `${formatDate(reservations[0].checkIn)} → ${formatDate(reservations[0].checkOut)}`
-      : `${reservations.length} ${reservations.length === 1 ? 'período' : 'períodos'}`;
-    elements.grossTotal.textContent = formatMoney(totals.gross);
-    elements.netTotal.textContent = formatMoney(totals.net);
-    elements.summaryGross.textContent = formatMoney(totals.gross);
-    elements.summaryCleaning.textContent = formatMoney(totals.cleaning);
-    elements.summaryCommission.textContent = formatMoney(totals.commission);
-    elements.summaryNet.textContent = formatMoney(totals.net);
-    elements.ruleCleaning.textContent = formatMoney(data.cleaningFee);
-    elements.ruleCommission.textContent = `${Math.round(data.commissionRate * 100)}%`;
-
-    const fragment = document.createDocumentFragment();
-    reservations.forEach((reservation) => {
-      fragment.append(renderReservation(reservation, data.commissionRate));
-    });
+    elements.nightRange.textContent = `${dashboard.reservations.length} ${dashboard.reservations.length === 1 ? 'período' : 'períodos'}`;
+    elements.grossTotal.textContent = formatMoney(totals.gross); elements.netTotal.textContent = formatMoney(totals.net);
+    elements.summaryGross.textContent = formatMoney(totals.gross); elements.summaryCleaning.textContent = formatMoney(totals.cleaning);
+    elements.summaryCommission.textContent = formatMoney(totals.commission); elements.summaryNet.textContent = formatMoney(totals.net);
+    elements.ruleCleaning.textContent = formatMoney(dashboard.cleaningFee); elements.ruleCommission.textContent = `${dashboard.commissionRate * 100}%`;
+    const fragment = document.createDocumentFragment(); dashboard.reservations.forEach((item) => fragment.append(renderReservation(item)));
     elements.reservations.replaceChildren(fragment);
+  }
 
-    if (warnings.length) {
-      elements.appStatus.className = 'app-status warning';
-      elements.appStatus.textContent = `${warnings.length} reserva(s) inválida(s) não foram exibidas: ${warnings.join(' ')}`;
-      elements.appStatus.hidden = false;
-    } else {
-      elements.appStatus.hidden = true;
+  function updatePreview() {
+    elements.formError.hidden = true;
+    try {
+      elements.calculatedNights.textContent = String(elements.checkIn.value && elements.checkOut.value ? countNights(elements.checkIn.value, elements.checkOut.value) : 0);
+      const valuesReady = elements.gross.value !== '' && elements.cleaningFee.value !== '' && elements.commissionRate.value !== '';
+      const result = valuesReady ? calculateFinancials(elements.gross.value, elements.cleaningFee.value, elements.commissionRate.value) : { commission: 0, net: 0 };
+      elements.calculatedCommission.textContent = formatMoney(result.commission); elements.calculatedNet.textContent = formatMoney(result.net);
+    } catch (error) {
+      elements.calculatedNights.textContent = '—'; elements.calculatedCommission.textContent = '—'; elements.calculatedNet.textContent = '—';
     }
   }
 
-  function showError(error) {
-    elements.appStatus.className = 'app-status error';
-    elements.appStatus.textContent = `Não foi possível carregar o painel. ${error.message}`;
-    elements.appStatus.hidden = false;
+  function resetForm() {
+    elements.reservationForm.reset(); elements.reservationId.value = '';
+    elements.cleaningFee.value = String(dashboard.cleaningFee); elements.commissionRate.value = String(dashboard.commissionRate * 100);
+    elements.saveReservationButton.textContent = 'Salvar reserva'; elements.cancelEditButton.hidden = true; elements.formError.hidden = true; updatePreview();
   }
+
+  function readForm() {
+    if (!elements.reservationForm.reportValidity()) throw new Error('Preencha corretamente todos os campos obrigatórios.');
+    return normalizeReservation({
+      id: elements.reservationId.value || createId(), guest: elements.guest.value, platform: elements.platform.value,
+      status: elements.status.value, checkIn: elements.checkIn.value, checkOut: elements.checkOut.value,
+      gross: elements.gross.value, cleaningFee: elements.cleaningFee.value, commissionRate: elements.commissionRate.value,
+    }, 0, dashboard);
+  }
+
+  function showFormError(error) { elements.formError.textContent = error.message; elements.formError.hidden = false; }
+  function announce(message) { elements.appStatus.className = 'app-status success'; elements.appStatus.textContent = message; elements.appStatus.hidden = false; }
+
+  function submitReservation(event) {
+    event.preventDefault();
+    try {
+      const reservation = readForm();
+      const index = dashboard.reservations.findIndex((item) => item.id === reservation.id);
+      if (index >= 0) dashboard.reservations[index] = reservation; else dashboard.reservations.push(reservation);
+      saveReservations(); render(); resetForm(); announce(index >= 0 ? 'Reserva atualizada com sucesso.' : 'Reserva cadastrada com sucesso.');
+    } catch (error) { showFormError(error instanceof Error ? error : new Error('Não foi possível salvar a reserva.')); }
+  }
+
+  function editReservation(id) {
+    const item = dashboard.reservations.find((reservation) => reservation.id === id); if (!item) return;
+    elements.reservationId.value = item.id; elements.guest.value = item.guest; elements.platform.value = item.platform;
+    elements.status.value = item.status; elements.checkIn.value = item.checkIn; elements.checkOut.value = item.checkOut;
+    elements.gross.value = item.gross; elements.cleaningFee.value = item.cleaning; elements.commissionRate.value = item.commissionRate;
+    elements.saveReservationButton.textContent = 'Atualizar reserva'; elements.cancelEditButton.hidden = false; updatePreview();
+    elements.adminSection.scrollIntoView({ behavior: 'smooth', block: 'start' }); elements.guest.focus({ preventScroll: true });
+  }
+
+  function deleteReservation(id) {
+    const item = dashboard.reservations.find((reservation) => reservation.id === id);
+    if (!item || !window.confirm(`Excluir a reserva de ${item.guest}? Esta ação não pode ser desfeita.`)) return;
+    dashboard.reservations = dashboard.reservations.filter((reservation) => reservation.id !== id);
+    saveReservations(); render(); if (elements.reservationId.value === id) resetForm(); announce('Reserva excluída com sucesso.');
+  }
+
+  function bindEvents() {
+    elements.reservationForm.addEventListener('submit', submitReservation);
+    elements.reservationForm.addEventListener('input', updatePreview);
+    elements.cancelEditButton.addEventListener('click', resetForm);
+    elements.newReservationButton.addEventListener('click', () => { resetForm(); elements.adminSection.scrollIntoView({ behavior: 'smooth' }); elements.guest.focus({ preventScroll: true }); });
+    elements.reservations.addEventListener('click', (event) => {
+      const button = event.target.closest('button[data-action]'); if (!button) return;
+      if (button.dataset.action === 'edit') editReservation(button.dataset.id); else deleteReservation(button.dataset.id);
+    });
+  }
+
+  function showError(error) { elements.appStatus.className = 'app-status error'; elements.appStatus.textContent = `Não foi possível carregar o painel. ${error.message}`; elements.appStatus.hidden = false; }
 
   async function initialize() {
     try {
       getElements();
       const response = await fetch(`./data.json?ts=${Date.now()}`, { cache: 'no-store' });
       if (!response.ok) throw new Error(`O servidor respondeu com o status ${response.status}.`);
-      const dashboard = validateDashboard(await response.json());
-      render(dashboard);
-    } catch (error) {
-      if (elements.appStatus) showError(error instanceof Error ? error : new Error('Erro inesperado.'));
-      else console.error(error);
-    }
+      dashboard = validateDashboard(await response.json());
+      const source = loadStoredReservations(dashboard.reservations);
+      dashboard.reservations = source.map((item, index) => normalizeReservation(item, index, dashboard));
+      bindEvents(); render(); resetForm(); elements.appStatus.hidden = true;
+    } catch (error) { if (elements.appStatus) showError(error instanceof Error ? error : new Error('Erro inesperado.')); else console.error(error); }
   }
 
-  initialize();
+  if (typeof module !== 'undefined') module.exports = { countNights, calculateFinancials, normalizeReservation, validateDashboard };
+  if (typeof document !== 'undefined') initialize();
 })();

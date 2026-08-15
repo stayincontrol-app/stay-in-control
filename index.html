@@ -26,7 +26,7 @@
         <article>
           <small>Períodos cadastrados</small>
           <strong id="periodCount">0</strong>
-          <span>Airbnb</span>
+          <span>todas as plataformas</span>
         </article>
         <article>
           <small>Noites</small>
@@ -52,6 +52,7 @@
               <p class="eyebrow">Detalhamento</p>
               <h2>Reservas e períodos</h2>
             </div>
+            <button class="button button-primary" id="newReservationButton" type="button">Nova reserva</button>
           </div>
           <div id="reservations" class="reservations" aria-live="polite"></div>
         </div>
@@ -68,6 +69,79 @@
         </aside>
       </section>
 
+      <section class="panel admin" id="adminSection" aria-labelledby="adminTitle">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Administração</p>
+            <h2 id="adminTitle">Gerenciar reservas</h2>
+          </div>
+        </div>
+        <p class="admin-intro">Cadastre ou atualize reservas. Os totais do painel são recalculados automaticamente e os dados ficam salvos neste dispositivo.</p>
+        <form id="reservationForm" class="reservation-form" novalidate>
+          <input id="reservationId" type="hidden">
+          <div class="field field-wide">
+            <label for="guest">Nome do hóspede</label>
+            <input id="guest" name="guest" type="text" maxlength="100" autocomplete="name" required>
+          </div>
+          <div class="field">
+            <label for="platform">Plataforma</label>
+            <select id="platform" name="platform" required>
+              <option value="Airbnb">Airbnb</option>
+              <option value="Booking.com">Booking.com</option>
+              <option value="Direta">Direta</option>
+              <option value="Outra">Outra</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="status">Status</label>
+            <select id="status" name="status" required>
+              <option value="estimado">Estimado</option>
+              <option value="confirmado">Confirmado</option>
+              <option value="em andamento">Em andamento</option>
+              <option value="concluído">Concluído</option>
+              <option value="cancelado">Cancelado</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="checkIn">Check-in</label>
+            <input id="checkIn" name="checkIn" type="date" required>
+          </div>
+          <div class="field">
+            <label for="checkOut">Check-out</label>
+            <input id="checkOut" name="checkOut" type="date" required>
+          </div>
+          <div class="field output-field">
+            <span>Noites</span>
+            <output id="calculatedNights">0</output>
+          </div>
+          <div class="field">
+            <label for="gross">Valor bruto (R$)</label>
+            <input id="gross" name="gross" type="number" min="0" max="99999999.99" step="0.01" inputmode="decimal" required>
+          </div>
+          <div class="field">
+            <label for="cleaningFee">Taxa de limpeza (R$)</label>
+            <input id="cleaningFee" name="cleaningFee" type="number" min="0" max="99999999.99" step="0.01" inputmode="decimal" required>
+          </div>
+          <div class="field">
+            <label for="commissionRate">Comissão de gestão (%)</label>
+            <input id="commissionRate" name="commissionRate" type="number" min="0" max="100" step="0.01" inputmode="decimal" required>
+          </div>
+          <div class="field output-field">
+            <span>Comissão calculada</span>
+            <output id="calculatedCommission">R$ 0,00</output>
+          </div>
+          <div class="field output-field">
+            <span>Repasse ao proprietário</span>
+            <output id="calculatedNet" class="green">R$ 0,00</output>
+          </div>
+          <p id="formError" class="form-error field-wide" role="alert" hidden></p>
+          <div class="form-actions field-wide">
+            <button class="button button-primary" id="saveReservationButton" type="submit">Salvar reserva</button>
+            <button class="button button-secondary" id="cancelEditButton" type="button" hidden>Cancelar edição</button>
+          </div>
+        </form>
+      </section>
+
       <section class="panel rules" aria-labelledby="rulesTitle">
         <div>
           <p class="eyebrow">Como calculamos</p>
@@ -76,7 +150,7 @@
         <div class="rule-grid">
           <p><span>Limpeza</span><b><span id="ruleCleaning">R$ 0,00</span> por reserva</b></p>
           <p><span>Administração</span><b><span id="ruleCommission">0%</span> após limpeza</b></p>
-          <p><span>Fonte</span><b>Airbnb</b></p>
+          <p><span>Fonte</span><b>Reservas cadastradas</b></p>
         </div>
       </section>
     </main>
