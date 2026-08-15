@@ -6,6 +6,13 @@
   "commissionRate": 0.15,
   "reservations": [
     {
+      "guest": "Darlan",
+      "checkIn": "2026-08-10",
+      "checkOut": "2026-08-13",
+      "status": "estimado",
+      "gross": 582
+    },
+    {
       "checkIn": "2026-08-14",
       "checkOut": "2026-08-17",
       "status": "estimado",
