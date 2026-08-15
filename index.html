@@ -22,6 +22,56 @@
         Carregando dados do painel…
       </div>
 
+      <section class="panel monthly-report" id="monthlyReport" aria-labelledby="monthlyReportTitle">
+        <div class="report-toolbar no-print">
+          <div>
+            <p class="eyebrow">Fechamento</p>
+            <h2 id="monthlyReportTitle">Relatório Mensal / Fechamento Mensal</h2>
+          </div>
+          <div class="report-filters">
+            <div class="field">
+              <label for="reportMonth">Mês</label>
+              <select id="reportMonth" name="reportMonth"></select>
+            </div>
+            <div class="field">
+              <label for="reportYear">Ano</label>
+              <select id="reportYear" name="reportYear"></select>
+            </div>
+            <button class="button button-primary" id="generateReportButton" type="button">Gerar relatório</button>
+          </div>
+        </div>
+
+        <header class="print-report-header">
+          <div><p class="eyebrow">Relatório mensal</p><h2>AP207</h2><p>Curitiba</p></div>
+          <strong id="reportPeriod">—</strong>
+        </header>
+        <div class="report-metrics" aria-live="polite">
+          <div><small>Reservas</small><strong id="reportReservationsCount">0</strong></div>
+          <div><small>Noites ocupadas</small><strong id="reportOccupiedNights">0</strong></div>
+          <div><small>Dias disponíveis</small><strong id="reportAvailableDays">0</strong></div>
+          <div><small>Taxa de ocupação</small><strong id="reportOccupancyRate">0%</strong></div>
+          <div><small>Valor bruto</small><strong id="reportGross">R$ 0,00</strong></div>
+          <div><small>Média da diária</small><strong id="reportAverageDailyRate">R$ 0,00</strong></div>
+          <div><small>Total de limpeza</small><strong id="reportCleaning">R$ 0,00</strong></div>
+          <div><small>Comissão da administração</small><strong id="reportCommission">R$ 0,00</strong></div>
+        </div>
+        <div class="report-content">
+          <section class="report-financial" aria-labelledby="reportFinancialTitle">
+            <h3 id="reportFinancialTitle">Resumo financeiro</h3>
+            <dl class="summary-list">
+              <div class="line"><dt>Valor bruto</dt><dd id="reportSummaryGross">R$ 0,00</dd></div>
+              <div class="line subtraction"><dt>− Limpeza</dt><dd id="reportSummaryCleaning">R$ 0,00</dd></div>
+              <div class="line subtraction"><dt>− Comissão</dt><dd id="reportSummaryCommission">R$ 0,00</dd></div>
+              <div class="line subtotal"><dt>= Repasse antes das outras despesas</dt><dd id="reportBeforeExpenses">R$ 0,00</dd></div>
+              <div class="line subtraction"><dt>− Outras despesas</dt><dd id="reportOtherExpenses">R$ 0,00</dd></div>
+              <div class="line total"><dt>= REPASSE FINAL DO PROPRIETÁRIO</dt><dd id="reportFinalPayout">R$ 0,00</dd></div>
+            </dl>
+          </section>
+          <section><h3>Lista das reservas</h3><div id="reportReservations" class="report-list"></div></section>
+          <section><h3>Lista das despesas</h3><div id="reportExpenses" class="report-list"></div></section>
+        </div>
+      </section>
+
       <section class="cards" aria-label="Indicadores do período">
         <article>
           <small>Períodos cadastrados</small>
