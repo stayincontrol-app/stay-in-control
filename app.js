@@ -3,6 +3,7 @@
 
   const STORAGE_KEY = 'ap207-dashboard-reservations-v1';
   const EXPENSES_STORAGE_KEY = 'ap207-dashboard-expenses-v1';
+  const PROPERTIES_STORAGE_KEY = 'ap207-dashboard-properties-v1';
   const EXPENSE_CATEGORIES = ['Manutenção/Reparo', 'Compra para o apartamento', 'Reposição', 'Condomínio', 'Material', 'Serviço', 'Outro'];
   const PLATFORMS = ['Airbnb', 'Booking.com', 'Vrbo', 'Direto', 'Outro'];
   const STATUSES = ['Confirmada', 'Estimada', 'Pendente', 'Cancelada'];
@@ -15,6 +16,11 @@
   const moneyFormatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   const elements = {};
   let dashboard;
+  let users = [];
+  let properties = [];
+  let currentUser;
+  let currentProperty;
+  const access = globalThis.AP207Access || (typeof require !== 'undefined' ? require('./permissions.js') : null);
 
   const elementIds = [
     'appStatus', 'propertyName', 'subtitle', 'monthLabel', 'periodCount', 'nightCount',
@@ -31,7 +37,9 @@
     'reportCleaning', 'reportCommission', 'reportSummaryGross', 'reportSummaryCleaning', 'reportSummaryCommission',
     'reportBeforeExpenses', 'reportOtherExpenses', 'reportFinalPayout', 'reportReservations', 'reportExpenses',
     'nextCheckIn', 'nextCheckInGuest', 'nextCheckOut', 'nextCheckOutGuest', 'calendarMonth', 'calendarYear',
-    'previousMonth', 'nextMonth', 'calendarGrid', 'calendarDetails',
+    'previousMonth', 'nextMonth', 'calendarGrid', 'calendarDetails', 'ownerName', 'userSelector', 'propertySelector',
+    'propertySettings', 'editPropertyButton', 'propertyForm', 'propertyOwnerName', 'propertyTitle', 'propertyUnit',
+    'propertyCity', 'propertyState', 'propertyAddress', 'propertyCommission', 'cancelPropertyButton',
   ];
 
   function getElements() {
@@ -176,12 +184,29 @@
     const commissionRate = requireNonNegativeNumber(data.commissionRate, 'Comissão padrão');
     if (commissionRate > 1) throw new Error('A comissão padrão deve estar entre 0 e 1.');
     if (!Array.isArray(data.reservations)) throw new Error('A lista de reservas é inválida.');
+    const legacyProperty = { id: 'property-ap207', ownerName: 'Proprietário AP207', name: data.property, unit: data.property,
+      city: data.city, state: 'PR', address: 'Endereço a atualizar', commissionRate, administratorId: 'user-gestor', ownerId: 'user-owner' };
+    const validatedProperties = (data.properties || [legacyProperty]).map(validateProperty);
+    const validatedUsers = data.users || [{ id: 'user-super-admin', name: 'Super Administrador', role: 'super_admin', active: true }];
     return {
       property: requireText(data.property, 'Propriedade'), city: requireText(data.city, 'Cidade'),
       month: requireText(data.month, 'Mês'), cleaningFee: requireNonNegativeNumber(data.cleaningFee, 'Taxa de limpeza padrão'),
-      commissionRate, reservations: data.reservations,
+      commissionRate, reservations: data.reservations, users: validatedUsers, properties: validatedProperties,
+      currentUserId: data.currentUserId || validatedUsers[0].id,
     };
   }
+
+  function validateProperty(property) {
+    if (!property || typeof property !== 'object') throw new Error('Propriedade inválida.');
+    const rate = requireNonNegativeNumber(property.commissionRate, 'Comissão administrativa');
+    if (rate > 1) throw new Error('A comissão administrativa deve estar entre 0 e 1.');
+    return { id: requireText(property.id, 'ID da propriedade'), ownerName: requireText(property.ownerName, 'Nome do proprietário'),
+      name: requireText(property.name, 'Nome da propriedade'), unit: requireText(property.unit, 'Unidade'), city: requireText(property.city, 'Cidade'),
+      state: requireText(property.state, 'Estado'), address: requireText(property.address, 'Endereço'), commissionRate: rate,
+      administratorId: requireText(property.administratorId, 'Administrador responsável'), ownerId: requireText(property.ownerId, 'Proprietário vinculado') };
+  }
+
+  function requireAccess(permission) { return access.authorize(currentUser, currentProperty, permission); }
 
   function createId() {
     if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
@@ -219,33 +244,46 @@
     const records = dashboard.reservations.map(({ id, guest, platform, checkIn, checkOut, status, gross, cleaning, commissionRate }) => ({
       id, guest, platform, checkIn, checkOut, status, gross, cleaningFee: cleaning, commissionRate,
     }));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, reservations: records }));
+    localStorage.setItem(`${STORAGE_KEY}:${currentProperty.id}`, JSON.stringify({ version: 1, reservations: records }));
   }
 
   function loadStoredReservations(defaults) {
     if (!storageAvailable()) return defaults;
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const scopedKey = `${STORAGE_KEY}:${currentProperty.id}`;
+    const stored = localStorage.getItem(scopedKey) || localStorage.getItem(STORAGE_KEY);
     if (!stored) return defaults;
     try {
       const parsed = JSON.parse(stored);
       if (parsed?.version !== 1 || !Array.isArray(parsed.reservations)) throw new Error();
       return parsed.reservations;
     } catch {
-      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(scopedKey);
       return defaults;
     }
   }
 
   function saveExpenses() {
     if (!storageAvailable()) throw new Error('O armazenamento local não está disponível neste navegador.');
-    localStorage.setItem(EXPENSES_STORAGE_KEY, JSON.stringify({ version: 1, expenses: dashboard.expenses }));
+    localStorage.setItem(`${EXPENSES_STORAGE_KEY}:${currentProperty.id}`, JSON.stringify({ version: 1, expenses: dashboard.expenses }));
   }
 
   function loadStoredExpenses() {
     if (!storageAvailable()) return [];
-    const stored = localStorage.getItem(EXPENSES_STORAGE_KEY); if (!stored) return [];
+    const scopedKey = `${EXPENSES_STORAGE_KEY}:${currentProperty.id}`; const stored = localStorage.getItem(scopedKey) || localStorage.getItem(EXPENSES_STORAGE_KEY); if (!stored) return [];
     try { const parsed = JSON.parse(stored); if (parsed?.version !== 1 || !Array.isArray(parsed.expenses)) throw new Error(); return parsed.expenses; }
-    catch { localStorage.removeItem(EXPENSES_STORAGE_KEY); return []; }
+    catch { localStorage.removeItem(scopedKey); return []; }
+  }
+
+  function saveProperties() {
+    if (!storageAvailable()) throw new Error('O armazenamento local não está disponível neste navegador.');
+    localStorage.setItem(PROPERTIES_STORAGE_KEY, JSON.stringify({ version: 1, properties }));
+  }
+
+  function loadStoredProperties(defaults) {
+    if (!storageAvailable()) return defaults;
+    const stored = localStorage.getItem(PROPERTIES_STORAGE_KEY); if (!stored) return defaults;
+    try { const parsed = JSON.parse(stored); if (parsed?.version !== 1 || !Array.isArray(parsed.properties)) throw new Error(); return parsed.properties.map(validateProperty); }
+    catch { localStorage.removeItem(PROPERTIES_STORAGE_KEY); return defaults; }
   }
 
   function createElement(tag, className, text) {
@@ -279,7 +317,10 @@
     const actions = createElement('div', 'booking-actions');
     const edit = createElement('button', 'button button-secondary', 'Editar'); edit.type = 'button'; edit.dataset.action = 'edit'; edit.dataset.id = reservation.id;
     const remove = createElement('button', 'button button-danger', 'Excluir'); remove.type = 'button'; remove.dataset.action = 'delete'; remove.dataset.id = reservation.id;
-    actions.append(edit, remove); article.append(top, breakdown, actions); return article;
+    if (access.hasPermission(currentUser, 'reservation:update')) actions.append(edit);
+    if (access.hasPermission(currentUser, 'reservation:delete')) actions.append(remove);
+    if (actions.children.length) article.append(top, breakdown, actions); else article.append(top, breakdown);
+    return article;
   }
 
   function renderExpense(expense) {
@@ -291,7 +332,9 @@
     const actions = createElement('div', 'expense-actions');
     const edit = createElement('button', 'button button-secondary', 'Editar'); edit.type = 'button'; edit.dataset.action = 'edit'; edit.dataset.id = expense.id;
     const remove = createElement('button', 'button button-danger', 'Excluir'); remove.type = 'button'; remove.dataset.action = 'delete'; remove.dataset.id = expense.id;
-    actions.append(edit, remove); article.append(date, category, description, value, actions); return article;
+    if (access.hasPermission(currentUser, 'expense:update')) actions.append(edit);
+    if (access.hasPermission(currentUser, 'expense:delete')) actions.append(remove);
+    article.append(date, category, description, value); if (actions.children.length) article.append(actions); return article;
   }
 
   function reportListItem(columns) {
@@ -386,8 +429,13 @@
     const totals = calculateTotals(dashboard.reservations);
     const expensesTotal = calculateExpensesTotal(dashboard.expenses);
     const finalPayout = calculateFinalPayout(totals.net, expensesTotal);
-    elements.propertyName.textContent = dashboard.property;
-    elements.subtitle.textContent = `Painel do Proprietário • ${dashboard.city}`;
+    elements.ownerName.textContent = `Proprietário: ${currentProperty.ownerName}`;
+    elements.propertyName.textContent = `Unidade: ${currentProperty.name} / ${currentProperty.unit}`;
+    elements.subtitle.textContent = `${currentProperty.city} • ${currentProperty.state}`;
+    elements.newReservationButton.hidden = !access.hasPermission(currentUser, 'reservation:create');
+    elements.adminSection.hidden = !access.hasPermission(currentUser, 'reservation:create');
+    elements.newExpenseButton.hidden = !access.hasPermission(currentUser, 'expense:create');
+    elements.propertySettings.hidden = !access.hasPermission(currentUser, 'property:update');
     elements.monthLabel.textContent = dashboard.month;
     elements.periodCount.textContent = String(dashboard.reservations.length);
     elements.nightCount.textContent = String(totals.nights);
@@ -423,16 +471,19 @@
   function submitExpense(event) {
     event.preventDefault(); elements.expenseFormError.hidden = true;
     try { const expense = readExpenseForm(); const editing = dashboard.expenses.some((item) => item.id === expense.id);
+      requireAccess(editing ? 'expense:update' : 'expense:create');
       dashboard.expenses = upsertExpense(dashboard.expenses, expense); saveExpenses(); render(); resetExpenseForm(); announce(editing ? 'Despesa atualizada com sucesso.' : 'Despesa cadastrada com sucesso.');
     } catch (error) { elements.expenseFormError.textContent = error.message; elements.expenseFormError.hidden = false; }
   }
   function editExpense(id) {
+    requireAccess('expense:update');
     const item = dashboard.expenses.find((expense) => expense.id === id); if (!item) return;
     elements.expenseForm.hidden = false; elements.expenseId.value = item.id; elements.expenseDate.value = item.date;
     elements.expenseCategory.value = item.category; elements.expenseDescription.value = item.description; elements.expenseValue.value = item.value;
     elements.saveExpenseButton.textContent = 'Atualizar despesa'; elements.expenseFormError.hidden = true; elements.expenseForm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
   function deleteExpense(id) {
+    requireAccess('expense:delete');
     const item = dashboard.expenses.find((expense) => expense.id === id);
     if (!item || !window.confirm(`Excluir a despesa “${item.description}”? Esta ação não pode ser desfeita.`)) return;
     dashboard.expenses = removeExpense(dashboard.expenses, id); saveExpenses(); render(); if (elements.expenseId.value === id) resetExpenseForm(); announce('Despesa excluída com sucesso.');
@@ -473,12 +524,14 @@
     try {
       const reservation = readForm();
       const index = dashboard.reservations.findIndex((item) => item.id === reservation.id);
+      requireAccess(index >= 0 ? 'reservation:update' : 'reservation:create');
       dashboard.reservations = upsertReservation(dashboard.reservations, reservation);
       saveReservations(); render(); resetForm(); announce(index >= 0 ? 'Reserva atualizada com sucesso.' : 'Reserva cadastrada com sucesso.');
     } catch (error) { showFormError(error instanceof Error ? error : new Error('Não foi possível salvar a reserva.')); }
   }
 
   function editReservation(id) {
+    requireAccess('reservation:update');
     const item = dashboard.reservations.find((reservation) => reservation.id === id); if (!item) return;
     elements.reservationId.value = item.id; elements.guest.value = item.guest; elements.platform.value = item.platform;
     elements.status.value = item.status; elements.checkIn.value = item.checkIn; elements.checkOut.value = item.checkOut;
@@ -488,10 +541,57 @@
   }
 
   function deleteReservation(id) {
+    requireAccess('reservation:delete');
     const item = dashboard.reservations.find((reservation) => reservation.id === id);
     if (!item || !window.confirm(`Excluir a reserva de ${item.guest}? Esta ação não pode ser desfeita.`)) return;
     dashboard.reservations = removeReservation(dashboard.reservations, id);
     saveReservations(); render(); if (elements.reservationId.value === id) resetForm(); announce('Reserva excluída com sucesso.');
+  }
+
+  function fillPropertyForm() {
+    elements.propertyOwnerName.value = currentProperty.ownerName; elements.propertyTitle.value = currentProperty.name;
+    elements.propertyUnit.value = currentProperty.unit; elements.propertyCity.value = currentProperty.city;
+    elements.propertyState.value = currentProperty.state; elements.propertyAddress.value = currentProperty.address;
+    elements.propertyCommission.value = String(currentProperty.commissionRate * 100);
+  }
+
+  function editProperty() {
+    requireAccess('property:update'); fillPropertyForm(); elements.propertyForm.hidden = false;
+  }
+
+  function submitProperty(event) {
+    event.preventDefault();
+    try {
+      requireAccess('property:update');
+      const updated = validateProperty({ ...currentProperty, ownerName: elements.propertyOwnerName.value, name: elements.propertyTitle.value,
+        unit: elements.propertyUnit.value, city: elements.propertyCity.value, state: elements.propertyState.value.toUpperCase(), address: elements.propertyAddress.value,
+        commissionRate: Number(elements.propertyCommission.value) / 100 });
+      properties = properties.map((item) => item.id === updated.id ? updated : item); currentProperty = updated;
+      dashboard.property = updated.name; dashboard.city = updated.city; dashboard.commissionRate = updated.commissionRate;
+      saveProperties(); elements.propertyForm.hidden = true; render(); preparePropertySelector(); announce('Propriedade atualizada com sucesso.');
+    } catch (error) { announce(error.message); }
+  }
+
+  function preparePropertySelector() {
+    const allowed = access.visibleProperties(currentUser, properties);
+    if (!allowed.some((item) => item.id === currentProperty?.id)) currentProperty = allowed[0];
+    elements.propertySelector.replaceChildren(...allowed.map((item) => { const option = createElement('option', '', `${item.name} • ${item.city}`); option.value = item.id; return option; }));
+    if (currentProperty) elements.propertySelector.value = currentProperty.id;
+  }
+
+  function prepareUserSelector() {
+    elements.userSelector.replaceChildren(...users.filter(access.isActive).map((user) => {
+      const labels = { super_admin: 'Super administrador', admin: 'Administrador / Gestor', owner: 'Proprietário' };
+      const option = createElement('option', '', `${user.name} — ${labels[user.role]}`); option.value = user.id; return option;
+    }));
+    elements.userSelector.value = currentUser.id;
+  }
+
+  function changeUser() {
+    currentUser = users.find((user) => user.id === elements.userSelector.value);
+    preparePropertySelector();
+    if (!currentProperty) { showError(new Error('Este usuário não possui propriedades atribuídas.')); return; }
+    resetForm(); resetExpenseForm(); render(); announce(`Perfil de demonstração: ${currentUser.name}.`);
   }
 
   function bindEvents() {
@@ -514,6 +614,10 @@
     window.addEventListener('afterprint', () => document.body.classList.remove('printing-report'));
     elements.calendarMonth.addEventListener('change', renderCalendar); elements.calendarYear.addEventListener('change', renderCalendar);
     elements.previousMonth.addEventListener('click', () => changeCalendarMonth(-1)); elements.nextMonth.addEventListener('click', () => changeCalendarMonth(1));
+    elements.userSelector.addEventListener('change', changeUser);
+    elements.propertySelector.addEventListener('change', () => { currentProperty = access.visibleProperties(currentUser, properties).find((item) => item.id === elements.propertySelector.value); render(); });
+    elements.editPropertyButton.addEventListener('click', editProperty); elements.propertyForm.addEventListener('submit', submitProperty);
+    elements.cancelPropertyButton.addEventListener('click', () => { elements.propertyForm.hidden = true; });
   }
 
   function showError(error) { elements.appStatus.className = 'app-status error'; elements.appStatus.textContent = `Não foi possível carregar o painel. ${error.message}`; elements.appStatus.hidden = false; }
@@ -524,10 +628,16 @@
       const response = await fetch(`./data.json?ts=${Date.now()}`, { cache: 'no-store' });
       if (!response.ok) throw new Error(`O servidor respondeu com o status ${response.status}.`);
       dashboard = validateDashboard(await response.json());
+      users = dashboard.users; properties = loadStoredProperties(dashboard.properties);
+      currentUser = users.find((user) => user.id === dashboard.currentUserId && access.isActive(user)) || users.find(access.isActive);
+      if (!currentUser) throw new Error('Não existe usuário ativo para acessar o sistema.');
+      currentProperty = access.visibleProperties(currentUser, properties)[0];
+      if (!currentProperty) throw new Error('O usuário não possui propriedades atribuídas.');
+      dashboard.property = currentProperty.name; dashboard.city = currentProperty.city; dashboard.commissionRate = currentProperty.commissionRate;
       const source = loadStoredReservations(dashboard.reservations);
       dashboard.reservations = source.map((item, index) => normalizeReservation(item, index, dashboard));
       dashboard.expenses = loadStoredExpenses().map(normalizeExpense);
-      prepareReportFilters(); prepareCalendarFilters(); bindEvents(); render(); resetForm(); resetExpenseForm();
+      prepareUserSelector(); preparePropertySelector(); prepareReportFilters(); prepareCalendarFilters(); bindEvents(); render(); resetForm(); resetExpenseForm();
       showScreen(['home', 'reservations', 'calendar', 'expenses', 'reports'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home', false); elements.appStatus.hidden = true;
     } catch (error) { if (elements.appStatus) showError(error instanceof Error ? error : new Error('Erro inesperado.')); else console.error(error); }
   }
@@ -535,7 +645,7 @@
   if (typeof module !== 'undefined') module.exports = {
     countNights, calculateFinancials, calculateTotals, normalizeReservation, removeReservation, upsertReservation, validateDashboard,
     normalizeExpense, upsertExpense, removeExpense, calculateExpensesTotal, calculateFinalPayout,
-    isInMonth, nightsInMonth, calculateMonthlyReport, getCalendarDays, getNextStay,
+    isInMonth, nightsInMonth, calculateMonthlyReport, getCalendarDays, getNextStay, validateProperty,
   };
   if (typeof document !== 'undefined') initialize();
 })();

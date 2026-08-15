@@ -18,16 +18,34 @@
     <main class="container">
       <header class="page-header">
         <div>
-          <p class="eyebrow">Painel do proprietário</p>
-          <h1 id="propertyName">AP207</h1>
+          <p class="eyebrow" id="ownerName">Proprietário: —</p>
+          <h1 id="propertyName">Unidade: AP207</h1>
           <p id="subtitle">Curitiba</p>
         </div>
-        <span class="month" id="monthLabel" aria-label="Período do relatório">—</span>
+        <div class="header-controls no-print">
+          <label for="userSelector">Perfil de demonstração</label><select id="userSelector"></select>
+          <label for="propertySelector">Propriedade</label><select id="propertySelector"></select>
+          <span class="month" id="monthLabel" aria-label="Período do relatório">—</span>
+        </div>
       </header>
 
       <div id="appStatus" class="app-status" role="status" aria-live="polite">
         Carregando dados do painel…
       </div>
+
+      <section class="panel property-settings" id="propertySettings" hidden aria-labelledby="propertySettingsTitle">
+        <div class="panel-heading"><div><p class="eyebrow">Administração</p><h2 id="propertySettingsTitle">Editar propriedade</h2></div><button id="editPropertyButton" class="button button-secondary" type="button">Editar propriedade</button></div>
+        <form id="propertyForm" class="property-form" hidden>
+          <div class="field"><label for="propertyOwnerName">Nome do proprietário</label><input id="propertyOwnerName" required></div>
+          <div class="field"><label for="propertyTitle">Nome da propriedade</label><input id="propertyTitle" required></div>
+          <div class="field"><label for="propertyUnit">Apartamento/unidade</label><input id="propertyUnit" required></div>
+          <div class="field"><label for="propertyCity">Cidade</label><input id="propertyCity" required></div>
+          <div class="field"><label for="propertyState">Estado</label><input id="propertyState" maxlength="2" required></div>
+          <div class="field field-wide"><label for="propertyAddress">Endereço</label><input id="propertyAddress" required></div>
+          <div class="field"><label for="propertyCommission">Comissão administrativa (%)</label><input id="propertyCommission" type="number" min="0" max="100" step="0.01" required></div>
+          <div class="form-actions field-wide"><button class="button button-primary" type="submit">Salvar propriedade</button><button id="cancelPropertyButton" class="button button-secondary" type="button">Cancelar</button></div>
+        </form>
+      </section>
 
       <div class="app-screen" data-screen-panel="reports" hidden>
       <section class="panel monthly-report" id="monthlyReport" aria-labelledby="monthlyReportTitle">
@@ -284,6 +302,7 @@
         </div>
       </section>
     </main>
+    <script src="./permissions.js" defer></script>
     <script src="./app.js" defer></script>
   </body>
 </html>
