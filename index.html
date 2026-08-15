@@ -1,1 +1,85 @@
-<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AP207</title><link rel="stylesheet" href="/style.css"></head><body><main class="container"><header><div><h1 id="propertyName">AP207</h1><p id="subtitle">Painel do Proprietário • Curitiba</p></div><span class="month" id="monthLabel"></span></header><section class="cards"><article><small>Períodos fechados</small><strong id="periodCount">0</strong><span>Airbnb</span></article><article><small>Noites</small><strong id="nightCount">0</strong><span id="nightRange">—</span></article><article><small>Valor estimado</small><strong id="grossTotal">R$ 0,00</strong><span>mês atual</span></article><article><small>Repasse estimado</small><strong class="green" id="netTotal">R$ 0,00</strong><span>após custos</span></article></section><section class="layout"><div class="panel"><h2>Reservas / períodos fechados</h2><div id="reservations"></div></div><aside class="panel"><h2>Resumo financeiro</h2><p class="line"><span>Bruto</span><b id="summaryGross"></b></p><p class="line"><span>Limpeza</span><b id="summaryCleaning"></b></p><p class="line"><span>Comissão</span><b id="summaryCommission"></b></p><p class="line total"><span>Seu repasse</span><b id="summaryNet"></b></p></aside></section><section class="panel rules"><h2>Regras</h2><p>Limpeza: <b id="ruleCleaning"></b> por reserva</p><p>Administração: <b id="ruleCommission"></b> após limpeza</p><p>Fonte: Airbnb</p></section></main><script src="/app.js"></script></body></html>
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Painel financeiro da propriedade AP207">
+    <title>AP207 | Painel do Proprietário</title>
+    <link rel="stylesheet" href="./style.css">
+  </head>
+  <body>
+    <main class="container">
+      <header class="page-header">
+        <div>
+          <p class="eyebrow">Painel do proprietário</p>
+          <h1 id="propertyName">AP207</h1>
+          <p id="subtitle">Curitiba</p>
+        </div>
+        <span class="month" id="monthLabel" aria-label="Período do relatório">—</span>
+      </header>
+
+      <div id="appStatus" class="app-status" role="status" aria-live="polite">
+        Carregando dados do painel…
+      </div>
+
+      <section class="cards" aria-label="Indicadores do período">
+        <article>
+          <small>Períodos cadastrados</small>
+          <strong id="periodCount">0</strong>
+          <span>Airbnb</span>
+        </article>
+        <article>
+          <small>Noites</small>
+          <strong id="nightCount">0</strong>
+          <span id="nightRange">—</span>
+        </article>
+        <article>
+          <small>Valor estimado</small>
+          <strong id="grossTotal">R$ 0,00</strong>
+          <span>mês atual</span>
+        </article>
+        <article>
+          <small>Repasse estimado</small>
+          <strong class="green" id="netTotal">R$ 0,00</strong>
+          <span>após custos</span>
+        </article>
+      </section>
+
+      <section class="layout" aria-label="Detalhes do período">
+        <div class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Detalhamento</p>
+              <h2>Reservas e períodos</h2>
+            </div>
+          </div>
+          <div id="reservations" class="reservations" aria-live="polite"></div>
+        </div>
+
+        <aside class="panel summary" aria-labelledby="summaryTitle">
+          <p class="eyebrow">Consolidado</p>
+          <h2 id="summaryTitle">Resumo financeiro</h2>
+          <dl class="summary-list">
+            <div class="line"><dt>Bruto</dt><dd id="summaryGross">R$ 0,00</dd></div>
+            <div class="line"><dt>Limpeza</dt><dd id="summaryCleaning">R$ 0,00</dd></div>
+            <div class="line"><dt>Comissão</dt><dd id="summaryCommission">R$ 0,00</dd></div>
+            <div class="line total"><dt>Seu repasse</dt><dd id="summaryNet">R$ 0,00</dd></div>
+          </dl>
+        </aside>
+      </section>
+
+      <section class="panel rules" aria-labelledby="rulesTitle">
+        <div>
+          <p class="eyebrow">Como calculamos</p>
+          <h2 id="rulesTitle">Regras</h2>
+        </div>
+        <div class="rule-grid">
+          <p><span>Limpeza</span><b><span id="ruleCleaning">R$ 0,00</span> por reserva</b></p>
+          <p><span>Administração</span><b><span id="ruleCommission">0%</span> após limpeza</b></p>
+          <p><span>Fonte</span><b>Airbnb</b></p>
+        </div>
+      </section>
+    </main>
+    <script src="./app.js" defer></script>
+  </body>
+</html>
