@@ -8,6 +8,13 @@
     <link rel="stylesheet" href="./style.css">
   </head>
   <body>
+    <nav class="app-nav" aria-label="Navegação principal">
+      <button class="nav-item active" type="button" data-screen="home" aria-current="page"><span aria-hidden="true">⌂</span>Início</button>
+      <button class="nav-item" type="button" data-screen="reservations"><span aria-hidden="true">☷</span>Reservas</button>
+      <button class="nav-item" type="button" data-screen="calendar"><span aria-hidden="true">▦</span>Calendário</button>
+      <button class="nav-item" type="button" data-screen="expenses"><span aria-hidden="true">$</span>Despesas</button>
+      <button class="nav-item" type="button" data-screen="reports"><span aria-hidden="true">≡</span>Relatórios</button>
+    </nav>
     <main class="container">
       <header class="page-header">
         <div>
@@ -22,6 +29,7 @@
         Carregando dados do painel…
       </div>
 
+      <div class="app-screen" data-screen-panel="reports" hidden>
       <section class="panel monthly-report" id="monthlyReport" aria-labelledby="monthlyReportTitle">
         <div class="report-toolbar no-print">
           <div>
@@ -71,20 +79,23 @@
           <section><h3>Lista das despesas</h3><div id="reportExpenses" class="report-list"></div></section>
         </div>
       </section>
+      </div>
 
+      <div class="app-screen" data-screen-panel="home">
+      <div class="screen-heading"><p class="eyebrow">Visão geral</p><h2>Início</h2></div>
       <section class="cards" aria-label="Indicadores do período">
         <article>
-          <small>Períodos cadastrados</small>
+          <small>Reservas</small>
           <strong id="periodCount">0</strong>
           <span>todas as plataformas</span>
         </article>
         <article>
-          <small>Noites</small>
+          <small>Noites ocupadas</small>
           <strong id="nightCount">0</strong>
           <span id="nightRange">—</span>
         </article>
         <article>
-          <small>Valor estimado</small>
+          <small>Valor bruto</small>
           <strong id="grossTotal">R$ 0,00</strong>
           <span>mês atual</span>
         </article>
@@ -94,8 +105,27 @@
           <span>após todas as despesas</span>
         </article>
       </section>
+      <section class="home-grid" aria-label="Resumo do período">
+        <aside class="panel summary" aria-labelledby="summaryTitle">
+          <p class="eyebrow">Consolidado</p><h2 id="summaryTitle">Resumo financeiro</h2>
+          <dl class="summary-list">
+            <div class="line"><dt>Valor bruto</dt><dd id="summaryGross">R$ 0,00</dd></div>
+            <div class="line"><dt>Limpeza</dt><dd id="summaryCleaning">R$ 0,00</dd></div>
+            <div class="line"><dt>Comissão</dt><dd id="summaryCommission">R$ 0,00</dd></div>
+            <div class="line"><dt>Repasse antes de despesas</dt><dd id="summaryNetBeforeExpenses">R$ 0,00</dd></div>
+            <div class="line expense-total"><dt>Outras despesas</dt><dd id="summaryExpenses">R$ 0,00</dd></div>
+            <div class="line total"><dt>Repasse final</dt><dd id="summaryNet">R$ 0,00</dd></div>
+          </dl>
+        </aside>
+        <section class="panel next-stays" aria-labelledby="nextStaysTitle"><p class="eyebrow">Agenda</p><h2 id="nextStaysTitle">Próximas movimentações</h2>
+          <div class="next-stay"><small>Próximo check-in</small><strong id="nextCheckIn">—</strong><span id="nextCheckInGuest">Nenhum agendado</span></div>
+          <div class="next-stay"><small>Próximo check-out</small><strong id="nextCheckOut">—</strong><span id="nextCheckOutGuest">Nenhum agendado</span></div>
+        </section>
+      </section>
+      </div>
 
-      <section class="layout" aria-label="Detalhes do período">
+      <div class="app-screen" data-screen-panel="reservations" hidden>
+      <section class="layout reservations-layout" aria-label="Reservas">
         <div class="panel">
           <div class="panel-heading">
             <div>
@@ -107,73 +137,12 @@
           <div id="reservations" class="reservations" aria-live="polite"></div>
         </div>
 
-        <aside class="panel summary" aria-labelledby="summaryTitle">
-          <p class="eyebrow">Consolidado</p>
-          <h2 id="summaryTitle">Resumo financeiro</h2>
-          <dl class="summary-list">
-            <div class="line"><dt>Bruto</dt><dd id="summaryGross">R$ 0,00</dd></div>
-            <div class="line"><dt>Limpeza</dt><dd id="summaryCleaning">R$ 0,00</dd></div>
-            <div class="line"><dt>Comissão</dt><dd id="summaryCommission">R$ 0,00</dd></div>
-            <div class="line"><dt>Repasse antes de despesas</dt><dd id="summaryNetBeforeExpenses">R$ 0,00</dd></div>
-            <div class="line expense-total"><dt>Outras despesas</dt><dd id="summaryExpenses">R$ 0,00</dd></div>
-            <div class="line total"><dt>Repasse final</dt><dd id="summaryNet">R$ 0,00</dd></div>
-          </dl>
-        </aside>
       </section>
-
-      <section class="panel expenses-section" id="expensesSection" aria-labelledby="expensesTitle">
-        <div class="panel-heading">
-          <div>
-            <p class="eyebrow">Controle financeiro</p>
-            <h2 id="expensesTitle">Outras despesas</h2>
-          </div>
-          <button class="button button-primary" id="newExpenseButton" type="button">Nova despesa</button>
-        </div>
-        <div class="expenses-total" aria-live="polite">
-          <span>Total de outras despesas</span>
-          <strong id="expensesTotal">R$ 0,00</strong>
-        </div>
-        <div id="expenses" class="expenses" aria-live="polite"></div>
-
-        <form id="expenseForm" class="expense-form" novalidate hidden>
-          <input id="expenseId" type="hidden">
-          <div class="field">
-            <label for="expenseDate">Data</label>
-            <input id="expenseDate" name="expenseDate" type="date" required>
-          </div>
-          <div class="field">
-            <label for="expenseCategory">Categoria</label>
-            <select id="expenseCategory" name="expenseCategory" required>
-              <option value="Manutenção/Reparo">Manutenção/Reparo</option>
-              <option value="Compra para o apartamento">Compra para o apartamento</option>
-              <option value="Reposição">Reposição</option>
-              <option value="Condomínio">Condomínio</option>
-              <option value="Material">Material</option>
-              <option value="Serviço">Serviço</option>
-              <option value="Outro">Outro</option>
-            </select>
-          </div>
-          <div class="field field-wide">
-            <label for="expenseDescription">Descrição</label>
-            <input id="expenseDescription" name="expenseDescription" type="text" maxlength="160" required>
-          </div>
-          <div class="field">
-            <label for="expenseValue">Valor (R$)</label>
-            <input id="expenseValue" name="expenseValue" type="number" min="0" max="99999999.99" step="0.01" inputmode="decimal" required>
-          </div>
-          <p id="expenseFormError" class="form-error field-wide" role="alert" hidden></p>
-          <div class="form-actions field-wide">
-            <button class="button button-primary" id="saveExpenseButton" type="submit">Salvar despesa</button>
-            <button class="button button-secondary" id="cancelExpenseButton" type="button">Cancelar</button>
-          </div>
-        </form>
-      </section>
-
       <section class="panel admin" id="adminSection" aria-labelledby="adminTitle">
         <div class="panel-heading">
           <div>
             <p class="eyebrow">Administração</p>
-            <h2 id="adminTitle">Gerenciar reservas</h2>
+          <h2 id="adminTitle">Gerenciar reservas</h2>
           </div>
         </div>
         <p class="admin-intro">Cadastre ou atualize reservas. Os totais do painel são recalculados automaticamente e os dados ficam salvos neste dispositivo.</p>
@@ -241,8 +210,69 @@
           </div>
         </form>
       </section>
+      </div>
 
-      <section class="panel rules" aria-labelledby="rulesTitle">
+      <div class="app-screen" data-screen-panel="calendar" hidden>
+      <section class="panel calendar-section" aria-labelledby="calendarTitle">
+        <div class="calendar-toolbar"><div><p class="eyebrow">Ocupação</p><h2 id="calendarTitle">Calendário</h2></div><div class="calendar-controls"><button id="previousMonth" class="button button-secondary" type="button" aria-label="Mês anterior">‹</button><label class="sr-only" for="calendarMonth">Mês</label><select id="calendarMonth"></select><label class="sr-only" for="calendarYear">Ano</label><select id="calendarYear"></select><button id="nextMonth" class="button button-secondary" type="button" aria-label="Próximo mês">›</button></div></div>
+        <div class="calendar-legend"><span><i class="free"></i>Livre</span><span><i class="reserved"></i>Reservado</span><span><i class="checkin"></i>Check-in</span><span><i class="checkout"></i>Check-out</span></div>
+        <div class="calendar-weekdays" aria-hidden="true"><span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span></div>
+        <div id="calendarGrid" class="calendar-grid" role="grid" aria-label="Calendário de ocupação"></div>
+        <div id="calendarDetails" class="calendar-details" aria-live="polite"><p>Toque em um dia reservado para ver os detalhes.</p></div>
+      </section></div>
+
+      <div class="app-screen" data-screen-panel="expenses" hidden>
+      <section class="panel expenses-section" id="expensesSection" aria-labelledby="expensesTitle">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Controle financeiro</p>
+            <h2 id="expensesTitle">Outras despesas</h2>
+          </div>
+          <button class="button button-primary" id="newExpenseButton" type="button">Nova despesa</button>
+        </div>
+        <div class="expenses-total" aria-live="polite">
+          <span>Total de outras despesas</span>
+          <strong id="expensesTotal">R$ 0,00</strong>
+        </div>
+        <div id="expenses" class="expenses" aria-live="polite"></div>
+
+        <form id="expenseForm" class="expense-form" novalidate hidden>
+          <input id="expenseId" type="hidden">
+          <div class="field">
+            <label for="expenseDate">Data</label>
+            <input id="expenseDate" name="expenseDate" type="date" required>
+          </div>
+          <div class="field">
+            <label for="expenseCategory">Categoria</label>
+            <select id="expenseCategory" name="expenseCategory" required>
+              <option value="Manutenção/Reparo">Manutenção/Reparo</option>
+              <option value="Compra para o apartamento">Compra para o apartamento</option>
+              <option value="Reposição">Reposição</option>
+              <option value="Condomínio">Condomínio</option>
+              <option value="Material">Material</option>
+              <option value="Serviço">Serviço</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+          <div class="field field-wide">
+            <label for="expenseDescription">Descrição</label>
+            <input id="expenseDescription" name="expenseDescription" type="text" maxlength="160" required>
+          </div>
+          <div class="field">
+            <label for="expenseValue">Valor (R$)</label>
+            <input id="expenseValue" name="expenseValue" type="number" min="0" max="99999999.99" step="0.01" inputmode="decimal" required>
+          </div>
+          <p id="expenseFormError" class="form-error field-wide" role="alert" hidden></p>
+          <div class="form-actions field-wide">
+            <button class="button button-primary" id="saveExpenseButton" type="submit">Salvar despesa</button>
+            <button class="button button-secondary" id="cancelExpenseButton" type="button">Cancelar</button>
+          </div>
+        </form>
+      </section>
+      </div>
+
+
+      <section class="panel rules" hidden aria-labelledby="rulesTitle">
         <div>
           <p class="eyebrow">Como calculamos</p>
           <h2 id="rulesTitle">Regras</h2>

@@ -30,6 +30,8 @@
     'reportOccupiedNights', 'reportAvailableDays', 'reportOccupancyRate', 'reportGross', 'reportAverageDailyRate',
     'reportCleaning', 'reportCommission', 'reportSummaryGross', 'reportSummaryCleaning', 'reportSummaryCommission',
     'reportBeforeExpenses', 'reportOtherExpenses', 'reportFinalPayout', 'reportReservations', 'reportExpenses',
+    'nextCheckIn', 'nextCheckInGuest', 'nextCheckOut', 'nextCheckOutGuest', 'calendarMonth', 'calendarYear',
+    'previousMonth', 'nextMonth', 'calendarGrid', 'calendarDetails',
   ];
 
   function getElements() {
@@ -117,6 +119,26 @@
   function removeExpense(expenses, id) { return expenses.filter((item) => item.id !== id); }
   function calculateExpensesTotal(expenses) { return roundMoney(expenses.reduce((total, expense) => total + requireNonNegativeNumber(expense.value, 'Valor'), 0)); }
   function calculateFinalPayout(netPayout, expensesTotal) { return roundMoney(Number(netPayout) - Number(expensesTotal)); }
+
+  function getCalendarDays(reservations, yearValue, monthValue) {
+    const year = Number(yearValue); const month = Number(monthValue);
+    const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    return Array.from({ length: daysInMonth }, (_, index) => {
+      const date = `${year}-${String(month).padStart(2, '0')}-${String(index + 1).padStart(2, '0')}`;
+      const active = reservations.filter((item) => item.status !== 'Cancelada' && date >= item.checkIn && date <= item.checkOut);
+      return {
+        date, day: index + 1,
+        reservations: active,
+        occupied: active.some((item) => date >= item.checkIn && date < item.checkOut),
+        checkIn: active.some((item) => item.checkIn === date), checkOut: active.some((item) => item.checkOut === date),
+      };
+    });
+  }
+
+  function getNextStay(reservations, dateField, today = new Date().toISOString().slice(0, 10)) {
+    return reservations.filter((item) => item.status !== 'Cancelada' && item[dateField] >= today)
+      .sort((a, b) => a[dateField].localeCompare(b[dateField]))[0] || null;
+  }
 
   function isInMonth(dateValue, year, month) {
     const date = parseDate(dateValue, 'Data');
@@ -306,6 +328,51 @@
     elements.reportExpenses.replaceChildren(expenses);
   }
 
+  function renderCalendarDetails(day) {
+    const relevant = day.reservations;
+    if (!relevant.length) { elements.calendarDetails.innerHTML = '<p>Dia livre, sem reservas.</p>'; return; }
+    const fragment = document.createDocumentFragment();
+    relevant.forEach((item) => fragment.append(reportListItem([
+      ['Hóspede', item.guest, true], ['Plataforma', item.platform], ['Check-in', formatDate(item.checkIn)],
+      ['Check-out', formatDate(item.checkOut)], ['Noites', String(item.nights)], ['Status', item.status, true],
+    ])));
+    elements.calendarDetails.replaceChildren(fragment);
+  }
+
+  function renderCalendar() {
+    const year = Number(elements.calendarYear.value); const month = Number(elements.calendarMonth.value);
+    const days = getCalendarDays(dashboard.reservations, year, month); const fragment = document.createDocumentFragment();
+    const offset = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
+    for (let index = 0; index < offset; index += 1) fragment.append(createElement('span', 'calendar-day empty'));
+    days.forEach((day) => {
+      const button = createElement('button', `calendar-day${day.occupied ? ' is-reserved' : ''}${day.checkIn ? ' is-checkin' : ''}${day.checkOut ? ' is-checkout' : ''}`, String(day.day));
+      button.type = 'button'; button.dataset.date = day.date; button.setAttribute('role', 'gridcell');
+      const labels = [day.occupied ? 'reservado' : 'livre', day.checkIn ? 'check-in' : '', day.checkOut ? 'check-out' : ''].filter(Boolean);
+      button.setAttribute('aria-label', `${formatDate(day.date)}: ${labels.join(', ')}`); button.addEventListener('click', () => renderCalendarDetails(day)); fragment.append(button);
+    });
+    elements.calendarGrid.replaceChildren(fragment);
+    elements.calendarDetails.innerHTML = '<p>Toque em um dia reservado para ver os detalhes.</p>';
+  }
+
+  function prepareCalendarFilters() {
+    MONTH_NAMES.forEach((name, index) => { const option = createElement('option', '', name); option.value = String(index + 1); elements.calendarMonth.append(option); });
+    [...elements.reportYear.options].forEach((source) => { const option = createElement('option', '', source.textContent); option.value = source.value; elements.calendarYear.append(option); });
+    elements.calendarMonth.value = elements.reportMonth.value; elements.calendarYear.value = elements.reportYear.value;
+  }
+
+  function changeCalendarMonth(delta) {
+    const date = new Date(Date.UTC(Number(elements.calendarYear.value), Number(elements.calendarMonth.value) - 1 + delta, 1));
+    const year = String(date.getUTCFullYear());
+    if (![...elements.calendarYear.options].some((option) => option.value === year)) { const option = createElement('option', '', year); option.value = year; elements.calendarYear.append(option); }
+    elements.calendarYear.value = year; elements.calendarMonth.value = String(date.getUTCMonth() + 1); renderCalendar();
+  }
+
+  function showScreen(name, updateHash = true) {
+    document.querySelectorAll('[data-screen-panel]').forEach((panel) => { panel.hidden = panel.dataset.screenPanel !== name; });
+    document.querySelectorAll('[data-screen]').forEach((button) => { const active = button.dataset.screen === name; button.classList.toggle('active', active); if (active) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current'); });
+    if (updateHash) history.replaceState(null, '', `#${name}`); window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   function prepareReportFilters() {
     MONTH_NAMES.forEach((name, index) => { const option = createElement('option', '', name); option.value = String(index + 1); elements.reportMonth.append(option); });
     const datedYears = [...dashboard.reservations.map((item) => Number(item.checkIn.slice(0, 4))), ...dashboard.expenses.map((item) => Number(item.date.slice(0, 4)))];
@@ -332,11 +399,15 @@
     elements.expensesTotal.textContent = formatMoney(expensesTotal);
     elements.netTotal.classList.toggle('negative', finalPayout < 0); elements.summaryNet.classList.toggle('negative', finalPayout < 0);
     elements.ruleCleaning.textContent = formatMoney(dashboard.cleaningFee); elements.ruleCommission.textContent = `${dashboard.commissionRate * 100}%`;
+    const nextIn = getNextStay(dashboard.reservations, 'checkIn'); const nextOut = getNextStay(dashboard.reservations, 'checkOut');
+    elements.nextCheckIn.textContent = nextIn ? formatDate(nextIn.checkIn) : '—'; elements.nextCheckInGuest.textContent = nextIn ? `${nextIn.guest} • ${nextIn.platform}` : 'Nenhum agendado';
+    elements.nextCheckOut.textContent = nextOut ? formatDate(nextOut.checkOut) : '—'; elements.nextCheckOutGuest.textContent = nextOut ? `${nextOut.guest} • ${nextOut.platform}` : 'Nenhum agendado';
     const fragment = document.createDocumentFragment(); dashboard.reservations.forEach((item) => fragment.append(renderReservation(item)));
     elements.reservations.replaceChildren(fragment);
     const expenseFragment = document.createDocumentFragment(); dashboard.expenses.forEach((item) => expenseFragment.append(renderExpense(item)));
     elements.expenses.replaceChildren(expenseFragment);
     renderMonthlyReport();
+    renderCalendar();
   }
 
   function resetExpenseForm(hide = true) {
@@ -424,6 +495,7 @@
   }
 
   function bindEvents() {
+    document.querySelectorAll('[data-screen]').forEach((button) => button.addEventListener('click', () => showScreen(button.dataset.screen)));
     elements.reservationForm.addEventListener('submit', submitReservation);
     elements.reservationForm.addEventListener('input', updatePreview);
     elements.cancelEditButton.addEventListener('click', resetForm);
@@ -440,6 +512,8 @@
     elements.reportMonth.addEventListener('change', renderMonthlyReport); elements.reportYear.addEventListener('change', renderMonthlyReport);
     elements.generateReportButton.addEventListener('click', () => { renderMonthlyReport(); document.body.classList.add('printing-report'); window.print(); });
     window.addEventListener('afterprint', () => document.body.classList.remove('printing-report'));
+    elements.calendarMonth.addEventListener('change', renderCalendar); elements.calendarYear.addEventListener('change', renderCalendar);
+    elements.previousMonth.addEventListener('click', () => changeCalendarMonth(-1)); elements.nextMonth.addEventListener('click', () => changeCalendarMonth(1));
   }
 
   function showError(error) { elements.appStatus.className = 'app-status error'; elements.appStatus.textContent = `Não foi possível carregar o painel. ${error.message}`; elements.appStatus.hidden = false; }
@@ -453,14 +527,15 @@
       const source = loadStoredReservations(dashboard.reservations);
       dashboard.reservations = source.map((item, index) => normalizeReservation(item, index, dashboard));
       dashboard.expenses = loadStoredExpenses().map(normalizeExpense);
-      prepareReportFilters(); bindEvents(); render(); resetForm(); resetExpenseForm(); elements.appStatus.hidden = true;
+      prepareReportFilters(); prepareCalendarFilters(); bindEvents(); render(); resetForm(); resetExpenseForm();
+      showScreen(['home', 'reservations', 'calendar', 'expenses', 'reports'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home', false); elements.appStatus.hidden = true;
     } catch (error) { if (elements.appStatus) showError(error instanceof Error ? error : new Error('Erro inesperado.')); else console.error(error); }
   }
 
   if (typeof module !== 'undefined') module.exports = {
     countNights, calculateFinancials, calculateTotals, normalizeReservation, removeReservation, upsertReservation, validateDashboard,
     normalizeExpense, upsertExpense, removeExpense, calculateExpensesTotal, calculateFinalPayout,
-    isInMonth, nightsInMonth, calculateMonthlyReport,
+    isInMonth, nightsInMonth, calculateMonthlyReport, getCalendarDays, getNextStay,
   };
   if (typeof document !== 'undefined') initialize();
 })();
