@@ -6,6 +6,7 @@ const {
   countNights, calculateFinancials, calculateTotals, normalizeReservation, removeReservation, upsertReservation, validateDashboard,
   normalizeExpense, upsertExpense, removeExpense, calculateExpensesTotal, calculateFinalPayout,
   nightsInMonth, calculateMonthlyReport,
+  getCalendarDays, getNextStay,
 } = require('../app.js');
 
 const defaults = { cleaningFee: 135, commissionRate: 0.15 };
@@ -109,4 +110,35 @@ test('relatório mensal vazio mantém médias e totais em zero', () => {
   const report = calculateMonthlyReport([], [], 2026, 2);
   assert.equal(report.daysInMonth, 28); assert.equal(report.availableDays, 28); assert.equal(report.occupancyRate, 0);
   assert.equal(report.averageDailyRate, 0); assert.equal(report.finalPayout, 0);
+});
+
+test('calendário marca ocupação, check-in e check-out sem ocupar reservas canceladas', () => {
+  const reservations = [
+    { id: 'a', guest: 'Ana', status: 'Confirmada', checkIn: '2026-08-10', checkOut: '2026-08-13' },
+    { id: 'b', guest: 'Bia', status: 'Cancelada', checkIn: '2026-08-20', checkOut: '2026-08-22' },
+  ];
+  const days = getCalendarDays(reservations, 2026, 8);
+  assert.equal(days.length, 31);
+  assert.deepEqual({ occupied: days[9].occupied, checkIn: days[9].checkIn, checkOut: days[9].checkOut }, { occupied: true, checkIn: true, checkOut: false });
+  assert.equal(days[11].occupied, true);
+  assert.deepEqual({ occupied: days[12].occupied, checkOut: days[12].checkOut }, { occupied: false, checkOut: true });
+  assert.equal(days[19].occupied, false); assert.equal(days[19].reservations.length, 0);
+});
+
+test('encontra os próximos check-in e check-out ignorando reservas canceladas', () => {
+  const reservations = [
+    { guest: 'Cancelada', status: 'Cancelada', checkIn: '2026-08-16', checkOut: '2026-08-17' },
+    { guest: 'Depois', status: 'Confirmada', checkIn: '2026-08-20', checkOut: '2026-08-23' },
+    { guest: 'Antes', status: 'Confirmada', checkIn: '2026-08-18', checkOut: '2026-08-19' },
+  ];
+  assert.equal(getNextStay(reservations, 'checkIn', '2026-08-15').guest, 'Antes');
+  assert.equal(getNextStay(reservations, 'checkOut', '2026-08-20').guest, 'Depois');
+});
+
+test('HTML oferece cinco telas independentes na navegação', () => {
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'index.html'), 'utf8');
+  for (const screen of ['home', 'reservations', 'calendar', 'expenses', 'reports']) {
+    assert.match(html, new RegExp(`data-screen="${screen}"`));
+    assert.match(html, new RegExp(`data-screen-panel="${screen}"`));
+  }
 });
