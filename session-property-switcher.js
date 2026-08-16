@@ -58,25 +58,19 @@
     location.reload();
   }
 
-  function loadUserManager() {
-    if (document.querySelector('script[data-stay-user-manager]')) return true;
+  function loadScriptOnce(src, dataName) {
+    if (document.querySelector(`script[${dataName}]`)) return true;
     const script = document.createElement('script');
-    script.src = './user-manager.js';
+    script.src = src;
     script.defer = true;
-    script.dataset.stayUserManager = 'true';
+    script.setAttribute(dataName, 'true');
     document.head.append(script);
     return true;
   }
 
-  function loadReportView() {
-    if (document.querySelector('script[data-stay-report-view]')) return true;
-    const script = document.createElement('script');
-    script.src = './report-view.js';
-    script.defer = true;
-    script.dataset.stayReportView = 'true';
-    document.head.append(script);
-    return true;
-  }
+  function loadUserManager() { return loadScriptOnce('./user-manager.js', 'data-stay-user-manager'); }
+  function loadReportView() { return loadScriptOnce('./report-view.js', 'data-stay-report-view'); }
+  function loadScreenNavigation() { return loadScriptOnce('./screen-navigation.js', 'data-stay-screen-navigation'); }
 
   function installPropertySwitching() {
     const selector = document.getElementById('propertySelector');
@@ -222,6 +216,7 @@
   reorderStoredProperties();
   loadUserManager();
   loadReportView();
+  loadScreenNavigation();
 
   function boot() {
     const timer = setInterval(() => {
