@@ -69,6 +69,14 @@ function loadReportView(){
   s.dataset.stayReportView='true';
   document.head.append(s);
 }
+function loadUserManager(){
+  if(document.querySelector('script[data-stay-user-manager]'))return;
+  const s=document.createElement('script');
+  s.src=`./user-manager.js?ts=${Date.now()}`;
+  s.defer=true;
+  s.dataset.stayUserManager='true';
+  document.head.append(s);
+}
 function apply(){
   const list=sceneList();if(!list.length)return;
   current=0;setBanner(list[current]);
@@ -82,6 +90,7 @@ function apply(){
   timer=setInterval(rotate,ROTATE_MS);
   installBackToLoginButton();
   loadReportView();
+  loadUserManager();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply,{once:true});else apply();
 })();
