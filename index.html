@@ -40,8 +40,8 @@
           <div class="field"><label for="propertyTitle">Nome da propriedade</label><input id="propertyTitle" required></div>
           <div class="field"><label for="propertyUnit">Apartamento/unidade</label><input id="propertyUnit" required></div>
           <div class="field"><label for="propertyCity">Cidade</label><input id="propertyCity" required></div>
-          <div class="field"><label for="propertyState">Estado</label><input id="propertyState" maxlength="2" required></div>
-          <div class="field field-wide"><label for="propertyAddress">Endereço</label><input id="propertyAddress" required></div>
+          <div class="field"><label for="propertyState">Estado</label><input id="propertyState" maxlength="2"></div>
+          <div class="field field-wide"><label for="propertyAddress">Endereço</label><input id="propertyAddress"></div>
           <div class="field"><label for="propertyCommission">Comissão administrativa (%)</label><input id="propertyCommission" type="number" min="0" max="100" step="0.01" required></div>
           <div class="form-actions field-wide"><button class="button button-primary" type="submit">Salvar propriedade</button><button id="cancelPropertyButton" class="button button-secondary" type="button">Cancelar</button></div>
         </form>
@@ -55,253 +55,39 @@
             <h2 id="monthlyReportTitle">Relatório Mensal / Fechamento Mensal</h2>
           </div>
           <div class="report-filters">
-            <div class="field">
-              <label for="reportMonth">Mês</label>
-              <select id="reportMonth" name="reportMonth"></select>
-            </div>
-            <div class="field">
-              <label for="reportYear">Ano</label>
-              <select id="reportYear" name="reportYear"></select>
-            </div>
+            <div class="field"><label for="reportMonth">Mês</label><select id="reportMonth" name="reportMonth"></select></div>
+            <div class="field"><label for="reportYear">Ano</label><select id="reportYear" name="reportYear"></select></div>
             <button class="button button-primary" id="generateReportButton" type="button">Gerar relatório</button>
           </div>
         </div>
-
-        <header class="print-report-header">
-          <div><p class="eyebrow">Relatório mensal</p><h2>AP207</h2><p>Curitiba</p></div>
-          <strong id="reportPeriod">—</strong>
-        </header>
+        <header class="print-report-header"><div><p class="eyebrow">Relatório mensal</p><h2>AP207</h2><p>Curitiba</p></div><strong id="reportPeriod">—</strong></header>
         <div class="report-metrics" aria-live="polite">
-          <div><small>Reservas</small><strong id="reportReservationsCount">0</strong></div>
-          <div><small>Noites ocupadas</small><strong id="reportOccupiedNights">0</strong></div>
-          <div><small>Dias disponíveis</small><strong id="reportAvailableDays">0</strong></div>
-          <div><small>Taxa de ocupação</small><strong id="reportOccupancyRate">0%</strong></div>
-          <div><small>Valor bruto</small><strong id="reportGross">R$ 0,00</strong></div>
-          <div><small>Média da diária</small><strong id="reportAverageDailyRate">R$ 0,00</strong></div>
-          <div><small>Total de limpeza</small><strong id="reportCleaning">R$ 0,00</strong></div>
-          <div><small>Comissão da administração</small><strong id="reportCommission">R$ 0,00</strong></div>
+          <div><small>Reservas</small><strong id="reportReservationsCount">0</strong></div><div><small>Noites ocupadas</small><strong id="reportOccupiedNights">0</strong></div><div><small>Dias disponíveis</small><strong id="reportAvailableDays">0</strong></div><div><small>Taxa de ocupação</small><strong id="reportOccupancyRate">0%</strong></div><div><small>Valor bruto</small><strong id="reportGross">R$ 0,00</strong></div><div><small>Média da diária</small><strong id="reportAverageDailyRate">R$ 0,00</strong></div><div><small>Total de limpeza</small><strong id="reportCleaning">R$ 0,00</strong></div><div><small>Comissão da administração</small><strong id="reportCommission">R$ 0,00</strong></div>
         </div>
         <div class="report-content">
-          <section class="report-financial" aria-labelledby="reportFinancialTitle">
-            <h3 id="reportFinancialTitle">Resumo financeiro</h3>
-            <dl class="summary-list">
-              <div class="line"><dt>Valor bruto</dt><dd id="reportSummaryGross">R$ 0,00</dd></div>
-              <div class="line subtraction"><dt>− Limpeza</dt><dd id="reportSummaryCleaning">R$ 0,00</dd></div>
-              <div class="line subtraction"><dt>− Comissão</dt><dd id="reportSummaryCommission">R$ 0,00</dd></div>
-              <div class="line subtotal"><dt>= Repasse antes das outras despesas</dt><dd id="reportBeforeExpenses">R$ 0,00</dd></div>
-              <div class="line subtraction"><dt>− Outras despesas</dt><dd id="reportOtherExpenses">R$ 0,00</dd></div>
-              <div class="line total"><dt>= REPASSE FINAL DO PROPRIETÁRIO</dt><dd id="reportFinalPayout">R$ 0,00</dd></div>
-            </dl>
-          </section>
-          <section><h3>Lista das reservas</h3><div id="reportReservations" class="report-list"></div></section>
-          <section><h3>Lista das despesas</h3><div id="reportExpenses" class="report-list"></div></section>
+          <section class="report-financial" aria-labelledby="reportFinancialTitle"><h3 id="reportFinancialTitle">Resumo financeiro</h3><dl class="summary-list"><div class="line"><dt>Valor bruto</dt><dd id="reportSummaryGross">R$ 0,00</dd></div><div class="line subtraction"><dt>− Limpeza</dt><dd id="reportSummaryCleaning">R$ 0,00</dd></div><div class="line subtraction"><dt>− Comissão</dt><dd id="reportSummaryCommission">R$ 0,00</dd></div><div class="line subtotal"><dt>= Repasse antes das outras despesas</dt><dd id="reportBeforeExpenses">R$ 0,00</dd></div><div class="line subtraction"><dt>− Outras despesas</dt><dd id="reportOtherExpenses">R$ 0,00</dd></div><div class="line total"><dt>= REPASSE FINAL DO PROPRIETÁRIO</dt><dd id="reportFinalPayout">R$ 0,00</dd></div></dl></section>
+          <section><h3>Lista das reservas</h3><div id="reportReservations" class="report-list"></div></section><section><h3>Lista das despesas</h3><div id="reportExpenses" class="report-list"></div></section>
         </div>
-      </section>
-      </div>
+      </section></div>
 
       <div class="app-screen" data-screen-panel="home">
       <div class="screen-heading"><p class="eyebrow">Visão geral</p><h2>Início</h2></div>
-      <section class="cards" aria-label="Indicadores do período">
-        <article>
-          <small>Reservas</small>
-          <strong id="periodCount">0</strong>
-          <span>todas as plataformas</span>
-        </article>
-        <article>
-          <small>Noites ocupadas</small>
-          <strong id="nightCount">0</strong>
-          <span id="nightRange">—</span>
-        </article>
-        <article>
-          <small>Valor bruto</small>
-          <strong id="grossTotal">R$ 0,00</strong>
-          <span>mês atual</span>
-        </article>
-        <article>
-          <small>Repasse final</small>
-          <strong class="green" id="netTotal">R$ 0,00</strong>
-          <span>após todas as despesas</span>
-        </article>
-      </section>
-      <section class="home-grid" aria-label="Resumo do período">
-        <aside class="panel summary" aria-labelledby="summaryTitle">
-          <p class="eyebrow">Consolidado</p><h2 id="summaryTitle">Resumo financeiro</h2>
-          <dl class="summary-list">
-            <div class="line"><dt>Valor bruto</dt><dd id="summaryGross">R$ 0,00</dd></div>
-            <div class="line"><dt>Limpeza</dt><dd id="summaryCleaning">R$ 0,00</dd></div>
-            <div class="line"><dt>Comissão</dt><dd id="summaryCommission">R$ 0,00</dd></div>
-            <div class="line"><dt>Repasse antes de despesas</dt><dd id="summaryNetBeforeExpenses">R$ 0,00</dd></div>
-            <div class="line expense-total"><dt>Outras despesas</dt><dd id="summaryExpenses">R$ 0,00</dd></div>
-            <div class="line total"><dt>Repasse final</dt><dd id="summaryNet">R$ 0,00</dd></div>
-          </dl>
-        </aside>
-        <section class="panel next-stays" aria-labelledby="nextStaysTitle"><p class="eyebrow">Agenda</p><h2 id="nextStaysTitle">Próximas movimentações</h2>
-          <div class="next-stay"><small>Próximo check-in</small><strong id="nextCheckIn">—</strong><span id="nextCheckInGuest">Nenhum agendado</span></div>
-          <div class="next-stay"><small>Próximo check-out</small><strong id="nextCheckOut">—</strong><span id="nextCheckOutGuest">Nenhum agendado</span></div>
-        </section>
-      </section>
+      <section class="cards" aria-label="Indicadores do período"><article><small>Reservas</small><strong id="periodCount">0</strong><span>todas as plataformas</span></article><article><small>Noites ocupadas</small><strong id="nightCount">0</strong><span id="nightRange">—</span></article><article><small>Valor bruto</small><strong id="grossTotal">R$ 0,00</strong><span>mês atual</span></article><article><small>Repasse final</small><strong class="green" id="netTotal">R$ 0,00</strong><span>após todas as despesas</span></article></section>
+      <section class="home-grid" aria-label="Resumo do período"><aside class="panel summary" aria-labelledby="summaryTitle"><p class="eyebrow">Consolidado</p><h2 id="summaryTitle">Resumo financeiro</h2><dl class="summary-list"><div class="line"><dt>Valor bruto</dt><dd id="summaryGross">R$ 0,00</dd></div><div class="line"><dt>Limpeza</dt><dd id="summaryCleaning">R$ 0,00</dd></div><div class="line"><dt>Comissão</dt><dd id="summaryCommission">R$ 0,00</dd></div><div class="line"><dt>Repasse antes de despesas</dt><dd id="summaryNetBeforeExpenses">R$ 0,00</dd></div><div class="line expense-total"><dt>Outras despesas</dt><dd id="summaryExpenses">R$ 0,00</dd></div><div class="line total"><dt>Repasse final</dt><dd id="summaryNet">R$ 0,00</dd></div></dl></aside><section class="panel next-stays" aria-labelledby="nextStaysTitle"><p class="eyebrow">Agenda</p><h2 id="nextStaysTitle">Próximas movimentações</h2><div class="next-stay"><small>Próximo check-in</small><strong id="nextCheckIn">—</strong><span id="nextCheckInGuest">Nenhum agendado</span></div><div class="next-stay"><small>Próximo check-out</small><strong id="nextCheckOut">—</strong><span id="nextCheckOutGuest">Nenhum agendado</span></div></section></section>
       </div>
 
       <div class="app-screen" data-screen-panel="reservations" hidden>
-      <section class="layout reservations-layout" aria-label="Reservas">
-        <div class="panel">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow">Detalhamento</p>
-              <h2>Reservas e períodos</h2>
-            </div>
-            <button class="button button-primary" id="newReservationButton" type="button">Nova reserva</button>
-          </div>
-          <div id="reservations" class="reservations" aria-live="polite"></div>
-        </div>
-
-      </section>
-      <section class="panel admin" id="adminSection" aria-labelledby="adminTitle">
-        <div class="panel-heading">
-          <div>
-            <p class="eyebrow">Administração</p>
-          <h2 id="adminTitle">Gerenciar reservas</h2>
-          </div>
-        </div>
-        <p class="admin-intro">Cadastre ou atualize reservas. Os totais do painel são recalculados automaticamente e os dados ficam salvos neste dispositivo.</p>
-        <form id="reservationForm" class="reservation-form" novalidate>
-          <input id="reservationId" type="hidden">
-          <div class="field field-wide">
-            <label for="guest">Nome do hóspede</label>
-            <input id="guest" name="guest" type="text" maxlength="100" autocomplete="name" required>
-          </div>
-          <div class="field">
-            <label for="platform">Plataforma</label>
-            <select id="platform" name="platform" required>
-              <option value="Airbnb">Airbnb</option>
-              <option value="Booking.com">Booking.com</option>
-              <option value="Vrbo">Vrbo</option>
-              <option value="Direto">Direto</option>
-              <option value="Outro">Outro</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="status">Status</label>
-            <select id="status" name="status" required>
-              <option value="Confirmada">Confirmada</option>
-              <option value="Estimada">Estimada</option>
-              <option value="Pendente">Pendente</option>
-              <option value="Cancelada">Cancelada</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="checkIn">Check-in</label>
-            <input id="checkIn" name="checkIn" type="date" required>
-          </div>
-          <div class="field">
-            <label for="checkOut">Check-out</label>
-            <input id="checkOut" name="checkOut" type="date" required>
-          </div>
-          <div class="field output-field">
-            <span>Noites</span>
-            <output id="calculatedNights">0</output>
-          </div>
-          <div class="field">
-            <label for="gross">Valor bruto (R$)</label>
-            <input id="gross" name="gross" type="number" min="0" max="99999999.99" step="0.01" inputmode="decimal" required>
-          </div>
-          <div class="field">
-            <label for="cleaningFee">Taxa de limpeza (R$)</label>
-            <input id="cleaningFee" name="cleaningFee" type="number" min="0" max="99999999.99" step="0.01" inputmode="decimal" required>
-          </div>
-          <div class="field">
-            <label for="commissionRate">Comissão (%)</label>
-            <input id="commissionRate" name="commissionRate" type="number" min="0" max="100" step="0.01" inputmode="decimal" required>
-          </div>
-          <div class="field output-field">
-            <span>Comissão em R$</span>
-            <output id="calculatedCommission">R$ 0,00</output>
-          </div>
-          <div class="field output-field">
-            <span>Repasse líquido</span>
-            <output id="calculatedNet" class="green">R$ 0,00</output>
-          </div>
-          <p id="formError" class="form-error field-wide" role="alert" hidden></p>
-          <div class="form-actions field-wide">
-            <button class="button button-primary" id="saveReservationButton" type="submit">Salvar reserva</button>
-            <button class="button button-secondary" id="cancelEditButton" type="button" hidden>Cancelar edição</button>
-          </div>
-        </form>
-      </section>
+      <section class="layout reservations-layout" aria-label="Reservas"><div class="panel"><div class="panel-heading"><div><p class="eyebrow">Detalhamento</p><h2>Reservas e períodos</h2></div><button class="button button-primary" id="newReservationButton" type="button">Nova reserva</button></div><div id="reservations" class="reservations" aria-live="polite"></div></div></section>
+      <section class="panel admin" id="adminSection" aria-labelledby="adminTitle"><div class="panel-heading"><div><p class="eyebrow">Administração</p><h2 id="adminTitle">Gerenciar reservas</h2></div></div><p class="admin-intro">Cadastre ou atualize reservas. Os totais do painel são recalculados automaticamente e os dados ficam salvos neste dispositivo.</p><form id="reservationForm" class="reservation-form" novalidate><input id="reservationId" type="hidden"><div class="field field-wide"><label for="guest">Nome do hóspede</label><input id="guest" name="guest" type="text" maxlength="100" autocomplete="name" required></div><div class="field"><label for="platform">Plataforma</label><select id="platform" name="platform" required><option value="Airbnb">Airbnb</option><option value="Booking.com">Booking.com</option><option value="Vrbo">Vrbo</option><option value="Direto">Direto</option><option value="Outro">Outro</option></select></div><div class="field"><label for="status">Status</label><select id="status" name="status" required><option value="Confirmada">Confirmada</option><option value="Estimada">Estimada</option><option value="Pendente">Pendente</option><option value="Cancelada">Cancelada</option></select></div><div class="field"><label for="checkIn">Check-in</label><input id="checkIn" name="checkIn" type="date" required></div><div class="field"><label for="checkOut">Check-out</label><input id="checkOut" name="checkOut" type="date" required></div><div class="field output-field"><span>Noites</span><output id="calculatedNights">0</output></div><div class="field"><label for="gross">Valor bruto (R$)</label><input id="gross" name="gross" type="number" min="0" max="99999999.99" step="0.01" inputmode="decimal" required></div><div class="field"><label for="cleaningFee">Taxa de limpeza (R$)</label><input id="cleaningFee" name="cleaningFee" type="number" min="0" max="99999999.99" step="0.01" inputmode="decimal" required></div><div class="field"><label for="commissionRate">Comissão (%)</label><input id="commissionRate" name="commissionRate" type="number" min="0" max="100" step="0.01" inputmode="decimal" required></div><div class="field output-field"><span>Comissão em R$</span><output id="calculatedCommission">R$ 0,00</output></div><div class="field output-field"><span>Repasse líquido</span><output id="calculatedNet" class="green">R$ 0,00</output></div><p id="formError" class="form-error field-wide" role="alert" hidden></p><div class="form-actions field-wide"><button class="button button-primary" id="saveReservationButton" type="submit">Salvar reserva</button><button class="button button-secondary" id="cancelEditButton" type="button" hidden>Cancelar edição</button></div></form></section>
       </div>
 
-      <div class="app-screen" data-screen-panel="calendar" hidden>
-      <section class="panel calendar-section" aria-labelledby="calendarTitle">
-        <div class="calendar-toolbar"><div><p class="eyebrow">Ocupação</p><h2 id="calendarTitle">Calendário</h2></div><div class="calendar-controls"><button id="previousMonth" class="button button-secondary" type="button" aria-label="Mês anterior">‹</button><label class="sr-only" for="calendarMonth">Mês</label><select id="calendarMonth"></select><label class="sr-only" for="calendarYear">Ano</label><select id="calendarYear"></select><button id="nextMonth" class="button button-secondary" type="button" aria-label="Próximo mês">›</button></div></div>
-        <div class="calendar-legend"><span><i class="free"></i>Livre</span><span><i class="reserved"></i>Reservado</span><span><i class="checkin"></i>Check-in</span><span><i class="checkout"></i>Check-out</span></div>
-        <div class="calendar-weekdays" aria-hidden="true"><span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span></div>
-        <div id="calendarGrid" class="calendar-grid" role="grid" aria-label="Calendário de ocupação"></div>
-        <div id="calendarDetails" class="calendar-details" aria-live="polite"><p>Toque em um dia reservado para ver os detalhes.</p></div>
-      </section></div>
+      <div class="app-screen" data-screen-panel="calendar" hidden><section class="panel calendar-section" aria-labelledby="calendarTitle"><div class="calendar-toolbar"><div><p class="eyebrow">Ocupação</p><h2 id="calendarTitle">Calendário</h2></div><div class="calendar-controls"><button id="previousMonth" class="button button-secondary" type="button" aria-label="Mês anterior">‹</button><label class="sr-only" for="calendarMonth">Mês</label><select id="calendarMonth"></select><label class="sr-only" for="calendarYear">Ano</label><select id="calendarYear"></select><button id="nextMonth" class="button button-secondary" type="button" aria-label="Próximo mês">›</button></div></div><div class="calendar-legend"><span><i class="free"></i>Livre</span><span><i class="reserved"></i>Reservado</span><span><i class="checkin"></i>Check-in</span><span><i class="checkout"></i>Check-out</span></div><div class="calendar-weekdays" aria-hidden="true"><span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span></div><div id="calendarGrid" class="calendar-grid" role="grid" aria-label="Calendário de ocupação"></div><div id="calendarDetails" class="calendar-details" aria-live="polite"><p>Toque em um dia reservado para ver os detalhes.</p></div></section></div>
 
-      <div class="app-screen" data-screen-panel="expenses" hidden>
-      <section class="panel expenses-section" id="expensesSection" aria-labelledby="expensesTitle">
-        <div class="panel-heading">
-          <div>
-            <p class="eyebrow">Controle financeiro</p>
-            <h2 id="expensesTitle">Outras despesas</h2>
-          </div>
-          <button class="button button-primary" id="newExpenseButton" type="button">Nova despesa</button>
-        </div>
-        <div class="expenses-total" aria-live="polite">
-          <span>Total de outras despesas</span>
-          <strong id="expensesTotal">R$ 0,00</strong>
-        </div>
-        <div id="expenses" class="expenses" aria-live="polite"></div>
+      <div class="app-screen" data-screen-panel="expenses" hidden><section class="panel expenses-section" id="expensesSection" aria-labelledby="expensesTitle"><div class="panel-heading"><div><p class="eyebrow">Controle financeiro</p><h2 id="expensesTitle">Outras despesas</h2></div><button class="button button-primary" id="newExpenseButton" type="button">Nova despesa</button></div><div class="expenses-total" aria-live="polite"><span>Total de outras despesas</span><strong id="expensesTotal">R$ 0,00</strong></div><div id="expenses" class="expenses" aria-live="polite"></div><form id="expenseForm" class="expense-form" novalidate hidden><input id="expenseId" type="hidden"><div class="field"><label for="expenseDate">Data</label><input id="expenseDate" name="expenseDate" type="date" required></div><div class="field"><label for="expenseCategory">Categoria</label><select id="expenseCategory" name="expenseCategory" required><option value="Manutenção/Reparo">Manutenção/Reparo</option><option value="Compra para o apartamento">Compra para o apartamento</option><option value="Reposição">Reposição</option><option value="Condomínio">Condomínio</option><option value="Material">Material</option><option value="Serviço">Serviço</option><option value="Outro">Outro</option></select></div><div class="field field-wide"><label for="expenseDescription">Descrição</label><input id="expenseDescription" name="expenseDescription" type="text" maxlength="160" required></div><div class="field"><label for="expenseValue">Valor (R$)</label><input id="expenseValue" name="expenseValue" type="number" min="0" max="99999999.99" step="0.01" inputmode="decimal" required></div><p id="expenseFormError" class="form-error field-wide" role="alert" hidden></p><div class="form-actions field-wide"><button class="button button-primary" id="saveExpenseButton" type="submit">Salvar despesa</button><button class="button button-secondary" id="cancelExpenseButton" type="button">Cancelar</button></div></form></section></div>
 
-        <form id="expenseForm" class="expense-form" novalidate hidden>
-          <input id="expenseId" type="hidden">
-          <div class="field">
-            <label for="expenseDate">Data</label>
-            <input id="expenseDate" name="expenseDate" type="date" required>
-          </div>
-          <div class="field">
-            <label for="expenseCategory">Categoria</label>
-            <select id="expenseCategory" name="expenseCategory" required>
-              <option value="Manutenção/Reparo">Manutenção/Reparo</option>
-              <option value="Compra para o apartamento">Compra para o apartamento</option>
-              <option value="Reposição">Reposição</option>
-              <option value="Condomínio">Condomínio</option>
-              <option value="Material">Material</option>
-              <option value="Serviço">Serviço</option>
-              <option value="Outro">Outro</option>
-            </select>
-          </div>
-          <div class="field field-wide">
-            <label for="expenseDescription">Descrição</label>
-            <input id="expenseDescription" name="expenseDescription" type="text" maxlength="160" required>
-          </div>
-          <div class="field">
-            <label for="expenseValue">Valor (R$)</label>
-            <input id="expenseValue" name="expenseValue" type="number" min="0" max="99999999.99" step="0.01" inputmode="decimal" required>
-          </div>
-          <p id="expenseFormError" class="form-error field-wide" role="alert" hidden></p>
-          <div class="form-actions field-wide">
-            <button class="button button-primary" id="saveExpenseButton" type="submit">Salvar despesa</button>
-            <button class="button button-secondary" id="cancelExpenseButton" type="button">Cancelar</button>
-          </div>
-        </form>
-      </section>
-      </div>
-
-
-      <section class="panel rules" hidden aria-labelledby="rulesTitle">
-        <div>
-          <p class="eyebrow">Como calculamos</p>
-          <h2 id="rulesTitle">Regras</h2>
-        </div>
-        <div class="rule-grid">
-          <p><span>Limpeza</span><b><span id="ruleCleaning">R$ 0,00</span> por reserva</b></p>
-          <p><span>Administração</span><b><span id="ruleCommission">0%</span> após limpeza</b></p>
-          <p><span>Fonte</span><b>Reservas cadastradas</b></p>
-        </div>
-      </section>
+      <section class="panel rules" hidden aria-labelledby="rulesTitle"><div><p class="eyebrow">Como calculamos</p><h2 id="rulesTitle">Regras</h2></div><div class="rule-grid"><p><span>Limpeza</span><b><span id="ruleCleaning">R$ 0,00</span> por reserva</b></p><p><span>Administração</span><b><span id="ruleCommission">0%</span> após limpeza</b></p><p><span>Fonte</span><b>Reservas cadastradas</b></p></div></section>
     </main>
+    <script src="./session-property-switcher.js"></script>
     <script src="./permissions.js" defer></script>
     <script src="./app.js" defer></script>
     <script src="./property-manager.js" defer></script>
