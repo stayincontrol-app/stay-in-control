@@ -22,12 +22,43 @@
       body.stay-report-focus #monthlyReport,
       body.stay-report-focus #stayReportFocusHeader { display:block !important; }
       body.stay-report-focus #monthlyReport { margin-top:0 !important; }
-      .stay-report-focus-header { align-items:center; gap:12px; margin:0 0 16px; }
+      .stay-report-focus-header { align-items:center; gap:10px; margin:0 0 16px; flex-wrap:wrap; }
       body.stay-report-focus #stayReportFocusHeader { display:flex !important; }
-      .stay-report-back { border:0; border-radius:14px; background:#2563eb; color:#fff; font-weight:800; padding:13px 18px; min-height:48px; }
-      .stay-report-focus-title { margin:0; font-size:1.35rem; color:#0f172a; }
+      .stay-report-back,.stay-report-action { border:0; border-radius:14px; font-weight:800; padding:12px 15px; min-height:46px; }
+      .stay-report-back { background:#2563eb; color:#fff; }
+      .stay-report-action { background:#fff; color:#172033; border:1px solid #d7dee8; }
+      .stay-report-focus-title { margin:0; font-size:1.35rem; color:#0f172a; flex:1 1 170px; }
+      @media print {
+        #stayReportFocusHeader { display:none !important; }
+        body.stay-report-focus { background:#fff !important; }
+      }
     `;
     document.head.append(style);
+  }
+
+  function reportText(report) {
+    return (report?.innerText || 'Relatório Stay in Control').replace(/\n{3,}/g,'\n\n').trim();
+  }
+
+  async function shareReport(report) {
+    const text = reportText(report);
+    if (navigator.share) {
+      try { await navigator.share({ title:'Relatório Stay in Control', text }); return; } catch (e) { if (e?.name === 'AbortError') return; }
+    }
+    try { await navigator.clipboard.writeText(text); alert('Relatório copiado. Agora você pode colar e compartilhar.'); }
+    catch { alert('O compartilhamento não está disponível neste navegador.'); }
+  }
+
+  function downloadReport(report) {
+    const period = document.getElementById('reportPeriod')?.textContent?.trim().replace(/\s+/g,'-') || 'relatorio';
+    const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Relatório Stay in Control</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:24px;color:#172033;background:#fff}section{max-width:900px;margin:auto}button,select{display:none!important}</style></head><body><section>${report.outerHTML}</section></body></html>`;
+    const blob = new Blob([html], { type:'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Stay-in-Control-${period}.html`;
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   function enterFocus(report) {
@@ -38,9 +69,12 @@
       header = document.createElement('div');
       header.id = 'stayReportFocusHeader';
       header.className = 'stay-report-focus-header';
-      header.innerHTML = '<button type="button" class="stay-report-back">← Voltar</button><h2 class="stay-report-focus-title">Relatório mensal</h2>';
+      header.innerHTML = '<button type="button" class="stay-report-back">← Voltar</button><h2 class="stay-report-focus-title">Relatório mensal</h2><button type="button" class="stay-report-action" id="stayReportShare">Compartilhar</button><button type="button" class="stay-report-action" id="stayReportDownload">Baixar</button><button type="button" class="stay-report-action" id="stayReportPrint">Imprimir</button>';
       report.insertAdjacentElement('beforebegin', header);
       header.querySelector('.stay-report-back').addEventListener('click', exitFocus);
+      header.querySelector('#stayReportShare').addEventListener('click', () => shareReport(report));
+      header.querySelector('#stayReportDownload').addEventListener('click', () => downloadReport(report));
+      header.querySelector('#stayReportPrint').addEventListener('click', () => window.print());
     }
     header.hidden = false;
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -60,9 +94,7 @@
       const el = document.getElementById(id);
       if (!el || el.dataset.pendingOnly === 'true') return;
       el.dataset.pendingOnly = 'true';
-      el.addEventListener('change', (event) => {
-        event.stopImmediatePropagation();
-      }, true);
+      el.addEventListener('change', (event) => event.stopImmediatePropagation(), true);
     });
   }
 
@@ -74,28 +106,16 @@
     if (document.getElementById('viewReportButton')) return true;
 
     const view = document.createElement('button');
-    view.id = 'viewReportButton';
-    view.type = 'button';
-    view.className = 'button button-secondary';
-    view.textContent = 'Visualizar relatório';
-    view.hidden = true;
-    view.style.background = '#2563eb';
-    view.style.borderColor = '#2563eb';
-    view.style.color = '#ffffff';
-    view.style.fontWeight = '700';
+    view.id = 'viewReportButton'; view.type = 'button'; view.className = 'button button-secondary';
+    view.textContent = 'Visualizar relatório'; view.hidden = true;
+    view.style.background = '#2563eb'; view.style.borderColor = '#2563eb'; view.style.color = '#ffffff'; view.style.fontWeight = '700';
     generate.insertAdjacentElement('afterend', view);
 
-    generate.addEventListener('click', () => {
-      setTimeout(() => {
-        view.hidden = false;
-        const status = document.getElementById('appStatus');
-        if (status) {
-          status.className = 'app-status success';
-          status.textContent = 'Relatório atualizado. Toque em “Visualizar relatório” para conferir.';
-          status.hidden = false;
-        }
-      }, 0);
-    });
+    generate.addEventListener('click', () => setTimeout(() => {
+      view.hidden = false;
+      const status = document.getElementById('appStatus');
+      if (status) { status.className='app-status success'; status.textContent='Relatório atualizado. Toque em “Visualizar relatório” para conferir.'; status.hidden=false; }
+    }, 0));
 
     view.addEventListener('click', () => enterFocus(report));
     return true;
@@ -106,6 +126,5 @@
     setTimeout(() => clearInterval(timer), 15000);
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
-  else boot();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true }); else boot();
 })();
