@@ -24,7 +24,7 @@
   function ensureStyles() {
     if (document.getElementById('propertyManagerStyles')) return;
     const style = document.createElement('style'); style.id = 'propertyManagerStyles';
-    style.textContent = `.property-manager-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.property-create-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border,#dde3ea)}.property-create-form .field-wide{grid-column:1/-1}.property-create-note{grid-column:1/-1;margin:0;color:#64748b;font-size:.82rem;line-height:1.45}.property-create-error{grid-column:1/-1;color:#b42318;font-weight:700;margin:0}.property-create-success{grid-column:1/-1;padding:14px;border-radius:12px;background:#f0fdf4;border:1px solid #bbf7d0}.property-create-success strong{display:block;margin-bottom:8px}.property-create-success .button{margin-top:10px}.button-danger{background:#dc2626!important;border-color:#dc2626!important;color:#fff!important}.button-danger-soft{background:#fff1f2!important;border:1px solid #fecdd3!important;color:#b42318!important}@media(max-width:700px){.property-create-form{grid-template-columns:1fr}.property-create-form .field-wide{grid-column:auto}.property-manager-actions{width:100%}.property-manager-actions .button{flex:1 1 150px}}`;
+    style.textContent = `.property-manager-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.property-create-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border,#dde3ea)}.property-create-form .field-wide{grid-column:1/-1}.property-create-note{grid-column:1/-1;margin:0;color:#64748b;font-size:.82rem;line-height:1.45}.property-create-error{grid-column:1/-1;color:#b42318;font-weight:700;margin:0}.property-create-success{grid-column:1/-1;padding:14px;border-radius:12px;background:#f0fdf4;border:1px solid #bbf7d0}.property-create-success strong{display:block;margin-bottom:8px}.property-create-success .button{margin-top:10px}.button-danger{background:#dc2626!important;border-color:#dc2626!important;color:#fff!important}.button-danger-soft{background:#fff1f2!important;border:1px solid #fecdd3!important;color:#b42318!important}.property-manager-empty{margin:12px 0 0;padding:12px 14px;border-radius:12px;background:#eff6ff;color:#1e3a8a;font-weight:700}@media(max-width:700px){.property-create-form{grid-template-columns:1fr}.property-create-form .field-wide{grid-column:auto}.property-manager-actions{width:100%}.property-manager-actions .button{flex:1 1 150px}}`;
     document.head.append(style);
   }
 
@@ -48,8 +48,7 @@
     let properties=await getWorkingProperties(); const index=properties.findIndex(p=>p.id===id); if(index<0)return alert('Unidade não encontrada.');
     const p=properties[index]; const owner=p.ownerName||'proprietário';
     if(!confirm(`Remover ${owner} da unidade ${p.unit||p.name||''}?\n\nA unidade e as reservas serão mantidas. Apenas o vínculo com o proprietário será removido.`))return;
-    properties[index]={...p,ownerName:'Sem proprietário',ownerId:'unassigned-owner'}; writeProperties(properties);
-    location.reload();
+    properties[index]={...p,ownerName:'Sem proprietário',ownerId:'unassigned-owner'}; writeProperties(properties); location.reload();
   }
 
   async function deleteCurrentUnit(){
@@ -60,19 +59,23 @@
     properties=properties.filter(p=>p.id!==id); writeProperties(properties);
     localStorage.removeItem(`ap207-dashboard-reservations-v1:${id}`); localStorage.removeItem(`ap207-dashboard-expenses-v1:${id}`);
     const auth=readAuth(); if(auth?.propertyIds){auth.propertyIds=auth.propertyIds.filter(pid=>pid!==id); localStorage.setItem(AUTH_CACHE_KEY,JSON.stringify(auth));}
-    const next=properties[0]?.id||''; if(next)localStorage.setItem(PREFERRED_PROPERTY_KEY,next); else localStorage.removeItem(PREFERRED_PROPERTY_KEY);
-    location.reload();
+    const next=properties[0]?.id||''; if(next)localStorage.setItem(PREFERRED_PROPERTY_KEY,next); else localStorage.removeItem(PREFERRED_PROPERTY_KEY); location.reload();
   }
 
   function install() {
     installPropertySwitcher(); if (!canManageProperties()) return;
     const section = document.getElementById('propertySettings'); if (!section || document.getElementById('newPropertyButton')) return; ensureStyles();
-    const heading = section.querySelector('.panel-heading'); const existingButton = document.getElementById('editPropertyButton'); const actions = document.createElement('div'); actions.className = 'property-manager-actions';
-    if (existingButton) { existingButton.remove(); actions.append(existingButton); }
+    section.hidden=false;
+    const heading = section.querySelector('.panel-heading');
+    const title=heading?.querySelector('h2'); if(title) title.textContent='Gerenciar propriedades e unidades';
+    const existingButton = document.getElementById('editPropertyButton'); const actions = document.createElement('div'); actions.className = 'property-manager-actions';
+    const hasCurrent=Boolean(currentPropertyId());
+    if (existingButton) { existingButton.remove(); existingButton.hidden=!hasCurrent; actions.append(existingButton); }
     const add = document.createElement('button'); add.id = 'newPropertyButton'; add.type = 'button'; add.className = 'button button-primary'; add.textContent = '+ Nova propriedade/unidade'; actions.append(add);
-    const removeOwner=document.createElement('button'); removeOwner.id='removeOwnerButton'; removeOwner.type='button'; removeOwner.className='button button-danger-soft'; removeOwner.textContent='Remover proprietário'; removeOwner.addEventListener('click',removeOwnerFromCurrentUnit); actions.append(removeOwner);
-    const del=document.createElement('button'); del.id='deletePropertyButton'; del.type='button'; del.className='button button-danger'; del.textContent='Excluir unidade'; del.addEventListener('click',deleteCurrentUnit); actions.append(del);
+    const removeOwner=document.createElement('button'); removeOwner.id='removeOwnerButton'; removeOwner.type='button'; removeOwner.className='button button-danger-soft'; removeOwner.textContent='Remover proprietário'; removeOwner.hidden=!hasCurrent; removeOwner.addEventListener('click',removeOwnerFromCurrentUnit); actions.append(removeOwner);
+    const del=document.createElement('button'); del.id='deletePropertyButton'; del.type='button'; del.className='button button-danger'; del.textContent='Excluir unidade'; del.hidden=!hasCurrent; del.addEventListener('click',deleteCurrentUnit); actions.append(del);
     heading?.append(actions);
+    if(!hasCurrent){const info=document.createElement('p');info.className='property-manager-empty';info.textContent='Você ainda não possui uma unidade atribuída. Use “+ Nova propriedade/unidade” para cadastrar a primeira.';heading?.insertAdjacentElement('afterend',info);}
 
     const form = document.createElement('form'); form.id = 'newPropertyForm'; form.className = 'property-create-form'; form.hidden = true;
     form.append(field('Nome do proprietário', 'newPropertyOwnerName', { placeholder: 'Pode ser alterado depois' }),field('Nome da propriedade/empreendimento', 'newPropertyTitle', { placeholder: 'Ex.: One House Curitiba' }),field('Apartamento/unidade', 'newPropertyUnit', { placeholder: 'Ex.: AP305' }),field('Cidade', 'newPropertyCity'),field('Estado (opcional)', 'newPropertyState', { required: false, maxLength: 2, placeholder: 'Ex.: PR' }),field('Comissão administrativa (%)', 'newPropertyCommission', { type: 'number', min: 0, max: 100, step: 0.01 }),field('Endereço (opcional)', 'newPropertyAddress', { required: false, wide: true, placeholder: 'Pode ser preenchido depois' }));
@@ -97,11 +100,18 @@
         properties.push(property); writeProperties(properties);
         if (auth.profile.role === 'admin') { const ids = new Set(auth.propertyIds || []); ids.add(id); auth.propertyIds = [...ids]; localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(auth)); }
         localStorage.setItem(`ap207-dashboard-reservations-v1:${id}`, JSON.stringify({ version: 1, reservations: [] })); localStorage.setItem(`ap207-dashboard-expenses-v1:${id}`, JSON.stringify({ version: 1, expenses: [] }));
-        formActions.hidden = true; success.replaceChildren(); const title = document.createElement('strong'); title.textContent = `Unidade ${unit} cadastrada com sucesso.`; const text = document.createElement('span'); text.textContent = 'Você pode continuar na unidade atual ou abrir a nova unidade agora.'; const open = document.createElement('button'); open.type = 'button'; open.className = 'button button-primary'; open.textContent = `Abrir ${unit}`; open.addEventListener('click', () => { setPreferredProperty(id); location.reload(); }); const stay = document.createElement('button'); stay.type = 'button'; stay.className = 'button button-secondary'; stay.textContent = 'Continuar aqui'; stay.addEventListener('click', () => { form.reset(); form.hidden = true; success.hidden = true; formActions.hidden = false; }); success.append(title, text, document.createElement('br'), open, document.createTextNode(' '), stay); success.hidden = false;
+        setPreferredProperty(id); location.reload();
       } catch (err) { error.textContent = err?.message || 'Não foi possível cadastrar a propriedade.'; error.hidden = false; }
     });
   }
 
-  function boot() { const timer = setInterval(() => { const authenticated = document.body.classList.contains('ap207-authenticated'); if (authenticated && document.getElementById('propertySettings')) { clearInterval(timer); install(); } }, 250); setTimeout(() => clearInterval(timer), 15000); }
+  function boot() {
+    const timer = setInterval(() => {
+      if (!canManageProperties()) return;
+      const section=document.getElementById('propertySettings');
+      if(section){ clearInterval(timer); install(); }
+    }, 250);
+    setTimeout(() => clearInterval(timer), 30000);
+  }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true }); else boot();
 })();
