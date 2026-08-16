@@ -68,6 +68,16 @@
     return true;
   }
 
+  function loadReportView() {
+    if (document.querySelector('script[data-stay-report-view]')) return true;
+    const script = document.createElement('script');
+    script.src = './report-view.js';
+    script.defer = true;
+    script.dataset.stayReportView = 'true';
+    document.head.append(script);
+    return true;
+  }
+
   function installPropertySwitching() {
     const selector = document.getElementById('propertySelector');
     if (!selector || selector.dataset.stayControlSwitching === '1') return false;
@@ -211,6 +221,7 @@
 
   reorderStoredProperties();
   loadUserManager();
+  loadReportView();
 
   function boot() {
     const timer = setInterval(() => {
