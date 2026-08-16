@@ -19,6 +19,7 @@ function sync(month,year){
  const label=document.getElementById('monthLabel');if(label)label.textContent=`${MONTHS[month-1]} ${year}`;
  filterVisibleCards(month,year);
 }
+function updateVisibility(){const wrap=document.querySelector('.global-period-selector');if(!wrap)return;const home=document.querySelector('[data-screen-panel="home"]');const homeVisible=home&&!home.hidden;wrap.style.display=homeVisible?'none':'';}
 function inject(){
  if(document.getElementById('globalMonthSelector'))return;
  const header=document.querySelector('.header-controls');const label=document.getElementById('monthLabel');if(!header||!label)return;
@@ -31,6 +32,9 @@ function inject(){
  ms.value=String(initial.month);if(![...ys.options].some(o=>Number(o.value)===Number(initial.year))){const o=document.createElement('option');o.value=o.textContent=String(initial.year);ys.append(o);}ys.value=String(initial.year);
  const go=()=>sync(Number(ms.value),Number(ys.value));ms.addEventListener('change',go);ys.addEventListener('change',go);go();
  const observer=new MutationObserver(()=>filterVisibleCards(Number(ms.value),Number(ys.value)));const res=document.getElementById('reservations');if(res)observer.observe(res,{childList:true,subtree:true});const ex=document.getElementById('expenses');if(ex)observer.observe(ex,{childList:true,subtree:true});
+ document.querySelectorAll('[data-screen]').forEach(btn=>btn.addEventListener('click',()=>setTimeout(updateVisibility,0)));
+ const screenObserver=new MutationObserver(updateVisibility);document.querySelectorAll('[data-screen-panel]').forEach(panel=>screenObserver.observe(panel,{attributes:true,attributeFilter:['hidden']}));
+ updateVisibility();
 }
 const css=document.createElement('style');css.textContent=`.global-period-selector{width:100%;margin-top:8px}.global-period-selector>label{display:block;font-weight:700;color:#5f6b82;margin:0 0 7px}.global-period-row{display:grid;grid-template-columns:1fr 112px;gap:10px}.global-period-row select{width:100%;min-height:52px;border:1px solid #d7dde7;border-radius:16px;padding:0 16px;background:rgba(255,255,255,.94);font:inherit;color:#172033}.global-period-row select:focus{outline:3px solid rgba(59,130,246,.22);border-color:#60a5fa}@media(max-width:520px){.global-period-row{grid-template-columns:1fr 105px}.global-period-row select{min-height:50px;font-size:1rem}}`;document.head.append(css);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(inject,900));else setTimeout(inject,900);
