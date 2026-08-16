@@ -5,7 +5,7 @@
   const SELECTED_PROPERTY_KEY = 'stay-control-selected-property-v1';
   const AUTH_CACHE_KEY = 'ap207-auth-profile-v1';
   const SUPABASE_AUTH_KEY = 'sb-cwtpeabebkoveachrclo-auth-token';
-  const INACTIVITY_MS = 60 * 1000;
+  const INACTIVITY_MS = 5 * 60 * 1000;
   const WARNING_MS = 10 * 1000;
   const LAST_ACTIVITY_KEY = 'stay-control-last-activity-v1';
 
