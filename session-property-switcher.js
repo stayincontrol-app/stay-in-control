@@ -7,11 +7,19 @@
   const SUPABASE_AUTH_KEY = 'sb-cwtpeabebkoveachrclo-auth-token';
   const INACTIVITY_MS = 60 * 1000;
   const WARNING_MS = 10 * 1000;
+  const LAST_ACTIVITY_KEY = 'stay-control-last-activity-v1';
 
   let inactivityTimer = null;
   let warningTimer = null;
   let countdownTimer = null;
   let secondsLeft = 10;
+
+  function isAuthenticated() { return document.body.classList.contains('ap207-authenticated'); }
+  function setLastActivity() { localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now())); }
+  function elapsedSinceActivity() {
+    const last = Number(localStorage.getItem(LAST_ACTIVITY_KEY) || Date.now());
+    return Math.max(0, Date.now() - last);
+  }
 
   function reorderStoredProperties() {
     const selectedId = localStorage.getItem(SELECTED_PROPERTY_KEY);
@@ -31,6 +39,7 @@
     localStorage.removeItem(AUTH_CACHE_KEY);
     localStorage.removeItem(SUPABASE_AUTH_KEY);
     localStorage.removeItem(SELECTED_PROPERTY_KEY);
+    localStorage.removeItem(LAST_ACTIVITY_KEY);
     for (let i = localStorage.length - 1; i >= 0; i -= 1) {
       const key = localStorage.key(i);
       if (key && key.startsWith('sb-cwtpeabebkoveachrclo-')) localStorage.removeItem(key);
@@ -76,7 +85,6 @@
     if (document.getElementById('stayControlLogoutButton')) return true;
     const controls = document.querySelector('.header-controls');
     if (!controls) return false;
-
     const button = document.createElement('button');
     button.id = 'stayControlLogoutButton';
     button.type = 'button';
@@ -109,39 +117,15 @@
   function ensureWarningModal() {
     let modal = document.getElementById('stayControlIdleModal');
     if (modal) return modal;
-
     modal = document.createElement('div');
     modal.id = 'stayControlIdleModal';
     modal.hidden = true;
-    modal.innerHTML = `
-      <div class="stay-control-idle-backdrop"></div>
-      <div class="stay-control-idle-card" role="dialog" aria-modal="true" aria-labelledby="stayControlIdleTitle">
-        <h2 id="stayControlIdleTitle">Sua sessão vai encerrar</h2>
-        <p>Por segurança, você será desconectado por inatividade.</p>
-        <strong id="stayControlIdleCountdown">10</strong>
-        <span>segundos</span>
-        <button id="stayControlContinueSession" type="button">Continuar sessão</button>
-      </div>`;
-
+    modal.innerHTML = `<div class="stay-control-idle-backdrop"></div><div class="stay-control-idle-card" role="dialog" aria-modal="true" aria-labelledby="stayControlIdleTitle"><h2 id="stayControlIdleTitle">Sua sessão vai encerrar</h2><p>Por segurança, você será desconectado por inatividade.</p><strong id="stayControlIdleCountdown">10</strong><span>segundos</span><button id="stayControlContinueSession" type="button">Continuar sessão</button></div>`;
     const style = document.createElement('style');
-    style.textContent = `
-      #stayControlIdleModal[hidden]{display:none!important}
-      #stayControlIdleModal{position:fixed;inset:0;z-index:999999;display:grid;place-items:center;padding:20px}
-      .stay-control-idle-backdrop{position:absolute;inset:0;background:rgba(15,23,42,.62);backdrop-filter:blur(3px)}
-      .stay-control-idle-card{position:relative;width:min(100%,420px);background:#fff;border-radius:24px;padding:28px;text-align:center;box-shadow:0 24px 70px rgba(15,23,42,.28);color:#0f172a}
-      .stay-control-idle-card h2{font-size:1.45rem;margin:0 0 10px}
-      .stay-control-idle-card p{color:#64748b;margin:0 0 18px;line-height:1.5}
-      #stayControlIdleCountdown{display:block;font-size:3.2rem;line-height:1;color:#dc2626;margin-bottom:2px}
-      .stay-control-idle-card span{display:block;color:#64748b;margin-bottom:20px}
-      #stayControlContinueSession{width:100%;min-height:54px;border:0;border-radius:14px;background:#2563eb;color:#fff;font-size:1rem;font-weight:800;padding:14px 18px}
-    `;
+    style.textContent = `#stayControlIdleModal[hidden]{display:none!important}#stayControlIdleModal{position:fixed;inset:0;z-index:999999;display:grid;place-items:center;padding:20px}.stay-control-idle-backdrop{position:absolute;inset:0;background:rgba(15,23,42,.62);backdrop-filter:blur(3px)}.stay-control-idle-card{position:relative;width:min(100%,420px);background:#fff;border-radius:24px;padding:28px;text-align:center;box-shadow:0 24px 70px rgba(15,23,42,.28);color:#0f172a}.stay-control-idle-card h2{font-size:1.45rem;margin:0 0 10px}.stay-control-idle-card p{color:#64748b;margin:0 0 18px;line-height:1.5}#stayControlIdleCountdown{display:block;font-size:3.2rem;line-height:1;color:#dc2626;margin-bottom:2px}.stay-control-idle-card span{display:block;color:#64748b;margin-bottom:20px}#stayControlContinueSession{width:100%;min-height:54px;border:0;border-radius:14px;background:#2563eb;color:#fff;font-size:1rem;font-weight:800;padding:14px 18px}`;
     document.head.append(style);
     document.body.append(modal);
-
-    document.getElementById('stayControlContinueSession').addEventListener('click', () => {
-      hideWarning();
-      resetInactivityTimer();
-    });
+    document.getElementById('stayControlContinueSession').addEventListener('click', () => resetInactivityTimer(true));
     return modal;
   }
 
@@ -152,43 +136,65 @@
     countdownTimer = null;
   }
 
-  function showWarning() {
-    if (!document.body.classList.contains('ap207-authenticated')) return;
+  function showWarning(remainingMs = WARNING_MS) {
+    if (!isAuthenticated()) return;
     const modal = ensureWarningModal();
-    secondsLeft = 10;
+    secondsLeft = Math.max(1, Math.ceil(remainingMs / 1000));
     document.getElementById('stayControlIdleCountdown').textContent = String(secondsLeft);
     modal.hidden = false;
     if (countdownTimer) clearInterval(countdownTimer);
     countdownTimer = setInterval(() => {
-      secondsLeft -= 1;
+      const remaining = INACTIVITY_MS - elapsedSinceActivity();
+      secondsLeft = Math.max(0, Math.ceil(remaining / 1000));
       const display = document.getElementById('stayControlIdleCountdown');
-      if (display) display.textContent = String(Math.max(secondsLeft, 0));
-      if (secondsLeft <= 0) {
-        clearInterval(countdownTimer);
-        countdownTimer = null;
-        signOut();
-      }
-    }, 1000);
+      if (display) display.textContent = String(secondsLeft);
+      if (remaining <= 0) signOut();
+    }, 250);
   }
 
-  function resetInactivityTimer() {
-    if (!document.body.classList.contains('ap207-authenticated')) return;
+  function scheduleFromElapsed() {
+    if (!isAuthenticated()) return;
     hideWarning();
     if (inactivityTimer) clearTimeout(inactivityTimer);
     if (warningTimer) clearTimeout(warningTimer);
-    warningTimer = setTimeout(showWarning, INACTIVITY_MS - WARNING_MS);
-    inactivityTimer = setTimeout(signOut, INACTIVITY_MS);
+    const elapsed = elapsedSinceActivity();
+    const remaining = INACTIVITY_MS - elapsed;
+    if (remaining <= 0) return signOut();
+    if (remaining <= WARNING_MS) {
+      showWarning(remaining);
+      inactivityTimer = setTimeout(signOut, remaining);
+      return;
+    }
+    warningTimer = setTimeout(() => showWarning(WARNING_MS), remaining - WARNING_MS);
+    inactivityTimer = setTimeout(signOut, remaining);
+  }
+
+  function resetInactivityTimer(recordActivity = true) {
+    if (!isAuthenticated()) return;
+    if (recordActivity) setLastActivity();
+    scheduleFromElapsed();
   }
 
   function installInactivityTracking() {
     if (document.body.dataset.stayControlIdleTracking === '1') return true;
-    if (!document.body.classList.contains('ap207-authenticated')) return false;
+    if (!isAuthenticated()) return false;
     document.body.dataset.stayControlIdleTracking = '1';
     ensureWarningModal();
-    ['pointerdown','touchstart','keydown','scroll'].forEach((eventName) => {
-      window.addEventListener(eventName, resetInactivityTimer, { passive: true });
+    setLastActivity();
+    ['pointerdown','touchstart','keydown','scroll'].forEach((eventName) => window.addEventListener(eventName, () => resetInactivityTimer(true), { passive: true }));
+    document.addEventListener('visibilitychange', () => {
+      if (!isAuthenticated()) return;
+      if (document.hidden) {
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        if (warningTimer) clearTimeout(warningTimer);
+        hideWarning();
+      } else {
+        scheduleFromElapsed();
+      }
     });
-    resetInactivityTimer();
+    window.addEventListener('pageshow', scheduleFromElapsed);
+    window.addEventListener('focus', scheduleFromElapsed);
+    scheduleFromElapsed();
     return true;
   }
 
