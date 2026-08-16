@@ -1,6 +1,57 @@
 (() => {
   'use strict';
 
+  function ensureStyles() {
+    if (document.getElementById('stayReportFocusStyles')) return;
+    const style = document.createElement('style');
+    style.id = 'stayReportFocusStyles';
+    style.textContent = `
+      body.stay-report-focus > nav,
+      body.stay-report-focus .page-header,
+      body.stay-report-focus #appStatus,
+      body.stay-report-focus #propertySettings,
+      body.stay-report-focus #stayUserSection,
+      body.stay-report-focus #stayControlLogoutButton,
+      body.stay-report-focus [data-screen],
+      body.stay-report-focus .screen:not([data-screen-name="reports"]),
+      body.stay-report-focus #reportControls,
+      body.stay-report-focus #viewReportButton,
+      body.stay-report-focus #generateReportButton { display:none !important; }
+      body.stay-report-focus { background:#f4f7fb; }
+      body.stay-report-focus main { padding-top:18px !important; }
+      body.stay-report-focus #monthlyReport { display:block !important; margin-top:0 !important; }
+      .stay-report-focus-header { display:flex; align-items:center; gap:12px; margin:0 0 16px; }
+      .stay-report-back { border:0; border-radius:14px; background:#2563eb; color:#fff; font-weight:800; padding:13px 18px; min-height:48px; }
+      .stay-report-focus-title { margin:0; font-size:1.35rem; color:#0f172a; }
+    `;
+    document.head.append(style);
+  }
+
+  function enterFocus(report) {
+    ensureStyles();
+    document.body.classList.add('stay-report-focus');
+    let header = document.getElementById('stayReportFocusHeader');
+    if (!header) {
+      header = document.createElement('div');
+      header.id = 'stayReportFocusHeader';
+      header.className = 'stay-report-focus-header';
+      header.innerHTML = '<button type="button" class="stay-report-back">← Voltar</button><h2 class="stay-report-focus-title">Relatório mensal</h2>';
+      report.insertAdjacentElement('beforebegin', header);
+      header.querySelector('.stay-report-back').addEventListener('click', exitFocus);
+    }
+    header.hidden = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function exitFocus() {
+    document.body.classList.remove('stay-report-focus');
+    const header = document.getElementById('stayReportFocusHeader');
+    if (header) header.hidden = true;
+    const reportsTab = document.querySelector('[data-screen="reports"]');
+    if (reportsTab) reportsTab.click();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   function install() {
     const generate = document.getElementById('generateReportButton');
     const report = document.getElementById('monthlyReport');
@@ -19,7 +70,6 @@
 
     generate.insertAdjacentElement('afterend', view);
 
-    // Intercepta o clique antes do manipulador antigo que abria a impressão direto.
     document.addEventListener('click', (event) => {
       if (event.target !== generate) return;
       event.preventDefault();
@@ -33,10 +83,7 @@
       }
     }, true);
 
-    view.addEventListener('click', () => {
-      report.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-
+    view.addEventListener('click', () => enterFocus(report));
     return true;
   }
 
