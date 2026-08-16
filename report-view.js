@@ -14,13 +14,15 @@
       body.stay-report-focus #stayControlLogoutButton,
       body.stay-report-focus [data-screen],
       body.stay-report-focus .screen:not([data-screen-name="reports"]),
-      body.stay-report-focus #reportControls,
-      body.stay-report-focus #viewReportButton,
-      body.stay-report-focus #generateReportButton { display:none !important; }
+      body.stay-report-focus [data-screen-panel="reports"] > * { display:none !important; }
       body.stay-report-focus { background:#f4f7fb; }
       body.stay-report-focus main { padding-top:18px !important; }
-      body.stay-report-focus #monthlyReport { display:block !important; margin-top:0 !important; }
-      .stay-report-focus-header { display:flex; align-items:center; gap:12px; margin:0 0 16px; }
+      body.stay-report-focus [data-screen-panel="reports"],
+      body.stay-report-focus #monthlyReport,
+      body.stay-report-focus #stayReportFocusHeader { display:block !important; }
+      body.stay-report-focus #monthlyReport { margin-top:0 !important; }
+      .stay-report-focus-header { align-items:center; gap:12px; margin:0 0 16px; }
+      body.stay-report-focus #stayReportFocusHeader { display:flex !important; }
       .stay-report-back { border:0; border-radius:14px; background:#2563eb; color:#fff; font-weight:800; padding:13px 18px; min-height:48px; }
       .stay-report-focus-title { margin:0; font-size:1.35rem; color:#0f172a; }
     `;
@@ -67,7 +69,6 @@
     view.style.borderColor = '#2563eb';
     view.style.color = '#ffffff';
     view.style.fontWeight = '700';
-
     generate.insertAdjacentElement('afterend', view);
 
     document.addEventListener('click', (event) => {
@@ -88,9 +89,7 @@
   }
 
   function boot() {
-    const timer = setInterval(() => {
-      if (install()) clearInterval(timer);
-    }, 200);
+    const timer = setInterval(() => { if (install()) clearInterval(timer); }, 200);
     setTimeout(() => clearInterval(timer), 15000);
   }
 
