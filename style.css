@@ -317,6 +317,28 @@ h2 { margin-bottom: 18px; font-size: 1.125rem; line-height: 1.3; }
   input, select { font-size: 16px !important; }
 }
 
+/* Campos de preenchimento: destaque visual de foco */
+.field input:not([type="hidden"]),
+.field textarea {
+  caret-color: var(--blue);
+  transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+
+.field input:not([type="hidden"]):focus,
+.field textarea:focus,
+.field select:focus {
+  border-color: var(--blue);
+  background: #fff;
+  outline: none;
+  box-shadow: 0 0 0 4px rgb(23 92 211 / 16%);
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: #98a2b3;
+  opacity: 1;
+}
+
 @media print {
   @page { margin: 12mm; }
   body { background: #fff; color: #000; font-size: 10pt; }
