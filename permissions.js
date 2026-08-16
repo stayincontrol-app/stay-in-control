@@ -14,7 +14,7 @@
 
   const AUTH_CACHE_KEY = 'ap207-auth-profile-v1';
   const LAST_ACTIVITY_KEY = 'stay-control-last-activity-v1';
-  const INACTIVITY_MS = 60 * 1000;
+  const INACTIVITY_MS = 5 * 60 * 1000;
   const SUPABASE_URL = 'https://cwtpeabebkoveachrclo.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_XJszvSVg7p7QF4jSdDeiGw_jOvtNlgR';
   let cachedAuth = readAuthCache();
