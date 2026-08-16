@@ -5,11 +5,20 @@ const RES='ap207-dashboard-reservations-v1', EXP='ap207-dashboard-expenses-v1', 
 function read(k,fallback){try{return JSON.parse(localStorage.getItem(k)||'null')||fallback}catch{return fallback}}
 function currentProfile(){return read(AUTH,{profile:{role:'super_admin',name:'Super Administrador'}}).profile||{role:'super_admin'};}
 function properties(){const p=read(PROPS,null);if(p?.properties)return p.properties;return [];}
-function records(key,id,field){const p=read(`${key}:${id}`,null);return Array.isArray(p?.[field])?p[field]:[];}
+function isLegacyAp207(p){const text=`${p?.id||''} ${p?.name||''} ${p?.unit||''}`.toLowerCase();return text.includes('ap207')||text.includes('207');}
+function records(key,p,field){
+  const scoped=read(`${key}:${p.id}`,null);
+  if(Array.isArray(scoped?.[field])) return scoped[field];
+  if(isLegacyAp207(p)){
+    const legacy=read(key,null);
+    if(Array.isArray(legacy?.[field])) return legacy[field];
+  }
+  return [];
+}
 function calcProperty(p,year,month){
   const prefix=`${year}-${String(month).padStart(2,'0')}`;
-  const rs=records(RES,p.id,'reservations').filter(r=>r.status!=='Cancelada'&&String(r.checkIn||'').startsWith(prefix));
-  const es=records(EXP,p.id,'expenses').filter(e=>String(e.date||'').startsWith(prefix));
+  const rs=records(RES,p,'reservations').filter(r=>r.status!=='Cancelada'&&String(r.checkIn||'').startsWith(prefix));
+  const es=records(EXP,p,'expenses').filter(e=>String(e.date||'').startsWith(prefix));
   let gross=0,cleaning=0,commission=0,net=0,nights=0;
   rs.forEach(r=>{const g=Number(r.gross)||0,c=Number(r.cleaningFee??r.cleaning)||0,rate=Number(r.commissionRate)||0,com=(g-c)*rate/100;gross+=g;cleaning+=c;commission+=com;net+=g-c-com;try{nights+=(new Date(r.checkOut)-new Date(r.checkIn))/86400000}catch{}});
   const expenses=es.reduce((s,e)=>s+(Number(e.value)||0),0);
