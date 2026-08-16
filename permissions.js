@@ -68,7 +68,7 @@
     if (typeof document === 'undefined' || document.getElementById('ap207AuthStyles')) return;
     const style = document.createElement('style');
     style.id = 'ap207AuthStyles';
-    style.textContent = `body.ap207-auth-pending > main, body.ap207-auth-pending > nav { visibility: hidden !important; }.ap207-auth-overlay { position: fixed; inset: 0; z-index: 99999; display: grid; place-items: center; padding: 22px; background: #f4f7fb; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }.ap207-auth-card { width: min(100%, 430px); background: white; border-radius: 22px; padding: 26px; box-shadow: 0 18px 55px rgba(20,35,60,.16); }.ap207-auth-card h1 { margin: 0 0 5px; font-size: 28px; }.ap207-auth-card p { color: #64748b; line-height: 1.45; }.ap207-auth-card label { display:block; margin: 15px 0 6px; font-size: 13px; font-weight: 700; color:#334155; }.ap207-auth-card input { width:100%; box-sizing:border-box; padding:13px 14px; border:1px solid #d7dee8; border-radius:12px; font-size:16px; }.ap207-password-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}.ap207-password-row input{min-width:0}.ap207-show-password{min-height:48px;padding:0 14px;border:1px solid #d7dee8;border-radius:12px;background:#eef2f7;color:#172033;font-weight:800;white-space:nowrap}.ap207-auth-actions { display:grid; gap:10px; margin-top:18px; }.ap207-auth-button { border:0; border-radius:12px; padding:13px 16px; font-size:15px; font-weight:800; cursor:pointer; background:#111827; color:white; }.ap207-auth-button.secondary { background:#eef2f7; color:#172033; }.ap207-auth-message { min-height:22px; margin-top:12px; color:#b42318 !important; font-size:14px; }.ap207-auth-note { margin-top:16px !important; font-size:12px; }.ap207-invite-note{padding:12px 14px;border-radius:12px;background:#eff6ff;color:#1e3a8a!important;font-size:13px;margin-top:16px!important}body.ap207-authenticated label[for="userSelector"], body.ap207-authenticated #userSelector { display:none !important; }`;
+    style.textContent = `body.ap207-auth-pending > main, body.ap207-auth-pending > nav { visibility: hidden !important; }.ap207-auth-overlay { position: fixed; inset: 0; z-index: 99999; display: grid; place-items: center; padding: 22px; background: #f4f7fb; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }.ap207-auth-card { width: min(100%, 430px); background: white; border-radius: 22px; padding: 26px; box-shadow: 0 18px 55px rgba(20,35,60,.16); }.ap207-auth-card h1 { margin: 0 0 5px; font-size: 28px; }.ap207-auth-card p { color: #64748b; line-height: 1.45; }.ap207-auth-card label { display:block; margin: 15px 0 6px; font-size: 13px; font-weight: 700; color:#334155; }.ap207-auth-card input { width:100%; box-sizing:border-box; padding:13px 14px; border:1px solid #d7dee8; border-radius:12px; font-size:16px; }.ap207-password-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}.ap207-password-row input{min-width:0}.ap207-show-password{min-height:48px;padding:0 14px;border:1px solid #d7dee8;border-radius:12px;background:#eef2f7;color:#172033;font-weight:800;white-space:nowrap}.ap207-auth-actions { display:grid; gap:10px; margin-top:18px; }.ap207-auth-button { border:0; border-radius:12px; padding:13px 16px; font-size:15px; font-weight:800; cursor:pointer; background:#111827; color:white; }.ap207-auth-button.secondary { background:#eef2f7; color:#172033; }.ap207-auth-message { min-height:22px; margin-top:12px; color:#b42318 !important; font-size:14px; }.ap207-auth-note { margin-top:16px !important; font-size:12px; }.ap207-invite-note{padding:12px 14px;border-radius:12px;background:#eff6ff;color:#1e3a8a!important;font-size:13px;margin-top:16px!important}.ap207-success-note{padding:12px 14px;border-radius:12px;background:#ecfdf3;color:#166534!important;font-size:13px;margin-top:16px!important}body.ap207-authenticated label[for="userSelector"], body.ap207-authenticated #userSelector { display:none !important; }`;
     document.head.append(style);
     document.body?.classList.add('ap207-auth-pending');
   }
@@ -84,20 +84,67 @@
     });
   }
 
-  function createAuthOverlay() {
-    let overlay = document.getElementById('ap207AuthOverlay'); if (overlay) return overlay;
-    overlay = document.createElement('div'); overlay.id = 'ap207AuthOverlay'; overlay.className = 'ap207-auth-overlay';
-    overlay.innerHTML = `<section class="ap207-auth-card" aria-labelledby="ap207LoginTitle"><p style="margin:0 0 4px;font-weight:800;color:#2563eb">Stay in Control 1.0</p><h1 id="ap207LoginTitle">Acessar painel</h1><p>Entre com seu e-mail e senha. Cada usuário verá somente o que sua permissão autorizar.</p><form id="ap207LoginForm"><label for="ap207Email">E-mail</label><input id="ap207Email" type="email" autocomplete="email" required><label for="ap207Password">Senha</label><div class="ap207-password-row"><input id="ap207Password" type="password" autocomplete="current-password" minlength="6" required><button id="ap207TogglePassword" class="ap207-show-password" type="button">Mostrar</button></div><div class="ap207-auth-actions"><button class="ap207-auth-button" type="submit">Entrar</button><button class="ap207-auth-button secondary" id="ap207CreateAccount" type="button">Criar minha conta</button></div></form><p id="ap207AuthMessage" class="ap207-auth-message" role="alert"></p><p class="ap207-invite-note"><strong>Recebeu um convite?</strong> Abra o e-mail “Supabase Auth — You've been invited” e use o link do convite. Não é necessário criar outra conta.</p><p class="ap207-auth-note">O primeiro cadastro deste sistema será criado como Super Administrador. Os próximos cadastros entram como Proprietário até serem vinculados pelo administrador.</p></section>`;
-    document.body.append(overlay);
-    const password = overlay.querySelector('#ap207Password');
-    const toggle = overlay.querySelector('#ap207TogglePassword');
+  function attachPasswordToggle(container, inputSelector, buttonSelector) {
+    const password = container.querySelector(inputSelector);
+    const toggle = container.querySelector(buttonSelector);
+    if (!password || !toggle) return;
     toggle.addEventListener('click', () => {
       const showing = password.type === 'text';
       password.type = showing ? 'password' : 'text';
       toggle.textContent = showing ? 'Mostrar' : 'Ocultar';
       toggle.setAttribute('aria-pressed', String(!showing));
     });
+  }
+
+  function createAuthOverlay() {
+    let overlay = document.getElementById('ap207AuthOverlay'); if (overlay) return overlay;
+    overlay = document.createElement('div'); overlay.id = 'ap207AuthOverlay'; overlay.className = 'ap207-auth-overlay';
+    overlay.innerHTML = `<section class="ap207-auth-card" aria-labelledby="ap207LoginTitle"><p style="margin:0 0 4px;font-weight:800;color:#2563eb">Stay in Control 1.0</p><h1 id="ap207LoginTitle">Acessar painel</h1><p>Entre com seu e-mail e senha. Cada usuário verá somente o que sua permissão autorizar.</p><form id="ap207LoginForm"><label for="ap207Email">E-mail</label><input id="ap207Email" type="email" autocomplete="email" required><label for="ap207Password">Senha</label><div class="ap207-password-row"><input id="ap207Password" type="password" autocomplete="current-password" minlength="6" required><button id="ap207TogglePassword" class="ap207-show-password" type="button">Mostrar</button></div><div class="ap207-auth-actions"><button class="ap207-auth-button" type="submit">Entrar</button><button class="ap207-auth-button secondary" id="ap207CreateAccount" type="button">Criar minha conta</button></div></form><p id="ap207AuthMessage" class="ap207-auth-message" role="alert"></p><p class="ap207-invite-note"><strong>Recebeu um convite?</strong> Abra o e-mail “Supabase Auth — You've been invited” e use o link do convite. No primeiro acesso você definirá sua senha.</p><p class="ap207-auth-note">O primeiro cadastro deste sistema será criado como Super Administrador. Os próximos cadastros entram como Proprietário até serem vinculados pelo administrador.</p></section>`;
+    document.body.append(overlay);
+    attachPasswordToggle(overlay, '#ap207Password', '#ap207TogglePassword');
     return overlay;
+  }
+
+  function isInviteFlow() {
+    if (typeof location === 'undefined') return false;
+    const search = new URLSearchParams(location.search || '');
+    const hash = new URLSearchParams((location.hash || '').replace(/^#/, ''));
+    const type = search.get('type') || hash.get('type');
+    return type === 'invite' || search.get('invite') === '1' || hash.get('invite') === '1' || /(?:[?#&])type=invite(?:&|$)/.test(location.href);
+  }
+
+  function cleanInviteUrl() {
+    if (typeof history === 'undefined' || typeof location === 'undefined') return;
+    try { history.replaceState({}, document.title, location.pathname); } catch {}
+  }
+
+  async function showSetPasswordScreen(client, overlay, user) {
+    const card = overlay.querySelector('.ap207-auth-card');
+    card.innerHTML = `<p style="margin:0 0 4px;font-weight:800;color:#2563eb">Stay in Control 1.0</p><h1>Defina sua senha</h1><p>Seu convite foi confirmado. Agora crie a senha que você usará para entrar no aplicativo.</p><p class="ap207-success-note"><strong>${user?.email || 'Convite confirmado'}</strong></p><form id="ap207SetPasswordForm"><label for="ap207NewPassword">Nova senha</label><div class="ap207-password-row"><input id="ap207NewPassword" type="password" autocomplete="new-password" minlength="6" required><button id="ap207ToggleNewPassword" class="ap207-show-password" type="button">Mostrar</button></div><label for="ap207ConfirmPassword">Confirmar nova senha</label><div class="ap207-password-row"><input id="ap207ConfirmPassword" type="password" autocomplete="new-password" minlength="6" required><button id="ap207ToggleConfirmPassword" class="ap207-show-password" type="button">Mostrar</button></div><div class="ap207-auth-actions"><button class="ap207-auth-button" type="submit">Criar senha e entrar</button></div></form><p id="ap207SetPasswordMessage" class="ap207-auth-message" role="alert"></p>`;
+    attachPasswordToggle(card, '#ap207NewPassword', '#ap207ToggleNewPassword');
+    attachPasswordToggle(card, '#ap207ConfirmPassword', '#ap207ToggleConfirmPassword');
+    const form = card.querySelector('#ap207SetPasswordForm');
+    const message = card.querySelector('#ap207SetPasswordMessage');
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const password = card.querySelector('#ap207NewPassword').value;
+      const confirm = card.querySelector('#ap207ConfirmPassword').value;
+      if (password.length < 6) { message.textContent = 'A senha precisa ter pelo menos 6 caracteres.'; return; }
+      if (password !== confirm) { message.textContent = 'As duas senhas precisam ser iguais.'; return; }
+      message.textContent = 'Salvando sua senha…';
+      const { error } = await client.auth.updateUser({ password });
+      if (error) { message.textContent = error.message || 'Não foi possível salvar sua senha.'; return; }
+      try {
+        const { data: { user: refreshedUser } } = await client.auth.getUser();
+        const authData = await loadAuthenticatedProfile(client, refreshedUser || user);
+        writeAuthCache(authData.profile, authData.propertyIds);
+        markActivity();
+        cleanInviteUrl();
+        location.reload();
+      } catch (profileError) {
+        message.textContent = profileError?.message || 'Senha criada, mas não foi possível abrir o painel.';
+      }
+    });
   }
 
   async function loadAuthenticatedProfile(client, user) {
@@ -116,7 +163,16 @@
     const overlay = createAuthOverlay(); const message = overlay.querySelector('#ap207AuthMessage');
     try {
       const library = await loadSupabaseLibrary(); const client = library.createClient(SUPABASE_URL, SUPABASE_KEY); root.AP207Supabase = client;
+      const inviteFlow = isInviteFlow();
       const { data: { session } } = await client.auth.getSession();
+
+      if (session?.user && inviteFlow) {
+        clearAuthCache();
+        localStorage.removeItem(LAST_ACTIVITY_KEY);
+        await showSetPasswordScreen(client, overlay, session.user);
+        overlay.hidden = false;
+        return;
+      }
 
       if (session?.user && sessionExpiredByInactivity()) {
         await client.auth.signOut();
