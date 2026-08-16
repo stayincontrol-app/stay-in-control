@@ -21,76 +21,10 @@ const ACTIVE_ARCHIVE='arquivo1';
 const ROTATE_MS=10000;
 let current=0,timer=null;
 function sceneList(){return archives[ACTIVE_ARCHIVE]||[]}
-function setBanner(scene){
-  if(!scene)return;
-  const banner=document.querySelector('.scenic-banner');
-  if(!banner)return;
-  banner.style.backgroundImage=`url("${scene.url}")`;
-  banner.style.display='block';
-  banner.style.height=window.innerWidth<=480?'120px':'150px';
-  banner.style.marginBottom='20px';
-  banner.style.borderRadius='18px';
-  banner.style.backgroundPosition='center';
-  banner.style.backgroundSize='cover';
-  banner.style.backgroundRepeat='no-repeat';
-  banner.style.transition='background-image .5s ease-in-out,opacity .35s ease';
-  banner.setAttribute('aria-label',`Paisagem do banner: ${scene.name}`);
-  banner.dataset.archive=ACTIVE_ARCHIVE;
-  banner.dataset.scene=scene.name;
-  banner.innerHTML='';
-}
+function setBanner(scene){if(!scene)return;const banner=document.querySelector('.scenic-banner');if(!banner)return;banner.style.backgroundImage=`url("${scene.url}")`;banner.style.display='block';banner.style.height=window.innerWidth<=480?'120px':'150px';banner.style.marginBottom='20px';banner.style.borderRadius='18px';banner.style.backgroundPosition='center';banner.style.backgroundSize='cover';banner.style.backgroundRepeat='no-repeat';banner.style.transition='background-image .5s ease-in-out,opacity .35s ease';banner.setAttribute('aria-label',`Paisagem do banner: ${scene.name}`);banner.dataset.archive=ACTIVE_ARCHIVE;banner.dataset.scene=scene.name;banner.innerHTML='';}
 function rotate(){const list=sceneList();if(!list.length)return;current=(current+1)%list.length;setBanner(list[current]);}
-function installBackToLoginButton(){
-  const timer=setInterval(()=>{
-    const form=document.getElementById('ap207SetPasswordForm');
-    if(!form||document.getElementById('ap207BackToLogin'))return;
-    const actions=form.querySelector('.ap207-auth-actions');
-    if(!actions)return;
-    const button=document.createElement('button');
-    button.id='ap207BackToLogin';
-    button.type='button';
-    button.className='ap207-auth-button secondary';
-    button.textContent='← Voltar para entrar';
-    button.addEventListener('click',async()=>{
-      try{if(window.AP207Supabase?.auth)await window.AP207Supabase.auth.signOut();}catch(e){}
-      try{localStorage.removeItem('ap207-auth-profile-v1');localStorage.removeItem('stay-control-last-activity-v1');}catch(e){}
-      const clean=location.origin+location.pathname;
-      location.replace(clean);
-    });
-    actions.append(button);
-  },250);
-  setTimeout(()=>clearInterval(timer),120000);
-}
-function loadReportView(){
-  if(document.querySelector('script[data-stay-report-view]'))return;
-  const s=document.createElement('script');
-  s.src=`./report-view.js?ts=${Date.now()}`;
-  s.defer=true;
-  s.dataset.stayReportView='true';
-  document.head.append(s);
-}
-function loadUserManager(){
-  if(document.querySelector('script[data-stay-user-manager]'))return;
-  const s=document.createElement('script');
-  s.src=`./user-manager.js?ts=${Date.now()}`;
-  s.defer=true;
-  s.dataset.stayUserManager='true';
-  document.head.append(s);
-}
-function apply(){
-  const list=sceneList();if(!list.length)return;
-  current=0;setBanner(list[current]);
-  const bg=list[0].url;
-  document.body.style.backgroundImage=`linear-gradient(rgba(244,247,251,.72),rgba(244,247,251,.72)),url("${bg}")`;
-  document.body.style.backgroundPosition='center top';
-  document.body.style.backgroundSize='cover';
-  document.body.style.backgroundRepeat='no-repeat';
-  document.body.style.backgroundAttachment='fixed';
-  if(timer)clearInterval(timer);
-  timer=setInterval(rotate,ROTATE_MS);
-  installBackToLoginButton();
-  loadReportView();
-  loadUserManager();
-}
+function installBackToLoginButton(){const timer=setInterval(()=>{const form=document.getElementById('ap207SetPasswordForm');if(!form||document.getElementById('ap207BackToLogin'))return;const actions=form.querySelector('.ap207-auth-actions');if(!actions)return;const button=document.createElement('button');button.id='ap207BackToLogin';button.type='button';button.className='ap207-auth-button secondary';button.textContent='← Voltar para entrar';button.addEventListener('click',async()=>{try{if(window.AP207Supabase?.auth)await window.AP207Supabase.auth.signOut();}catch(e){}try{localStorage.removeItem('ap207-auth-profile-v1');localStorage.removeItem('stay-control-last-activity-v1');}catch(e){}const clean=location.origin+location.pathname;location.replace(clean);});actions.append(button);},250);setTimeout(()=>clearInterval(timer),120000);}
+function loadScript(src,attr){if(document.querySelector(`script[${attr}]`))return;const s=document.createElement('script');s.src=`./${src}?ts=${Date.now()}`;s.defer=true;s.setAttribute(attr,'true');document.head.append(s);}
+function apply(){const list=sceneList();if(!list.length)return;current=0;setBanner(list[current]);const bg=list[0].url;document.body.style.backgroundImage=`linear-gradient(rgba(244,247,251,.72),rgba(244,247,251,.72)),url("${bg}")`;document.body.style.backgroundPosition='center top';document.body.style.backgroundSize='cover';document.body.style.backgroundRepeat='no-repeat';document.body.style.backgroundAttachment='fixed';if(timer)clearInterval(timer);timer=setInterval(rotate,ROTATE_MS);installBackToLoginButton();loadScript('report-view.js','data-stay-report-view');loadScript('user-manager.js','data-stay-user-manager');loadScript('role-manager.js','data-stay-role-manager');}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply,{once:true});else apply();
 })();
