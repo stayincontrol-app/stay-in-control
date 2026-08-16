@@ -25,18 +25,21 @@
   "cleaningFee": 135,
   "commissionRate": 0.15,
   "reservations": [
-    {
-      "guest": "Darlan",
-      "checkIn": "2026-08-10",
-      "checkOut": "2026-08-13",
-      "status": "estimado",
-      "gross": 582
-    },
-    {"guest": "Marconi",
-      "checkIn": "2026-08-14",
-      "checkOut": "2026-08-17",
-      "status": "estimado",
-      "gross": 582
-    }
+    {"guest":"José Gabriel Cordeiro","platform":"Airbnb","checkIn":"2026-05-01","checkOut":"2026-05-03","status":"Confirmada","gross":344.32,"cleaningFee":135,"commissionRate":15},
+    {"guest":"Maria Vitoria Rodrigues","platform":"Airbnb","checkIn":"2026-05-08","checkOut":"2026-05-10","status":"Confirmada","gross":306.70,"cleaningFee":135,"commissionRate":15},
+    {"guest":"Audrey Amaral","platform":"Airbnb","checkIn":"2026-05-15","checkOut":"2026-05-18","status":"Confirmada","gross":412.69,"cleaningFee":135,"commissionRate":15},
+    {"guest":"Pedro Rank","platform":"Airbnb","checkIn":"2026-05-22","checkOut":"2026-05-26","status":"Confirmada","gross":526.71,"cleaningFee":135,"commissionRate":15},
+    {"guest":"Larissa Verri","platform":"Airbnb","checkIn":"2026-06-05","checkOut":"2026-06-07","status":"Confirmada","gross":323.05,"cleaningFee":135,"commissionRate":15},
+    {"guest":"Ana Paula Prussak","platform":"Airbnb","checkIn":"2026-06-10","checkOut":"2026-06-12","status":"Confirmada","gross":314.86,"cleaningFee":135,"commissionRate":15},
+    {"guest":"David Duarte","platform":"Airbnb","checkIn":"2026-06-12","checkOut":"2026-06-15","status":"Confirmada","gross":412.69,"cleaningFee":135,"commissionRate":15},
+    {"guest":"Deivison Souza Brito","platform":"Airbnb","checkIn":"2026-06-15","checkOut":"2026-06-29","status":"Confirmada","gross":1541.69,"cleaningFee":135,"commissionRate":15},
+    {"guest":"Alexandre Lemos","platform":"Airbnb","checkIn":"2026-07-04","checkOut":"2026-07-06","status":"Confirmada","gross":166.79,"cleaningFee":0,"commissionRate":15},
+    {"guest":"Anderson Sidnei Sabino","platform":"Airbnb","checkIn":"2026-07-10","checkOut":"2026-07-13","status":"Confirmada","gross":331.19,"cleaningFee":0,"commissionRate":15},
+    {"guest":"Natalla Santiago","platform":"Airbnb","checkIn":"2026-07-14","checkOut":"2026-07-17","status":"Confirmada","gross":269.85,"cleaningFee":0,"commissionRate":15},
+    {"guest":"Kaoana Guimarães","platform":"Airbnb","checkIn":"2026-07-17","checkOut":"2026-07-20","status":"Confirmada","gross":307.46,"cleaningFee":0,"commissionRate":15},
+    {"guest":"Nubya Fraga Santos","platform":"Airbnb","checkIn":"2026-07-20","checkOut":"2026-07-25","status":"Confirmada","gross":441.93,"cleaningFee":0,"commissionRate":15},
+    {"guest":"Isa Murielli","platform":"Airbnb","checkIn":"2026-07-27","checkOut":"2026-08-03","status":"Confirmada","gross":652.61,"cleaningFee":0,"commissionRate":15},
+    {"guest":"Darlan","checkIn":"2026-08-10","checkOut":"2026-08-13","status":"estimado","gross":582},
+    {"guest":"Marconi","checkIn":"2026-08-14","checkOut":"2026-08-17","status":"estimado","gross":582}
   ]
 }
