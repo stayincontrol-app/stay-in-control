@@ -12,13 +12,17 @@
   let inactivityTimer = null;
   let warningTimer = null;
   let countdownTimer = null;
-  let secondsLeft = 10;
 
   function isAuthenticated() { return document.body.classList.contains('ap207-authenticated'); }
   function setLastActivity() { localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now())); }
+  function getLastActivity() {
+    const raw = localStorage.getItem(LAST_ACTIVITY_KEY);
+    const value = Number(raw);
+    return raw && Number.isFinite(value) ? value : null;
+  }
   function elapsedSinceActivity() {
-    const last = Number(localStorage.getItem(LAST_ACTIVITY_KEY) || Date.now());
-    return Math.max(0, Date.now() - last);
+    const last = getLastActivity();
+    return last == null ? 0 : Math.max(0, Date.now() - last);
   }
 
   function reorderStoredProperties() {
@@ -35,7 +39,14 @@
     } catch {}
   }
 
-  function signOut() {
+  async function signOut() {
+    hideWarning();
+    if (inactivityTimer) clearTimeout(inactivityTimer);
+    if (warningTimer) clearTimeout(warningTimer);
+    inactivityTimer = warningTimer = null;
+    try {
+      if (globalThis.AP207Supabase?.auth?.signOut) await globalThis.AP207Supabase.auth.signOut();
+    } catch {}
     localStorage.removeItem(AUTH_CACHE_KEY);
     localStorage.removeItem(SUPABASE_AUTH_KEY);
     localStorage.removeItem(SELECTED_PROPERTY_KEY);
@@ -139,17 +150,17 @@
   function showWarning(remainingMs = WARNING_MS) {
     if (!isAuthenticated()) return;
     const modal = ensureWarningModal();
-    secondsLeft = Math.max(1, Math.ceil(remainingMs / 1000));
-    document.getElementById('stayControlIdleCountdown').textContent = String(secondsLeft);
-    modal.hidden = false;
-    if (countdownTimer) clearInterval(countdownTimer);
-    countdownTimer = setInterval(() => {
+    const updateCountdown = () => {
       const remaining = INACTIVITY_MS - elapsedSinceActivity();
-      secondsLeft = Math.max(0, Math.ceil(remaining / 1000));
+      const secondsLeft = Math.max(0, Math.ceil(remaining / 1000));
       const display = document.getElementById('stayControlIdleCountdown');
       if (display) display.textContent = String(secondsLeft);
       if (remaining <= 0) signOut();
-    }, 250);
+    };
+    document.getElementById('stayControlIdleCountdown').textContent = String(Math.max(1, Math.ceil(remainingMs / 1000)));
+    modal.hidden = false;
+    if (countdownTimer) clearInterval(countdownTimer);
+    countdownTimer = setInterval(updateCountdown, 250);
   }
 
   function scheduleFromElapsed() {
@@ -159,7 +170,7 @@
     if (warningTimer) clearTimeout(warningTimer);
     const elapsed = elapsedSinceActivity();
     const remaining = INACTIVITY_MS - elapsed;
-    if (remaining <= 0) return signOut();
+    if (remaining <= 0) return void signOut();
     if (remaining <= WARNING_MS) {
       showWarning(remaining);
       inactivityTimer = setTimeout(signOut, remaining);
@@ -180,7 +191,7 @@
     if (!isAuthenticated()) return false;
     document.body.dataset.stayControlIdleTracking = '1';
     ensureWarningModal();
-    setLastActivity();
+    if (getLastActivity() == null) setLastActivity();
     ['pointerdown','touchstart','keydown','scroll'].forEach((eventName) => window.addEventListener(eventName, () => resetInactivityTimer(true), { passive: true }));
     document.addEventListener('visibilitychange', () => {
       if (!isAuthenticated()) return;
