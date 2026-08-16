@@ -61,10 +61,17 @@ function installBackToLoginButton(){
   },250);
   setTimeout(()=>clearInterval(timer),120000);
 }
+function loadReportView(){
+  if(document.querySelector('script[data-stay-report-view]'))return;
+  const s=document.createElement('script');
+  s.src=`./report-view.js?ts=${Date.now()}`;
+  s.defer=true;
+  s.dataset.stayReportView='true';
+  document.head.append(s);
+}
 function apply(){
   const list=sceneList();if(!list.length)return;
   current=0;setBanner(list[current]);
-  // O fundo permanece na primeira imagem do Arquivo 1; somente o banner gira.
   const bg=list[0].url;
   document.body.style.backgroundImage=`linear-gradient(rgba(244,247,251,.72),rgba(244,247,251,.72)),url("${bg}")`;
   document.body.style.backgroundPosition='center top';
@@ -74,6 +81,7 @@ function apply(){
   if(timer)clearInterval(timer);
   timer=setInterval(rotate,ROTATE_MS);
   installBackToLoginButton();
+  loadReportView();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply,{once:true});else apply();
 })();
