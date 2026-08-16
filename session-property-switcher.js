@@ -98,24 +98,54 @@
 
   function installLogout() {
     if (document.getElementById('stayControlLogoutButton')) return true;
-    const controls = document.querySelector('.header-controls');
-    if (!controls) return false;
+    const unitTitle = document.getElementById('propertyName');
+    if (!unitTitle || !unitTitle.parentElement) return false;
     const button = document.createElement('button');
     button.id = 'stayControlLogoutButton';
     button.type = 'button';
     button.className = 'button';
     button.textContent = 'Sair / Desconectar';
-    button.style.gridColumn = '1 / -1';
-    button.style.width = '100%';
+    button.style.display = 'block';
+    button.style.width = 'min(72%, 310px)';
+    button.style.margin = '10px 0 6px';
+    button.style.padding = '10px 14px';
+    button.style.minHeight = '42px';
+    button.style.borderRadius = '12px';
     button.style.background = '#dc2626';
     button.style.borderColor = '#dc2626';
     button.style.color = '#ffffff';
+    button.style.fontSize = '0.92rem';
     button.style.fontWeight = '700';
     button.addEventListener('click', () => {
       if (!window.confirm('Deseja sair do Stay in Control?')) return;
       signOut();
     });
-    controls.append(button);
+    unitTitle.insertAdjacentElement('afterend', button);
+    return true;
+  }
+
+  const DEDUCTION_IDS = [
+    'summaryCleaning', 'summaryCommission', 'summaryExpenses',
+    'reportSummaryCleaning', 'reportSummaryCommission', 'reportOtherExpenses',
+    'expensesTotal'
+  ];
+
+  function markOutgoingValues() {
+    DEDUCTION_IDS.forEach((id) => {
+      const element = document.getElementById(id);
+      if (!element) return;
+      const value = element.textContent.trim();
+      if (!value || value.startsWith('−') || value.startsWith('-')) return;
+      element.textContent = `− ${value}`;
+    });
+  }
+
+  function installOutgoingValueObserver() {
+    if (document.body.dataset.stayOutgoingObserver === '1') return true;
+    document.body.dataset.stayOutgoingObserver = '1';
+    markOutgoingValues();
+    const observer = new MutationObserver(() => markOutgoingValues());
+    observer.observe(document.body, { subtree: true, childList: true, characterData: true });
     return true;
   }
 
@@ -224,7 +254,8 @@
       const b = installLogout();
       const c = styleEditPropertyButton();
       const d = installInactivityTracking();
-      if (a && b && c && d) clearInterval(timer);
+      const e = installOutgoingValueObserver();
+      if (a && b && c && d && e) clearInterval(timer);
     }, 200);
     setTimeout(() => clearInterval(timer), 15000);
   }
