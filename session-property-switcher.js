@@ -52,10 +52,16 @@
     const button = document.createElement('button');
     button.id = 'stayControlLogoutButton';
     button.type = 'button';
-    button.className = 'button button-secondary';
+    button.className = 'button';
     button.textContent = 'Sair / Desconectar';
     button.style.gridColumn = '1 / -1';
     button.style.width = '100%';
+    button.style.background = '#dc2626';
+    button.style.borderColor = '#dc2626';
+    button.style.color = '#ffffff';
+    button.style.fontWeight = '700';
+    button.addEventListener('mouseenter', () => { button.style.background = '#b91c1c'; button.style.borderColor = '#b91c1c'; });
+    button.addEventListener('mouseleave', () => { button.style.background = '#dc2626'; button.style.borderColor = '#dc2626'; });
     button.addEventListener('click', () => {
       if (!window.confirm('Deseja sair do Stay in Control?')) return;
       localStorage.removeItem(AUTH_CACHE_KEY);
