@@ -14,7 +14,8 @@
       body.stay-report-focus #stayControlLogoutButton,
       body.stay-report-focus [data-screen],
       body.stay-report-focus .screen:not([data-screen-name="reports"]),
-      body.stay-report-focus [data-screen-panel="reports"] > * { display:none !important; }
+      body.stay-report-focus [data-screen-panel="reports"] > *,
+      body.stay-report-focus #monthlyReport .report-toolbar { display:none !important; }
       body.stay-report-focus { background:#f4f7fb; }
       body.stay-report-focus main { padding-top:18px !important; }
       body.stay-report-focus [data-screen-panel="reports"],
@@ -54,10 +55,23 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  function installPendingFilters() {
+    ['reportMonth','reportYear','reportUnit'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el || el.dataset.pendingOnly === 'true') return;
+      el.dataset.pendingOnly = 'true';
+      el.addEventListener('change', (event) => {
+        event.stopImmediatePropagation();
+      }, true);
+    });
+  }
+
   function install() {
     const generate = document.getElementById('generateReportButton');
     const report = document.getElementById('monthlyReport');
-    if (!generate || !report || document.getElementById('viewReportButton')) return false;
+    if (!generate || !report) return false;
+    installPendingFilters();
+    if (document.getElementById('viewReportButton')) return true;
 
     const view = document.createElement('button');
     view.id = 'viewReportButton';
@@ -71,18 +85,17 @@
     view.style.fontWeight = '700';
     generate.insertAdjacentElement('afterend', view);
 
-    document.addEventListener('click', (event) => {
-      if (event.target !== generate) return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      view.hidden = false;
-      const status = document.getElementById('appStatus');
-      if (status) {
-        status.className = 'app-status success';
-        status.textContent = 'Relatório gerado. Toque em “Visualizar relatório” para conferir.';
-        status.hidden = false;
-      }
-    }, true);
+    generate.addEventListener('click', () => {
+      setTimeout(() => {
+        view.hidden = false;
+        const status = document.getElementById('appStatus');
+        if (status) {
+          status.className = 'app-status success';
+          status.textContent = 'Relatório atualizado. Toque em “Visualizar relatório” para conferir.';
+          status.hidden = false;
+        }
+      }, 0);
+    });
 
     view.addEventListener('click', () => enterFocus(report));
     return true;
