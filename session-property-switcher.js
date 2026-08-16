@@ -38,6 +38,16 @@
     location.reload();
   }
 
+  function loadUserManager() {
+    if (document.querySelector('script[data-stay-user-manager]')) return true;
+    const script = document.createElement('script');
+    script.src = './user-manager.js';
+    script.defer = true;
+    script.dataset.stayUserManager = 'true';
+    document.head.append(script);
+    return true;
+  }
+
   function installPropertySwitching() {
     const selector = document.getElementById('propertySelector');
     if (!selector || selector.dataset.stayControlSwitching === '1') return false;
@@ -183,6 +193,7 @@
   }
 
   reorderStoredProperties();
+  loadUserManager();
 
   function boot() {
     const timer = setInterval(() => {
