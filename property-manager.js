@@ -21,6 +21,16 @@
     if (index > 0) { const selected = properties.splice(index, 1)[0]; properties.unshift(selected); writeProperties(properties); }
   }
 
+  async function persistAdminAccess(userId, propertyId) {
+    const client = window.AP207Supabase;
+    if (!client) throw new Error('O serviço de acesso ainda está carregando. Aguarde alguns segundos e tente novamente.');
+    const { error } = await client.from('property_access').upsert(
+      { user_id: userId, property_id: propertyId },
+      { onConflict: 'user_id,property_id', ignoreDuplicates: false }
+    );
+    if (error) throw new Error(error.message || 'Não foi possível vincular a nova unidade ao administrador.');
+  }
+
   function ensureStyles() {
     if (document.getElementById('propertyManagerStyles')) return;
     const style = document.createElement('style'); style.id = 'propertyManagerStyles';
@@ -90,18 +100,24 @@
     cancel.addEventListener('click', () => { form.reset(); form.hidden = true; error.hidden = true; success.hidden = true; });
 
     form.addEventListener('submit', async (event) => {
-      event.preventDefault(); error.hidden = true; success.hidden = true;
+      event.preventDefault(); error.hidden = true; success.hidden = true; save.disabled = true; save.textContent = 'Salvando…';
       try {
         const auth = readAuth(); if (!auth?.profile || !['super_admin','admin'].includes(auth.profile.role)) throw new Error('Seu usuário não tem permissão para criar propriedades.');
         const name = document.getElementById('newPropertyTitle').value.trim(),unit = document.getElementById('newPropertyUnit').value.trim(),city = document.getElementById('newPropertyCity').value.trim(),stateInput = document.getElementById('newPropertyState').value.trim().toUpperCase(),addressInput = document.getElementById('newPropertyAddress').value.trim(),ownerName = document.getElementById('newPropertyOwnerName').value.trim(),commission = Number(document.getElementById('newPropertyCommission').value);
         if (!name || !unit || !city || !ownerName) throw new Error('Preencha proprietário, propriedade, unidade e cidade.'); if (!Number.isFinite(commission) || commission < 0 || commission > 100) throw new Error('A comissão deve ficar entre 0% e 100%.');
         let properties = await getWorkingProperties(); const baseId = `property-${safeId(unit || name) || Date.now()}`; let id = baseId, counter = 2; while (properties.some((item) => item.id === id)) { id = `${baseId}-${counter}`; counter += 1; }
-        const userId = auth.profile.id || 'unassigned-admin'; const property = {id,ownerName,name,unit,city,state: stateInput || '—',address: addressInput || 'Não informado',commissionRate: commission / 100,administratorId: auth.profile.role === 'admin' ? userId : 'unassigned-admin',ownerId: 'unassigned-owner'};
+        const userId = auth.profile.id || 'unassigned-admin';
+        if (auth.profile.role === 'admin') await persistAdminAccess(userId, id);
+        const property = {id,ownerName,name,unit,city,state: stateInput || '—',address: addressInput || 'Não informado',commissionRate: commission / 100,administratorId: auth.profile.role === 'admin' ? userId : 'unassigned-admin',ownerId: 'unassigned-owner'};
         properties.push(property); writeProperties(properties);
         if (auth.profile.role === 'admin') { const ids = new Set(auth.propertyIds || []); ids.add(id); auth.propertyIds = [...ids]; localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(auth)); }
         localStorage.setItem(`ap207-dashboard-reservations-v1:${id}`, JSON.stringify({ version: 1, reservations: [] })); localStorage.setItem(`ap207-dashboard-expenses-v1:${id}`, JSON.stringify({ version: 1, expenses: [] }));
-        setPreferredProperty(id); location.reload();
-      } catch (err) { error.textContent = err?.message || 'Não foi possível cadastrar a propriedade.'; error.hidden = false; }
+        setPreferredProperty(id);
+        success.innerHTML = `<strong>✅ Unidade criada com sucesso.</strong><span>${unit} • ${city}</span>`; success.hidden = false; formActions.hidden = true;
+        setTimeout(() => location.reload(), 650);
+      } catch (err) {
+        error.textContent = err?.message || 'Não foi possível cadastrar a propriedade.'; error.hidden = false; save.disabled = false; save.textContent = 'Salvar nova unidade';
+      }
     });
   }
 
