@@ -40,6 +40,27 @@ function setBanner(scene){
   banner.innerHTML='';
 }
 function rotate(){const list=sceneList();if(!list.length)return;current=(current+1)%list.length;setBanner(list[current]);}
+function installBackToLoginButton(){
+  const timer=setInterval(()=>{
+    const form=document.getElementById('ap207SetPasswordForm');
+    if(!form||document.getElementById('ap207BackToLogin'))return;
+    const actions=form.querySelector('.ap207-auth-actions');
+    if(!actions)return;
+    const button=document.createElement('button');
+    button.id='ap207BackToLogin';
+    button.type='button';
+    button.className='ap207-auth-button secondary';
+    button.textContent='← Voltar para entrar';
+    button.addEventListener('click',async()=>{
+      try{if(window.AP207Supabase?.auth)await window.AP207Supabase.auth.signOut();}catch(e){}
+      try{localStorage.removeItem('ap207-auth-profile-v1');localStorage.removeItem('stay-control-last-activity-v1');}catch(e){}
+      const clean=location.origin+location.pathname;
+      location.replace(clean);
+    });
+    actions.append(button);
+  },250);
+  setTimeout(()=>clearInterval(timer),120000);
+}
 function apply(){
   const list=sceneList();if(!list.length)return;
   current=0;setBanner(list[current]);
@@ -52,6 +73,7 @@ function apply(){
   document.body.style.backgroundAttachment='fixed';
   if(timer)clearInterval(timer);
   timer=setInterval(rotate,ROTATE_MS);
+  installBackToLoginButton();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply,{once:true});else apply();
 })();
