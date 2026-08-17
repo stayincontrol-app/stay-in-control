@@ -49,18 +49,6 @@
     catch { alert('O compartilhamento não está disponível neste navegador.'); }
   }
 
-  function downloadReport(report) {
-    const period = document.getElementById('reportPeriod')?.textContent?.trim().replace(/\s+/g,'-') || 'relatorio';
-    const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Relatório Stay in Control</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:24px;color:#172033;background:#fff}section{max-width:900px;margin:auto}button,select{display:none!important}</style></head><body><section>${report.outerHTML}</section></body></html>`;
-    const blob = new Blob([html], { type:'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Stay-in-Control-${period}.html`;
-    document.body.append(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }
-
   function enterFocus(report) {
     ensureStyles();
     document.body.classList.add('stay-report-focus');
@@ -69,12 +57,10 @@
       header = document.createElement('div');
       header.id = 'stayReportFocusHeader';
       header.className = 'stay-report-focus-header';
-      header.innerHTML = '<button type="button" class="stay-report-back">← Voltar</button><h2 class="stay-report-focus-title">Relatório mensal</h2><button type="button" class="stay-report-action" id="stayReportShare">Compartilhar</button><button type="button" class="stay-report-action" id="stayReportDownload">Baixar</button><button type="button" class="stay-report-action" id="stayReportPrint">Imprimir</button>';
+      header.innerHTML = '<button type="button" class="stay-report-back">← Voltar</button><h2 class="stay-report-focus-title">Relatório mensal</h2><button type="button" class="stay-report-action" id="stayReportShare">Compartilhar</button>';
       report.insertAdjacentElement('beforebegin', header);
       header.querySelector('.stay-report-back').addEventListener('click', exitFocus);
       header.querySelector('#stayReportShare').addEventListener('click', () => shareReport(report));
-      header.querySelector('#stayReportDownload').addEventListener('click', () => downloadReport(report));
-      header.querySelector('#stayReportPrint').addEventListener('click', () => window.print());
     }
     header.hidden = false;
     window.scrollTo({ top: 0, behavior: 'smooth' });
