@@ -104,7 +104,7 @@
     button.id = 'stayControlLogoutButton';
     button.type = 'button';
     button.className = 'button';
-    button.textContent = 'Sair / Desconectar';
+    button.textContent = 'Sair';
     button.style.display = 'block';
     button.style.width = 'min(72%, 310px)';
     button.style.margin = '10px 0 6px';
