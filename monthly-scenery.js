@@ -1,30 +1,26 @@
 (()=>{'use strict';
-// Arquivo 1: coleção principal do banner. Novos arquivos podem ser adicionados depois,
-// inclusive campanhas patrocinadas, sem alterar o restante do aplicativo.
-const archives={
-  arquivo1:[
-    {name:'Riviera Beach / Singer Island',url:'https://coastalmarinecharters.com/wp-content/uploads/2025/07/West-Palm-Beach.webp'},
-    {name:'Algarve',url:'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1800&q=84'},
-    {name:'Curitiba',url:'https://images.unsplash.com/photo-1598970605070-a38a6ccd3a2d?auto=format&fit=crop&w=1800&q=84'},
-    {name:'Rio de Janeiro',url:'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=1800&q=84'},
-    {name:'São Paulo',url:'https://images.unsplash.com/photo-1543059080-f9b1272213d5e?auto=format&fit=crop&w=1800&q=84'},
-    {name:'Brasília',url:'https://images.unsplash.com/photo-1602984562211-73e0cdecd789?auto=format&fit=crop&w=1800&q=84'},
-    {name:'Florianópolis',url:'https://images.unsplash.com/photo-1598301257982-0cf014dabbcd?auto=format&fit=crop&w=1800&q=84'},
-    {name:'Salvador',url:'https://images.unsplash.com/photo-1587314168485-3236d6710814?auto=format&fit=crop&w=1800&q=84'},
-    {name:'Foz do Iguaçu',url:'https://images.unsplash.com/photo-1565708097881-bbf4ecf47cc1?auto=format&fit=crop&w=1800&q=84'},
-    {name:'Istambul',url:'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=1800&q=84'},
-    {name:'Paris',url:'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1800&q=84'},
-    {name:'Nova York',url:'https://images.unsplash.com/photo-1485871981521-5b1fd3805eee?auto=format&fit=crop&w=1800&q=84'}
-  ]
-};
-const ACTIVE_ARCHIVE='arquivo1';
-const ROTATE_MS=10000;
-let current=0,timer=null;
+const archives={arquivo1:[
+{name:'Riviera Beach / Singer Island',url:'https://coastalmarinecharters.com/wp-content/uploads/2025/07/West-Palm-Beach.webp'},
+{name:'Algarve',url:'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1800&q=84'},
+{name:'Curitiba',url:'https://images.unsplash.com/photo-1598970605070-a38a6ccd3a2d?auto=format&fit=crop&w=1800&q=84'},
+{name:'Rio de Janeiro',url:'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?auto=format&fit=crop&w=1800&q=84'},
+{name:'São Paulo',url:'https://images.unsplash.com/photo-1543059080-f9b1272213d5e?auto=format&fit=crop&w=1800&q=84'},
+{name:'Brasília',url:'https://images.unsplash.com/photo-1602984562211-73e0cdecd789?auto=format&fit=crop&w=1800&q=84'},
+{name:'Florianópolis',url:'https://images.unsplash.com/photo-1598301257982-0cf014dabbcd?auto=format&fit=crop&w=1800&q=84'},
+{name:'Salvador',url:'https://images.unsplash.com/photo-1587314168485-3236d6710814?auto=format&fit=crop&w=1800&q=84'},
+{name:'Foz do Iguaçu',url:'https://images.unsplash.com/photo-1565708097881-bbf4ecf47cc1?auto=format&fit=crop&w=1800&q=84'},
+{name:'Istambul',url:'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=1800&q=84'},
+{name:'Paris',url:'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1800&q=84'},
+{name:'Nova York',url:'https://images.unsplash.com/photo-1485871981521-5b1fd3805eee?auto=format&fit=crop&w=1800&q=84'}]};
+const ACTIVE_ARCHIVE='arquivo1',ROTATE_MS=10000;let current=0,timer=null,appModulesLoaded=false;
 function sceneList(){return archives[ACTIVE_ARCHIVE]||[]}
-function setBanner(scene){if(!scene)return;const banner=document.querySelector('.scenic-banner');if(!banner)return;banner.style.backgroundImage=`url("${scene.url}")`;banner.style.display='block';banner.style.height=window.innerWidth<=480?'120px':'150px';banner.style.marginBottom='20px';banner.style.borderRadius='18px';banner.style.backgroundPosition='center';banner.style.backgroundSize='cover';banner.style.backgroundRepeat='no-repeat';banner.style.transition='background-image .5s ease-in-out,opacity .35s ease';banner.setAttribute('aria-label',`Paisagem do banner: ${scene.name}`);banner.dataset.archive=ACTIVE_ARCHIVE;banner.dataset.scene=scene.name;banner.innerHTML='';}
-function rotate(){const list=sceneList();if(!list.length)return;current=(current+1)%list.length;setBanner(list[current]);}
-function installBackToLoginButton(){const timer=setInterval(()=>{const form=document.getElementById('ap207SetPasswordForm');if(!form||document.getElementById('ap207BackToLogin'))return;const actions=form.querySelector('.ap207-auth-actions');if(!actions)return;const button=document.createElement('button');button.id='ap207BackToLogin';button.type='button';button.className='ap207-auth-button secondary';button.textContent='← Voltar para entrar';button.addEventListener('click',async()=>{try{if(window.AP207Supabase?.auth)await window.AP207Supabase.auth.signOut();}catch(e){}try{localStorage.removeItem('ap207-auth-profile-v1');localStorage.removeItem('stay-control-last-activity-v1');}catch(e){}const clean=location.origin+location.pathname;location.replace(clean);});actions.append(button);},250);setTimeout(()=>clearInterval(timer),120000);}
-function loadScript(src,attr){if(document.querySelector(`script[${attr}]`))return;const s=document.createElement('script');s.src=`./${src}?ts=${Date.now()}`;s.defer=true;s.setAttribute(attr,'true');document.head.append(s);}
-function apply(){const list=sceneList();if(!list.length)return;current=0;setBanner(list[current]);const bg=list[0].url;document.body.style.backgroundImage=`linear-gradient(rgba(244,247,251,.72),rgba(244,247,251,.72)),url("${bg}")`;document.body.style.backgroundPosition='center top';document.body.style.backgroundSize='cover';document.body.style.backgroundRepeat='no-repeat';document.body.style.backgroundAttachment='fixed';if(timer)clearInterval(timer);timer=setInterval(rotate,ROTATE_MS);installBackToLoginButton();loadScript('report-view.js','data-stay-report-view');loadScript('user-manager.js','data-stay-user-manager');loadScript('role-manager.js','data-stay-role-manager');loadScript('property-create-fix.js','data-stay-property-create-fix');loadScript('password-recovery.js','data-stay-password-recovery');loadScript('auth-enhancements.js','data-stay-auth-enhancements');loadScript('ui-enhancements.js','data-stay-ui-enhancements');loadScript('world-languages.js','data-stay-world-languages');loadScript('brazil-cpf-access.js','data-stay-brazil-cpf-access');loadScript('online-expense-receipts.js','data-stay-online-receipts');}
+function setBanner(scene){if(!scene)return;const banner=document.querySelector('.scenic-banner');if(!banner)return;banner.style.backgroundImage=`url("${scene.url}")`;banner.style.display='block';banner.style.height=window.innerWidth<=480?'120px':'150px';banner.style.marginBottom='20px';banner.style.borderRadius='18px';banner.style.backgroundPosition='center';banner.style.backgroundSize='cover';banner.style.backgroundRepeat='no-repeat';banner.style.transition='background-image .5s ease-in-out,opacity .35s ease';banner.setAttribute('aria-label',`Paisagem do banner: ${scene.name}`);banner.dataset.archive=ACTIVE_ARCHIVE;banner.dataset.scene=scene.name;banner.innerHTML=''}
+function rotate(){const list=sceneList();if(!list.length)return;current=(current+1)%list.length;setBanner(list[current])}
+function installBackToLoginButton(){const t=setInterval(()=>{const form=document.getElementById('ap207SetPasswordForm');if(!form||document.getElementById('ap207BackToLogin'))return;const actions=form.querySelector('.ap207-auth-actions');if(!actions)return;const button=document.createElement('button');button.id='ap207BackToLogin';button.type='button';button.className='ap207-auth-button secondary';button.textContent='← Voltar para entrar';button.addEventListener('click',async()=>{try{if(window.AP207Supabase?.auth)await window.AP207Supabase.auth.signOut()}catch(e){}try{localStorage.removeItem('ap207-auth-profile-v1');localStorage.removeItem('stay-control-last-activity-v1')}catch(e){}location.replace(location.origin+location.pathname)});actions.append(button)},250);setTimeout(()=>clearInterval(t),120000)}
+function loadScript(src,attr){if(document.querySelector(`script[${attr}]`))return;const s=document.createElement('script');s.src=`./${src}`;s.defer=true;s.setAttribute(attr,'true');document.head.append(s)}
+function loadLoginModules(){loadScript('world-languages.js','data-stay-world-languages');loadScript('brazil-cpf-access.js','data-stay-brazil-cpf-access')}
+function loadAppModules(){if(appModulesLoaded)return;appModulesLoaded=true;loadScript('report-view.js','data-stay-report-view');loadScript('user-manager.js','data-stay-user-manager');loadScript('role-manager.js','data-stay-role-manager');loadScript('property-create-fix.js','data-stay-property-create-fix');loadScript('password-recovery.js','data-stay-password-recovery');loadScript('auth-enhancements.js','data-stay-auth-enhancements');loadScript('ui-enhancements.js','data-stay-ui-enhancements');loadScript('online-expense-receipts.js','data-stay-online-receipts')}
+function watchAuthentication(){let tries=0;const t=setInterval(()=>{tries++;if(document.body.classList.contains('ap207-authenticated')){clearInterval(t);loadAppModules()}else if(tries>1200){clearInterval(t)}},250)}
+function apply(){const list=sceneList();if(list.length){current=0;setBanner(list[current]);const bg=list[0].url;document.body.style.backgroundImage=`linear-gradient(rgba(244,247,251,.72),rgba(244,247,251,.72)),url("${bg}")`;document.body.style.backgroundPosition='center top';document.body.style.backgroundSize='cover';document.body.style.backgroundRepeat='no-repeat';document.body.style.backgroundAttachment='fixed';if(timer)clearInterval(timer);timer=setInterval(rotate,ROTATE_MS)}installBackToLoginButton();loadLoginModules();watchAuthentication()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply,{once:true});else apply();
 })();
