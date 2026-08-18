@@ -1,6 +1,6 @@
 (()=>{'use strict';
-const EXTRA=['Internet','Luz','Limpeza','Aluguel de garagem'];
-function apply(){const select=document.getElementById('expenseCategory');if(!select)return;const existing=new Set([...select.options].map(o=>o.textContent.trim().toLowerCase()));EXTRA.forEach(name=>{if(existing.has(name.toLowerCase()))return;const option=document.createElement('option');option.value=name;option.textContent=name;select.appendChild(option);existing.add(name.toLowerCase())})}
-function boot(){apply();new MutationObserver(apply).observe(document.body,{childList:true,subtree:true})}
+const WANTED=['Manutenção/Reparo','Compra para o apartamento','Reposição','Condomínio','Internet','Luz','Limpeza','Aluguel de garagem','Material','Serviço','Outro'];
+function apply(){const select=document.getElementById('expenseCategory');if(!select)return;const current=select.value;const signature=WANTED.join('|');if(select.dataset.stayCategories===signature&&WANTED.every(n=>[...select.options].some(o=>o.value===n)))return;select.innerHTML='';WANTED.forEach(name=>{const o=document.createElement('option');o.value=name;o.textContent=name;select.appendChild(o)});if(WANTED.includes(current))select.value=current;select.dataset.stayCategories=signature;}
+function boot(){apply();document.querySelector('[data-screen="expenses"]')?.addEventListener('click',()=>setTimeout(apply,50));document.getElementById('newExpenseButton')?.addEventListener('click',()=>setTimeout(apply,20));new MutationObserver(()=>apply()).observe(document.body,{childList:true,subtree:true});setInterval(apply,700)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
