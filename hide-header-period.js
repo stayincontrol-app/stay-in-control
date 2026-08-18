@@ -1,0 +1,1 @@
+(()=>{'use strict';function apply(){const label=document.getElementById('monthLabel');if(label)label.style.display='none';document.querySelectorAll('.global-period-selector').forEach(el=>el.remove());}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply,{once:true});else apply();setTimeout(apply,1000);setTimeout(apply,2000);})();
