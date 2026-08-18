@@ -5,9 +5,11 @@
     const showManagement = screen === 'home';
     const propertySettings = document.getElementById('propertySettings');
     const userSection = document.getElementById('stayUserSection');
+    const logoutButton = document.getElementById('stayControlLogoutButton');
 
     if (propertySettings) propertySettings.style.display = showManagement ? '' : 'none';
     if (userSection) userSection.style.display = showManagement ? '' : 'none';
+    if (logoutButton) logoutButton.style.display = showManagement ? 'block' : 'none';
   }
 
   function activate(screen) {
@@ -33,6 +35,12 @@
       setManagementVisibility(current);
     });
     buttons.forEach((button) => observer.observe(button, { attributes: true, attributeFilter: ['class', 'aria-current'] }));
+
+    const logoutObserver = new MutationObserver(() => {
+      const current = document.querySelector('[data-screen].active')?.dataset.screen || 'home';
+      setManagementVisibility(current);
+    });
+    logoutObserver.observe(document.body, { childList: true, subtree: true });
     return true;
   }
 
