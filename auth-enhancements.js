@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const REDIRECT_URL = 'https://raw.githack.com/marcelinhone-code/Ap207-dashboard-/main/index.html?type=recovery';
+  const REDIRECT_URL = 'https://raw.githack.com/marcelinhone-code/Ap207-dashboard-/visual-share-working-20260818/index.html?type=recovery';
   const LAST_ACTIVITY_KEY = 'stay-control-last-activity-v1';
 
   function recoveryRequested() {
