@@ -112,9 +112,15 @@
     generate.insertAdjacentElement('afterend', view);
 
     generate.addEventListener('click', () => setTimeout(() => {
+      generate.textContent = 'Atualizar relatório';
+      generate.dataset.reportGenerated = 'true';
       view.hidden = false;
       const status = document.getElementById('appStatus');
-      if (status) { status.className='app-status success'; status.textContent='Relatório atualizado. Toque em “Visualizar relatório” para conferir.'; status.hidden=false; }
+      if (status) {
+        status.className='app-status success';
+        status.textContent='Relatório atualizado com os dados selecionados.';
+        status.hidden=false;
+      }
     }, 0));
 
     view.addEventListener('click', () => enterFocus(report));
