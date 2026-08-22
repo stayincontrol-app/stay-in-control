@@ -1,6 +1,38 @@
 (()=>{'use strict';
-let userScrollY=0,restoring=false,lastListHeight=0;
-function onUserScroll(){if(restoring)return;userScrollY=window.scrollY||document.documentElement.scrollTop||0}
-function protectList(){const expenses=document.querySelector('[data-screen-panel="expenses"]');const list=document.getElementById('recurringExpenseList');if(!expenses||!list||list.dataset.stayScrollProtected==='1')return false;list.dataset.stayScrollProtected='1';userScrollY=window.scrollY||0;lastListHeight=Math.ceil(list.getBoundingClientRect().height);if(lastListHeight>0)list.style.minHeight=lastListHeight+'px';const mo=new MutationObserver(()=>{const before=userScrollY;const h=Math.ceil(list.getBoundingClientRect().height);if(h>lastListHeight){lastListHeight=h;list.style.minHeight=lastListHeight+'px'}requestAnimationFrame(()=>{if(expenses.hidden)return;const now=window.scrollY||0;if(Math.abs(now-before)>2){restoring=true;window.scrollTo({left:0,top:before,behavior:'auto'});requestAnimationFrame(()=>{restoring=false;userScrollY=before})}})});mo.observe(list,{childList:true,subtree:true,characterData:true});return true}
-function boot(){window.addEventListener('scroll',onUserScroll,{passive:true});let tries=0;const timer=setInterval(()=>{tries++;if(protectList()||tries>120)clearInterval(timer)},250)}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();})();
+let lastStableHeight=0;
+function protectList(){
+  const list=document.getElementById('recurringExpenseList');
+  if(!list||list.dataset.stayScrollProtected==='2')return false;
+  list.dataset.stayScrollProtected='2';
+  list.style.alignContent='start';
+  const rememberHeight=()=>{
+    if(list.childElementCount>0){
+      const h=Math.ceil(list.getBoundingClientRect().height);
+      if(h>0)lastStableHeight=h;
+    }
+  };
+  rememberHeight();
+  const mo=new MutationObserver(()=>{
+    if(list.childElementCount===0){
+      if(lastStableHeight>0)list.style.minHeight=lastStableHeight+'px';
+      return;
+    }
+    requestAnimationFrame(()=>{
+      list.style.minHeight='';
+      list.style.alignContent='start';
+      rememberHeight();
+    });
+  });
+  mo.observe(list,{childList:true,subtree:true});
+  window.addEventListener('resize',()=>requestAnimationFrame(rememberHeight),{passive:true});
+  return true;
+}
+function boot(){
+  let tries=0;
+  const timer=setInterval(()=>{
+    tries++;
+    if(protectList()||tries>120)clearInterval(timer);
+  },250);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
