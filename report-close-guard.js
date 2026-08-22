@@ -1,0 +1,8 @@
+(()=>{'use strict';
+function selectedPeriod(){return{month:Number(document.getElementById('reportMonth')?.value||0),year:Number(document.getElementById('reportYear')?.value||0)}}
+function isClosed(){const p=selectedPeriod(),now=new Date(),cy=now.getFullYear(),cm=now.getMonth()+1;if(!p.year||!p.month)return false;return p.year<cy||(p.year===cy&&p.month<cm)}
+function statusText(){return isClosed()?'Relatório fechado':'Mês em andamento — somente visualização'}
+function updateButtons(){const generate=document.getElementById('generateReportButton');if(generate){if(isClosed()){if(generate.textContent.includes('visualização'))generate.textContent='Gerar relatório'}else generate.textContent='Atualizar visualização';generate.title=statusText()}const view=document.getElementById('viewReportButton');if(view)view.title=statusText()}
+function blockUnclosedAction(e){const target=e.target?.closest?.('#stayReportShare,#stayReportDownload,#stayReportPrint');if(!target||isClosed())return;e.preventDefault();e.stopImmediatePropagation();alert('Este mês ainda está em andamento. Você pode visualizar o relatório, mas compartilhar, baixar ou imprimir só ficará disponível depois que o mês terminar.')}
+function bind(){['reportMonth','reportYear'].forEach(id=>document.getElementById(id)?.addEventListener('change',()=>setTimeout(updateButtons,0)));document.getElementById('generateReportButton')?.addEventListener('click',()=>setTimeout(updateButtons,30));document.addEventListener('click',blockUnclosedAction,true);updateButtons()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();})();
