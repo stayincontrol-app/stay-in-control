@@ -1,0 +1,1 @@
+body:not(.ap207-authenticated){background-image:linear-gradient(rgba(244,247,251,.12),rgba(244,247,251,.28)),url('./login-background.jpeg')!important;background-size:cover!important;background-position:center top!important;background-repeat:no-repeat!important;background-attachment:fixed!important}
