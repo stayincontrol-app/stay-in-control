@@ -1,0 +1,1 @@
+(()=>{const id='stay-login-background-css';if(document.getElementById(id))return;const l=document.createElement('link');l.id=id;l.rel='stylesheet';l.href='./login-background.css?ts='+Date.now();document.head.append(l)})();
