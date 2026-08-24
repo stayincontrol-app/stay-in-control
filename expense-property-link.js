@@ -1,17 +1,14 @@
 (()=>{'use strict';
-const form=document.getElementById('expenseForm'),dateField=document.getElementById('expenseDate')?.closest('.field'),header=document.getElementById('propertySelector'),user=document.getElementById('userSelector');if(!form||!dateField||!header)return;
-const KEY='ap207-dashboard-properties-v1';let properties=[];
-function role(){const t=user?.selectedOptions?.[0]?.textContent||'';if(/Super administrador/i.test(t))return'super_admin';if(/Administrador|Gestor/i.test(t))return'admin';return'owner'}
-function load(){try{const x=JSON.parse(localStorage.getItem(KEY)||'null');if(x?.version===1&&Array.isArray(x.properties))return x.properties}catch{}return[]}
-function field(id,label){const w=document.createElement('div'),l=document.createElement('label'),s=document.createElement('select');w.className='field';l.htmlFor=id;l.textContent=label;s.id=id;s.required=true;w.append(l,s);return{w,s}}
-function opt(v,t){const o=document.createElement('option');o.value=v;o.textContent=t;return o}
-const owner=field('expenseOwner','Nome do proprietário'),property=field('expenseProperty','Propriedade / unidade');dateField.before(owner.w,property.w);
-function active(){return properties.find(p=>p.id===header.value)}
-function fillOwners(preferred){properties=load().length?load():properties;const visible=new Set([...header.options].map(o=>o.value)),map=new Map();properties.filter(p=>visible.has(p.id)).forEach(p=>{const k=p.ownerId||p.ownerName;if(!map.has(k))map.set(k,{id:k,name:p.ownerName})});owner.s.replaceChildren(opt('','Selecione o proprietário'),...[...map.values()].map(x=>opt(x.id,x.name)));const a=active();owner.s.value=preferred||a?.ownerId||a?.ownerName||'';fillProperties(a?.id)}
-function fillProperties(preferred){const oid=owner.s.value,visible=new Set([...header.options].map(o=>o.value)),linked=properties.filter(p=>visible.has(p.id)&&(p.ownerId===oid||p.ownerName===oid));property.s.replaceChildren(opt('','Selecione a unidade'),...linked.map(p=>opt(p.id,`${p.unit} — ${p.name}`)));if(preferred&&linked.some(p=>p.id===preferred))property.s.value=preferred;else if(linked.length===1)property.s.value=linked[0].id}
-function sync(){if(property.s.value&&property.s.value!==header.value){header.value=property.s.value;header.dispatchEvent(new Event('change',{bubbles:true}))}}
-function visibility(){const manage=['super_admin','admin'].includes(role());owner.w.hidden=!manage;property.w.hidden=!manage;owner.s.disabled=!manage;property.s.disabled=!manage;if(manage)fillOwners()}
-owner.s.addEventListener('change',()=>fillProperties());property.s.addEventListener('change',sync);header.addEventListener('change',()=>{const a=active();if(a){owner.s.value=a.ownerId||a.ownerName;fillProperties(a.id)}});user?.addEventListener('change',()=>setTimeout(visibility,0));
-form.addEventListener('submit',e=>{if(!['super_admin','admin'].includes(role()))return;if(!owner.s.value||!property.s.value){e.preventDefault();e.stopImmediatePropagation();owner.s.reportValidity();property.s.reportValidity();return}sync()},true);
-fetch(`./data.json?expensePropertyLink=${Date.now()}`,{cache:'no-store'}).then(r=>r.ok?r.json():null).then(d=>{properties=load().length?load():(Array.isArray(d?.properties)?d.properties:[]);visibility()}).catch(visibility);
+const form=document.getElementById('expenseForm'),date=document.getElementById('expenseDate'),header=document.getElementById('propertySelector');if(!form||!header)return;
+const SCOPE='stay-home-scope-v1';
+function scopeProperty(){try{const s=JSON.parse(localStorage.getItem(SCOPE)||'{}');return s.property&&s.property!=='all'?String(s.property):''}catch{return''}}
+function selectedProperty(){return scopeProperty()||header.value||''}
+function sync(){const id=selectedProperty();if(id&&id!==header.value&&[...header.options].some(o=>o.value===id)){header.value=id;header.dispatchEvent(new Event('change',{bubbles:true}))}}
+/* A nova despesa pertence sempre à propriedade/unidade escolhida na Visão geral do Home.
+   Não mostrar nem exigir seletores duplicados de proprietário/propriedade no formulário. */
+['expenseOwner','expenseProperty'].forEach(id=>{const e=document.getElementById(id);if(e)e.closest('.field')?.remove()});
+if(date){date.disabled=false;date.readOnly=false;date.required=true}
+form.addEventListener('submit',()=>sync(),true);
+window.addEventListener('stay:scope-change',sync);
+setTimeout(sync,0);
 })();
