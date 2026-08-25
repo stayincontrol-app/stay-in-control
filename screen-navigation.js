@@ -13,17 +13,34 @@
 
   function hideOwnerRecurringSettings() {
     if (currentRole() !== 'owner') return;
-    document.querySelectorAll('h1,h2,h3,strong').forEach((heading) => {
-      const text = (heading.textContent || '').trim().toLowerCase();
-      if (text !== 'comissão recorrente' && text !== 'taxa de limpeza recorrente') return;
-      let card = heading.closest('article, section, .panel, .card, [class*="card"]');
-      if (!card) card = heading.parentElement;
-      if (card) {
-        card.hidden = true;
-        card.style.setProperty('display', 'none', 'important');
-        card.setAttribute('aria-hidden', 'true');
+
+    // Proprietário não precisa ver controles nem resumo de itens recorrentes.
+    const recurringLine = document.getElementById('summaryRecurringExpensesLine');
+    if (recurringLine) {
+      recurringLine.hidden = true;
+      recurringLine.style.setProperty('display', 'none', 'important');
+      recurringLine.setAttribute('aria-hidden', 'true');
+    }
+
+    document.querySelectorAll('h1,h2,h3,strong,small,span,p,dt,div').forEach((element) => {
+      const text = (element.textContent || '').trim().toLowerCase();
+      const isRecurringCard = text === 'comissão recorrente' || text === 'taxa de limpeza recorrente';
+      const isRecurringExpenseSummary = text === 'despesas recorrentes cadastradas';
+      if (!isRecurringCard && !isRecurringExpenseSummary) return;
+
+      let target;
+      if (isRecurringExpenseSummary) {
+        target = element.closest('p,div,section,article,.panel,.card,[class*="card"]') || element;
+      } else {
+        target = element.closest('article,section,.panel,.card,[class*="card"]') || element.parentElement;
+      }
+      if (target) {
+        target.hidden = true;
+        target.style.setProperty('display', 'none', 'important');
+        target.setAttribute('aria-hidden', 'true');
       }
     });
+
     const legacy = document.getElementById('recurringReservationDefaults');
     if (legacy) {
       legacy.hidden = true;
