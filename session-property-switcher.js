@@ -90,6 +90,7 @@
   function loadUserManager() { return loadScriptOnce('./user-manager.js', 'data-stay-user-manager'); }
   function loadReportView() { return loadScriptOnce('./report-view.js', 'data-stay-report-view'); }
   function loadScreenNavigation() { return loadScriptOnce('./screen-navigation.js', 'data-stay-screen-navigation'); }
+  function loadSelectedPropertyContext() { return loadScriptOnce('./selected-property-context.js', 'data-stay-selected-property-context'); }
 
   function ensurePropertyLoader() {
     let loader = document.getElementById('stayPropertyLoader');
@@ -285,6 +286,7 @@
   loadUserManager();
   loadReportView();
   loadScreenNavigation();
+  loadSelectedPropertyContext();
 
   function boot() {
     const timer = setInterval(() => {
