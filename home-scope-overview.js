@@ -2,7 +2,8 @@
 const RES='ap207-dashboard-reservations-v1',EXP='ap207-dashboard-expenses-v1',PROPS='ap207-dashboard-properties-v1',AUTH='ap207-auth-profile-v1',SCOPE='stay-home-scope-v1',INVITES='stay-control-invitations-v1';
 const money=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'});function read(k,f){try{return JSON.parse(localStorage.getItem(k)||'null')||f}catch{return f}}function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
 function profile(){return read(AUTH,{profile:{role:'super_admin',name:'Super Administrador'}}).profile||{role:'super_admin'}}
-async function props(){const x=read(PROPS,null);if(Array.isArray(x?.properties)&&x.properties.length)return x.properties;try{const r=await fetch(`./data.json?homeScope=${Date.now()}`,{cache:'no-store'}),d=await r.json();return d.properties||[]}catch{return[]}}
+function normalizeProps(list){return (list||[]).map(p=>{const key=`${p.id||''} ${p.name||''} ${p.unit||''}`.toLowerCase();if(key.includes('ap207')||/\b207\b/.test(key))return {...p,ownerName:'Marcelo Estevão',ownerId:p.ownerId==='user-lucas'?'user-marcelo':(p.ownerId||'user-marcelo')};return p})}
+async function props(){const x=read(PROPS,null);if(Array.isArray(x?.properties)&&x.properties.length)return normalizeProps(x.properties);try{const r=await fetch(`./data.json?homeScope=${Date.now()}`,{cache:'no-store'}),d=await r.json();return normalizeProps(d.properties||[])}catch{return[]}}
 function records(k,p,f){const x=read(`${k}:${p.id}`,null);if(Array.isArray(x?.[f]))return x[f];if(`${p.id} ${p.name} ${p.unit}`.toLowerCase().includes('207')){const y=read(k,null);if(Array.isArray(y?.[f]))return y[f]}return[]}
 function adminId(p){return String(p.administratorId||p.adminId||'')}
 function inviteUsers(){const x=read(INVITES,[]);return Array.isArray(x)?x:[]}
