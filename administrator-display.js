@@ -1,0 +1,15 @@
+(()=>{'use strict';
+const AUTH='ap207-auth-profile-v1',PROPS='ap207-dashboard-properties-v1',SCOPE='stay-home-scope-v1';
+const read=(k,f)=>{try{return JSON.parse(localStorage.getItem(k)||'null')||f}catch{return f}};
+let people=[];
+function auth(){return read(AUTH,null)}
+function properties(){return read(PROPS,{properties:[]}).properties||[]}
+async function loadPeople(){try{if(!window.AP207Supabase)return[];const {data,error}=await window.AP207Supabase.functions.invoke('list-users',{body:{}});if(error||!data?.ok)return[];people=Array.isArray(data.users)?data.users:[];return people}catch{return[]}}
+function currentList(){const scope=read(SCOPE,{}),ps=properties();const ids=new Set(scope.propertyIds||[]);if(ids.size)return ps.filter(p=>ids.has(p.id));if(scope.property&&scope.property!=='all')return ps.filter(p=>p.id===scope.property);return[]}
+function nameFromId(id){if(!id)return'';const u=people.find(x=>String(x.id)===String(id));return u?.name||u?.email||''}
+function responsibleAdmin(){const a=auth(),scope=read(SCOPE,{}),list=currentList();if(a?.profile?.role==='admin')return a.profile.name||a.profile.email||'Administrador';if(a?.profile?.role==='super_admin'&&scope.admin&&scope.admin!=='all'){const n=nameFromId(scope.admin);if(n)return n}const ids=[...new Set(list.map(p=>String(p.administratorId||p.adminId||'')).filter(Boolean))];if(ids.length===1)return nameFromId(ids[0])||list[0]?.administratorName||list[0]?.adminName||ids[0];if(ids.length>1)return'Vários administradores';return'—'}
+function ensureHome(){const header=document.querySelector('.page-header');if(!header)return;let line=document.getElementById('homeAdministratorName');if(!line){line=document.createElement('p');line.id='homeAdministratorName';line.className='eyebrow';line.style.marginTop='6px';const owner=document.getElementById('ownerName');if(owner)owner.insertAdjacentElement('afterend',line);else header.prepend(line)}line.textContent='Administrador: '+responsibleAdmin()}
+function ensureReport(){const report=document.getElementById('monthlyReport');if(!report)return;let line=document.getElementById('reportAdministratorName');if(!line){line=document.createElement('p');line.id='reportAdministratorName';line.style.margin='4px 0 0';line.style.fontWeight='700';line.style.color='#64748b';const printHeader=report.querySelector('.print-report-header');const titleBlock=printHeader?.querySelector('div');if(titleBlock)titleBlock.append(line);else report.prepend(line)}line.textContent='Administrador: '+responsibleAdmin()}
+function sync(){ensureHome();ensureReport()}
+async function boot(){await loadPeople();sync();window.addEventListener('stay:scope-change',()=>setTimeout(sync,0));window.addEventListener('stay:property-updated',()=>setTimeout(sync,0));const obs=new MutationObserver(()=>sync());obs.observe(document.body,{subtree:true,childList:true,characterData:true});setInterval(sync,1500)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,1400),{once:true});else setTimeout(boot,1400)})();
