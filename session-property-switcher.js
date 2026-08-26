@@ -1,10 +1,6 @@
 (() => {
   'use strict';
 
-  // Compatibilidade temporária entre a lista antiga do núcleo e as novas
-  // categorias exibidas pela tela de despesas. O ajuste é restrito somente
-  // ao array legado de categorias do app, preservando o comportamento normal
-  // de Array.prototype.includes em todo o restante da aplicação.
   if (!globalThis.__stayExpenseCategoryValidationCompat) {
     const originalIncludes = Array.prototype.includes;
     const extraExpenseCategories = new Set([
@@ -95,6 +91,23 @@
   function loadReportView() { return loadScriptOnce('./report-view.js', 'data-stay-report-view'); }
   function loadScreenNavigation() { return loadScriptOnce('./screen-navigation.js', 'data-stay-screen-navigation'); }
 
+  function ensurePropertyLoader() {
+    let loader = document.getElementById('stayPropertyLoader');
+    if (loader) return loader;
+    loader = document.createElement('div');
+    loader.id = 'stayPropertyLoader';
+    loader.hidden = true;
+    loader.innerHTML = '<div class="stay-property-loader-card"><span class="stay-property-spinner"></span><strong>Atualizando propriedade…</strong></div>';
+    const style = document.createElement('style');
+    style.textContent = '#stayPropertyLoader[hidden]{display:none!important}#stayPropertyLoader{position:fixed;inset:0;z-index:999998;display:grid;place-items:center;background:rgba(248,250,252,.72);backdrop-filter:blur(2px)}.stay-property-loader-card{display:flex;align-items:center;gap:12px;padding:16px 20px;border-radius:16px;background:#fff;box-shadow:0 12px 40px rgba(15,23,42,.18);color:#0f172a}.stay-property-spinner{width:22px;height:22px;border:3px solid #dbeafe;border-top-color:#2563eb;border-radius:50%;animation:staySpin .7s linear infinite}@keyframes staySpin{to{transform:rotate(360deg)}}';
+    document.head.append(style);
+    document.body.append(loader);
+    return loader;
+  }
+
+  function showPropertyLoader() { ensurePropertyLoader().hidden = false; }
+  function hidePropertyLoader() { const loader = document.getElementById('stayPropertyLoader'); if (loader) loader.hidden = true; }
+
   function installPropertySwitching() {
     const selector = document.getElementById('propertySelector');
     if (!selector || selector.dataset.stayControlSwitching === '1') return false;
@@ -102,6 +115,7 @@
     selector.addEventListener('change', () => {
       const id = selector.value;
       if (!id) return;
+      showPropertyLoader();
       localStorage.setItem(SELECTED_PROPERTY_KEY, id);
       try {
         const parsed = JSON.parse(localStorage.getItem(PROPERTIES_KEY) || 'null');
@@ -114,7 +128,8 @@
           }
         }
       } catch {}
-      location.reload();
+      window.dispatchEvent(new CustomEvent('stay:property-selection-changed', { detail: { propertyId: id } }));
+      setTimeout(hidePropertyLoader, 420);
     });
     return true;
   }
