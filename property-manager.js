@@ -55,7 +55,7 @@
   function ensureStyles() {
     if (document.getElementById('propertyManagerStyles')) return;
     const style = document.createElement('style'); style.id = 'propertyManagerStyles';
-    style.textContent = `.property-manager-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.property-create-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border,#dde3ea)}.property-create-form .field-wide{grid-column:1/-1}.property-create-note{grid-column:1/-1;margin:0;color:#64748b;font-size:.82rem;line-height:1.45}.property-create-error{grid-column:1/-1;color:#b42318;font-weight:700;margin:0}.property-create-success{grid-column:1/-1;padding:14px;border-radius:12px;background:#f0fdf4;border:1px solid #bbf7d0}.button-danger{background:#dc2626!important;border-color:#dc2626!important;color:#fff!important}.button-danger-soft{background:#fff1f2!important;border:1px solid #fecdd3!important;color:#b42318!important}.property-manager-empty{margin:12px 0 0;padding:12px 14px;border-radius:12px;background:#eff6ff;color:#1e3a8a;font-weight:700}@media(max-width:700px){.property-create-form{grid-template-columns:1fr}.property-create-form .field-wide{grid-column:auto}.property-manager-actions{width:100%}.property-manager-actions .button{flex:1 1 150px}}`;
+    style.textContent = `.property-manager-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.property-create-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border,#dde3ea)}.property-create-form .field-wide{grid-column:1/-1}.property-create-note{grid-column:1/-1;margin:0;color:#64748b;font-size:.82rem;line-height:1.45}.property-create-error{grid-column:1/-1;color:#b42318;font-weight:700;margin:0}.property-create-success{grid-column:1/-1;padding:14px;border-radius:12px;background:#f0fdf4;border:1px solid #bbf7d0}.button-danger{background:#dc2626!important;border-color:#dc2626!important;color:#fff!important}.button-danger-soft{background:#fff1f2!important;border:1px solid #fecdd3!important;color:#b42318!important}.property-manager-empty{margin:12px 0 0;padding:12px 14px;border-radius:12px;background:#eff6ff;color:#1e3a8a;font-weight:700}.property-edit-note{grid-column:1/-1;margin:0 0 4px;padding:12px 14px;border-radius:12px;background:#eff6ff;color:#1e3a8a;font-weight:700;line-height:1.4}.property-edit-note small{display:block;margin-top:3px;color:#64748b;font-weight:600}@media(max-width:700px){.property-create-form{grid-template-columns:1fr}.property-create-form .field-wide{grid-column:auto}.property-manager-actions{width:100%}.property-manager-actions .button{flex:1 1 150px}}`;
     document.head.append(style);
   }
 
@@ -70,6 +70,47 @@
   function installPropertySwitcher() {
     const selector = document.getElementById('propertySelector'); if (!selector || selector.dataset.reloadSwitcher === 'true') return;
     selector.dataset.reloadSwitcher = 'true'; selector.addEventListener('change', () => { const id = selector.value; if (!id) return; setPreferredProperty(id); setTimeout(() => location.reload(), 40); });
+  }
+
+  function installEditExperience() {
+    const editButton = document.getElementById('editPropertyButton');
+    const form = document.getElementById('propertyForm');
+    const backButton = document.getElementById('cancelPropertyButton');
+    const confirmButton = form?.querySelector('button[type="submit"]');
+    if (!editButton || !form || editButton.dataset.confirmFlow === 'true') return;
+    editButton.dataset.confirmFlow = 'true';
+    if (confirmButton) confirmButton.textContent = 'Confirmar alterações';
+    if (backButton) backButton.textContent = 'Voltar';
+
+    let note = document.getElementById('propertyEditNote');
+    if (!note) {
+      note = document.createElement('div');
+      note.id = 'propertyEditNote';
+      note.className = 'property-edit-note';
+      form.prepend(note);
+    }
+
+    const refreshNote = () => {
+      const id = currentPropertyId();
+      const property = readStoredProperties().find((item) => item.id === id);
+      const selector = document.getElementById('propertySelector');
+      const selectedText = selector?.selectedOptions?.[0]?.textContent?.trim();
+      const title = property?.unit || property?.name || selectedText || 'Propriedade selecionada';
+      const detail = property?.name && property?.unit && property.name !== property.unit ? `${property.name} — ${property.unit}` : (selectedText || '');
+      note.innerHTML = `<strong>Editando: ${title}</strong>${detail ? `<small>${detail}</small>` : ''}`;
+    };
+
+    editButton.addEventListener('click', () => {
+      refreshNote();
+      setTimeout(() => {
+        if (!form.hidden) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 40);
+    });
+
+    backButton?.addEventListener('click', () => {
+      form.reset();
+      setTimeout(() => editButton.scrollIntoView({ behavior: 'smooth', block: 'center' }), 40);
+    });
   }
 
   async function removeOwnerFromCurrentUnit(){
@@ -134,6 +175,8 @@
     const del=document.createElement('button'); del.id='deletePropertyButton'; del.type='button'; del.className='button button-danger'; del.textContent='Excluir unidade'; del.hidden=!hasCurrent; del.addEventListener('click',deleteCurrentUnit); actions.append(del);
     heading?.append(actions);
     if(!hasCurrent){const info=document.createElement('p');info.className='property-manager-empty';info.textContent='Você ainda não possui uma unidade atribuída. Use “+ Nova propriedade/unidade” para cadastrar a primeira.';heading?.insertAdjacentElement('afterend',info);}
+
+    installEditExperience();
 
     const form = document.createElement('form'); form.id = 'newPropertyForm'; form.className = 'property-create-form'; form.hidden = true;
     form.append(field('Nome do proprietário', 'newPropertyOwnerName', { placeholder: 'Pode ser alterado depois' }),field('Nome da propriedade/empreendimento', 'newPropertyTitle', { placeholder: 'Ex.: One House Curitiba' }),field('Apartamento/unidade', 'newPropertyUnit', { placeholder: 'Ex.: AP305' }),field('Cidade', 'newPropertyCity'),field('Estado (opcional)', 'newPropertyState', { required: false, maxLength: 2, placeholder: 'Ex.: PR' }),field('Comissão administrativa (%)', 'newPropertyCommission', { type: 'number', min: 0, max: 100, step: 0.01 }),field('Endereço (opcional)', 'newPropertyAddress', { required: false, wide: true, placeholder: 'Pode ser preenchido depois' }));
