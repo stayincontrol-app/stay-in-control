@@ -20,6 +20,14 @@
       }else hide(el);
     });
   }
+  function loadAdminInviteScope(){
+    if(currentRole()!=='admin'||document.querySelector('script[data-admin-invite-scope]'))return;
+    const script=document.createElement('script');
+    script.src='./admin-invite-scope.js?v=20260825-2223';
+    script.defer=true;
+    script.setAttribute('data-admin-invite-scope','true');
+    document.head.append(script);
+  }
   function setManagementVisibility(screen){
     const showManagement=screen==='home';
     const propertySettings=document.getElementById('propertySettings');
@@ -29,10 +37,11 @@
     if(userSection)userSection.style.display=showManagement?'':'none';
     if(logoutButton)logoutButton.style.display=showManagement?'block':'none';
     hideOwnerRecurringSettings();
+    loadAdminInviteScope();
   }
   function activate(screen){setManagementVisibility(screen);hideOwnerRecurringSettings();requestAnimationFrame(()=>window.scrollTo({top:0,behavior:'smooth'}))}
   function install(){
-    if(document.body.dataset.stayScreenNavigation==='1'){hideOwnerRecurringSettings();return true}
+    if(document.body.dataset.stayScreenNavigation==='1'){hideOwnerRecurringSettings();loadAdminInviteScope();return true}
     const buttons=[...document.querySelectorAll('[data-screen]')];if(!buttons.length)return false;
     document.body.dataset.stayScreenNavigation='1';
     buttons.forEach(button=>button.addEventListener('click',()=>activate(button.dataset.screen),{capture:false}));
@@ -42,6 +51,6 @@
     new MutationObserver(()=>hideOwnerRecurringSettings()).observe(document.body,{childList:true,subtree:true});
     return true;
   }
-  function boot(){const timer=setInterval(()=>{hideOwnerRecurringSettings();if(install())clearInterval(timer)},150);setTimeout(()=>clearInterval(timer),15000);setTimeout(hideOwnerRecurringSettings,500);setTimeout(hideOwnerRecurringSettings,1500)}
+  function boot(){loadAdminInviteScope();const timer=setInterval(()=>{hideOwnerRecurringSettings();loadAdminInviteScope();if(install())clearInterval(timer)},150);setTimeout(()=>clearInterval(timer),15000);setTimeout(hideOwnerRecurringSettings,500);setTimeout(hideOwnerRecurringSettings,1500)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
