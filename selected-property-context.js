@@ -1,0 +1,9 @@
+(()=>{'use strict';
+const PROPS='ap207-dashboard-properties-v1',SELECTED='stay-control-selected-property-v1';
+const read=(k,f)=>{try{return JSON.parse(localStorage.getItem(k)||'null')||f}catch{return f}};
+function current(){const ps=read(PROPS,{properties:[]}).properties||[],sel=document.getElementById('propertySelector'),id=sel?.value||localStorage.getItem(SELECTED)||'';return ps.find(p=>p.id===id)||ps[0]||null}
+function label(p){return p?(p.unit||p.name||'Propriedade'):'—'}
+function sync(){const p=current();if(!p)return;const owner=document.getElementById('ownerName'),title=document.getElementById('propertyName'),sub=document.getElementById('subtitle'),sel=document.getElementById('propertySelector');if(owner)owner.textContent='Proprietário: '+(p.ownerName||'—');if(title)title.textContent='Unidade: '+label(p);if(sub)sub.textContent=[p.city,p.state].filter(Boolean).join(' • ');if(sel){[...sel.options].forEach(o=>{if(o.value===p.id)o.textContent=[label(p),p.ownerName].filter(Boolean).join(' — ')});if(sel.value!==p.id)sel.value=p.id}document.querySelectorAll('[data-selected-property-context]').forEach(el=>el.textContent=label(p));window.dispatchEvent(new CustomEvent('stay:selected-property-context',{detail:{property:p}}))}
+function boot(){let n=0;const t=setInterval(()=>{n++;sync();if(n>50)clearInterval(t)},200);document.addEventListener('change',e=>{if(e.target?.id==='propertySelector')setTimeout(sync,0)});window.addEventListener('storage',sync);window.addEventListener('stay:property-updated',sync)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
