@@ -19,12 +19,15 @@
 - [x] Relatório: bruto → limpeza → comissão → recorrentes/outras despesas → repasse líquido.
 - [x] Histórico/auditoria visível.
 - [x] Banners/publicidade controlados pelo Super Administrador.
+- [x] RLS habilitado nas tabelas públicas verificadas.
+- [x] Funções SECURITY DEFINER internas sem execução direta para `anon` e `authenticated`.
 
 ## Antes da aprovação final
 - [ ] Validar login/convite em URL de preview do Vercel.
 - [ ] Validar fluxo real de CPF no Brasil com backend dedicado ao Test 2.0.
 - [ ] Validar reset de senha e retorno para a mesma URL do Test 2.0.
-- [ ] Validar RLS/isolamento real de dados no backend separado.
+- [ ] Validar isolamento real de dados entre Super Administrador, Administrador e Proprietário com sessões distintas.
+- [ ] Ativar proteção contra senhas vazadas no Supabase Auth.
 - [ ] Testar iPhone Safari, Android Chrome e desktop.
 - [ ] Testar importação real de feeds iCal.
 - [ ] Testar geração/exportação do relatório/PDF.
