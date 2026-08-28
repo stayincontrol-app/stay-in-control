@@ -15,6 +15,11 @@
 - [x] Administrador bloqueado, inadimplente ou com cortesia vencida não entra no sistema.
 - [x] Central de Atendimento: +1 (561) 275-6810.
 - [x] Idioma disponível na interface.
+- [x] 10 idiomas configurados: PT-BR, EN, ES, FR, DE, IT, PT-PT, ZH-CN, JA e KO.
+- [x] Traduções próprias restauradas para todos os idiomas, sem fallback indevido para inglês nas áreas principais.
+- [x] Gestão de propriedades/unidades com rótulos, placeholders, avisos e confirmações acompanhando o idioma selecionado.
+- [x] Controle de usuários e convites com cobertura multilíngue.
+- [x] Recuperação de senha com cobertura multilíngue e retorno no mesmo aplicativo.
 - [x] iCal configurável por plataforma/unidade; não inventa taxas/valores não fornecidos.
 - [x] Short stay e contratos de médio/longo prazo.
 - [x] Danos, reembolsos e indenizações separados da receita de hospedagem.
