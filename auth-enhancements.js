@@ -94,7 +94,7 @@
       if (password.value !== confirm.value) { message.textContent = 'As duas senhas precisam ser iguais.'; return; }
       message.textContent = 'Salvando nova senha…';
       const { error } = await client.auth.updateUser({ password: password.value });
-      if (error) { message.textContent = error.message || 'Não foi possível alterar a senha.'; return; }
+      if (error) { message.textContent = 'Não foi possível alterar a senha agora. Tente novamente.'; return; }
       localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now()));
       try { history.replaceState({}, document.title, location.pathname); } catch {}
       location.reload();
