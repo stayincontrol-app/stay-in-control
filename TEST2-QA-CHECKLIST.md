@@ -15,6 +15,17 @@
 - [x] Interface de autenticação, recuperação, sessão, propriedades e acessos coberta pelos 10 idiomas definidos.
 - [x] Último build do Bloco 1 aprovado pelo Vercel.
 
+## Bloco 2 — implementação e revisão estática
+- [x] Reservas e despesas isoladas por propriedade autorizada.
+- [x] Comissão calculada sobre hospedagem sem aplicar automaticamente sobre limpeza, danos ou indenizações.
+- [x] Despesas recorrentes vinculadas à propriedade, incluídas nos relatórios quando vencidas e limpas no encerramento de sessão.
+- [x] Relatórios mensais, anuais, por unidade e consolidados com ocupação e média da diária usando denominadores financeiros consistentes.
+- [x] iCal vinculado à propriedade autorizada, com sincronização real protegida pela Edge Function.
+- [x] Contratos e receitas adicionais vinculados à propriedade e renderizados com saída segura.
+- [x] Gestão de propriedade com país persistido no backend e cache, inclusive na edição.
+- [x] Impressão de relatório revalida sessão e propriedade antes de imprimir.
+- [x] Suíte Test 2.0 revisada para falhar fechada sem perfil válido.
+
 ## Regras obrigatórias
 - [x] Branch separada da produção.
 - [x] Sem CNAME de produção no ambiente de teste.
