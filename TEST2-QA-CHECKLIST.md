@@ -1,5 +1,20 @@
 # System Control Test 2.0 — QA
 
+## Bloco 1 — implementação e revisão estática
+- [x] Login e sessão com validação de perfil/usuário e limpeza de estado inválido.
+- [x] Encerramento por inatividade e logout limpando tokens e caches sensíveis.
+- [x] Recuperação de senha no mesmo aplicativo com mensagens seguras.
+- [x] Login por CPF limitado ao Brasil/PT-BR, com validação dos dígitos verificadores.
+- [x] Convites e gerenciamento de usuários com função, bloqueio/desbloqueio e reenviar acesso.
+- [x] Administrador impedido de criar outro Administrador; Super Administrador mantém controle de função.
+- [x] Propriedades filtradas por perfil/permissão com IDs normalizados e comportamento fail-closed.
+- [x] Troca de propriedade e cache local impedindo contexto de unidade não autorizada.
+- [x] Controle comercial de Administrador validando sessão, bloqueio, inadimplência e cortesia vencida.
+- [x] Dados dinâmicos de usuários/propriedades renderizados de forma segura nas áreas revisadas.
+- [x] Mensagens técnicas de autenticação, convites e serviços sanitizadas para o usuário final.
+- [x] Interface de autenticação, recuperação, sessão, propriedades e acessos coberta pelos 10 idiomas definidos.
+- [x] Último build do Bloco 1 aprovado pelo Vercel.
+
 ## Regras obrigatórias
 - [x] Branch separada da produção.
 - [x] Sem CNAME de produção no ambiente de teste.
