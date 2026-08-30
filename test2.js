@@ -11,10 +11,15 @@ function loadScript(src,key){if(document.querySelector('script[data-t2="'+key+'"
 function loadStableSuite(){
   if(!document.querySelector('link[data-t2-suite]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./test2-suite.css';l.dataset.t2Suite='1';document.head.append(l)}
   loadScript('./test2-suite.js','suite-core');
-  /* IMPORTANT: keep Test 2 stable first. The previous build loaded dozens of
-     overlapping MutationObservers/guards at once and could lock Chrome/Safari.
-     New 2.0 modules will be re-enabled in small verified groups after navigation
-     is proven stable, preserving the working 1.0 behavior underneath. */
+  /* Restore the visible Test 2.0 product layer using only modules that mount once
+     or stop their short startup polling. Heavy continuous DOM observers/guards
+     remain disabled until they are rewritten to avoid browser lockups. */
+  setTimeout(()=>{
+    loadScript('./test2-features.js','features');
+    loadScript('./test2-access.js','access');
+    loadScript('./test2-report.js','report');
+    loadScript('./test2-user-controls.js','user-controls');
+  },900);
 }
 document.addEventListener('DOMContentLoaded',()=>{
   document.body.classList.add('test2');
@@ -26,5 +31,5 @@ document.addEventListener('DOMContentLoaded',()=>{
   const h=document.querySelector('.page-header h1');if(h)h.dataset.testEnvironment='true';
   loadStableSuite();
 });
-window.SystemControlTest2={name:NAME,supportPhone:'+1 (561) 275-6810',runtimeMode:'stable-core-first'};
+window.SystemControlTest2={name:NAME,supportPhone:'+1 (561) 275-6810',runtimeMode:'stable-core-with-visual-features'};
 })();
