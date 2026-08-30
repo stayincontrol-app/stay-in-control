@@ -8,8 +8,10 @@ const supportLabels={'pt-BR':['Central de Atendimento','Central de Atendimento p
 function currentLang(){try{return JSON.parse(localStorage.getItem(LANG_KEY)||'{}').language||'pt-BR'}catch{return'pt-BR'}}
 function updateSupport(){const a=document.querySelector('.t2-support');if(!a)return;const pair=supportLabels[currentLang()]||supportLabels['pt-BR'];const b=a.querySelector('b');if(b)b.textContent=pair[0];a.setAttribute('aria-label',pair[1])}
 function loadScript(src,key){if(document.querySelector('script[data-t2="'+key+'"]'))return;const s=document.createElement('script');s.src=src;s.defer=true;s.dataset.t2=key;document.body.append(s)}
+function loadCss(src,key){if(document.querySelector(`link[data-t2-css="${key}"]`))return;const l=document.createElement('link');l.rel='stylesheet';l.href=src;l.dataset.t2Css=key;document.head.append(l)}
 function loadStableSuite(){
   if(!document.querySelector('link[data-t2-suite]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./test2-suite.css';l.dataset.t2Suite='1';document.head.append(l)}
+  loadCss('./test2-pro-shell.css','pro-shell');
   loadScript('./test2-suite.js','suite-core');
   setTimeout(()=>{
     loadScript('./test2-banner-manager.js','banner-manager');
@@ -21,7 +23,10 @@ function loadStableSuite(){
     setTimeout(()=>{
       loadScript('./test2-attachment-ui.js','attachment-ui');
       loadScript('./test2-i18n-safe.js','i18n-safe');
-      setTimeout(()=>loadScript('./test2-i18n-extras.js','i18n-extras'),450);
+      setTimeout(()=>{
+        loadScript('./test2-i18n-extras.js','i18n-extras');
+        loadScript('./test2-pro-shell.js','pro-shell');
+      },450);
     },700);
   },900);
 }
@@ -35,5 +40,5 @@ document.addEventListener('DOMContentLoaded',()=>{
   const h=document.querySelector('.page-header h1');if(h)h.dataset.testEnvironment='true';
   loadStableSuite();
 });
-window.SystemControlTest2={name:NAME,supportPhone:'+1 (561) 275-6810',runtimeMode:'stable-core-with-attachments'};
+window.SystemControlTest2={name:NAME,supportPhone:'+1 (561) 275-6810',runtimeMode:'approved-professional-shell'};
 })();
