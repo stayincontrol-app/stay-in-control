@@ -15,6 +15,7 @@ function loadStableSuite(){
      or stop their short startup polling. Heavy continuous DOM observers/guards
      remain disabled until they are rewritten to avoid browser lockups. */
   setTimeout(()=>{
+    loadScript('./test2-banner-manager.js','banner-manager');
     loadScript('./test2-features.js','features');
     loadScript('./test2-access.js','access');
     loadScript('./test2-report.js','report');
