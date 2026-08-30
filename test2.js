@@ -12,6 +12,7 @@ function loadStableSuite(){
   if(!document.querySelector('link[data-t2-suite]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./test2-suite.css';l.dataset.t2Suite='1';document.head.append(l)}
   loadScript('./test2-suite.js','suite-core');
   setTimeout(()=>{
+    loadScript('./test2-i18n.js','i18n-core');
     loadScript('./test2-banner-manager.js','banner-manager');
     loadScript('./test2-sponsored-floating.js','sponsored-floating');
     loadScript('./test2-features.js','features');
@@ -30,5 +31,5 @@ document.addEventListener('DOMContentLoaded',()=>{
   const h=document.querySelector('.page-header h1');if(h)h.dataset.testEnvironment='true';
   loadStableSuite();
 });
-window.SystemControlTest2={name:NAME,supportPhone:'+1 (561) 275-6810',runtimeMode:'stable-core-with-visual-features'};
+window.SystemControlTest2={name:NAME,supportPhone:'+1 (561) 275-6810',runtimeMode:'stable-core-with-visual-features-and-i18n'};
 })();
