@@ -18,7 +18,10 @@ function loadStableSuite(){
     loadScript('./test2-access.js','access');
     loadScript('./test2-report.js','report');
     loadScript('./test2-user-controls.js','user-controls');
-    setTimeout(()=>loadScript('./test2-i18n-safe.js','i18n-safe'),700);
+    setTimeout(()=>{
+      loadScript('./test2-i18n-safe.js','i18n-safe');
+      setTimeout(()=>loadScript('./test2-i18n-extras.js','i18n-extras'),450);
+    },700);
   },900);
 }
 document.addEventListener('DOMContentLoaded',()=>{
