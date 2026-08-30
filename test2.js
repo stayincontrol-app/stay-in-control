@@ -11,11 +11,9 @@ function loadScript(src,key){if(document.querySelector('script[data-t2="'+key+'"
 function loadStableSuite(){
   if(!document.querySelector('link[data-t2-suite]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./test2-suite.css';l.dataset.t2Suite='1';document.head.append(l)}
   loadScript('./test2-suite.js','suite-core');
-  /* Restore the visible Test 2.0 product layer using only modules that mount once
-     or stop their short startup polling. Heavy continuous DOM observers/guards
-     remain disabled until they are rewritten to avoid browser lockups. */
   setTimeout(()=>{
     loadScript('./test2-banner-manager.js','banner-manager');
+    loadScript('./test2-sponsored-floating.js','sponsored-floating');
     loadScript('./test2-features.js','features');
     loadScript('./test2-access.js','access');
     loadScript('./test2-report.js','report');
