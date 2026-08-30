@@ -19,6 +19,7 @@ function loadStableSuite(){
     loadScript('./test2-report.js','report');
     loadScript('./test2-user-controls.js','user-controls');
     setTimeout(()=>{
+      loadScript('./test2-attachment-ui.js','attachment-ui');
       loadScript('./test2-i18n-safe.js','i18n-safe');
       setTimeout(()=>loadScript('./test2-i18n-extras.js','i18n-extras'),450);
     },700);
@@ -34,5 +35,5 @@ document.addEventListener('DOMContentLoaded',()=>{
   const h=document.querySelector('.page-header h1');if(h)h.dataset.testEnvironment='true';
   loadStableSuite();
 });
-window.SystemControlTest2={name:NAME,supportPhone:'+1 (561) 275-6810',runtimeMode:'stable-core-with-bounded-i18n'};
+window.SystemControlTest2={name:NAME,supportPhone:'+1 (561) 275-6810',runtimeMode:'stable-core-with-attachments'};
 })();
