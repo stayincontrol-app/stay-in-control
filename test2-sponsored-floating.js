@@ -6,11 +6,11 @@ function safeUrl(v){try{const raw=String(v||'');if(/^data:(?:image\/(?:png|jpe?g
 function isPdf(v){return /^data:application\/pdf/i.test(String(v||''))||/\.pdf(?:$|\?)/i.test(String(v||''))}
 function eligibleSponsored(){const today=new Date().toISOString().slice(0,10),s=read(K,{}),list=Array.isArray(s.banners)?s.banners:[];return list.filter(b=>b&&b.sponsored===true&&b.active!==false&&(!b.startDate||today>=b.startDate)&&(!b.endDate||today<=b.endDate))}
 function ensureCss(){if(document.getElementById('t2FloatingSponsorCss'))return;const s=document.createElement('style');s.id='t2FloatingSponsorCss';s.textContent=`
-#t2FloatingSponsor{position:fixed;right:18px;top:116px;width:min(270px,24vw);aspect-ratio:1/1;z-index:2147482000;border-radius:18px;overflow:hidden;box-shadow:0 18px 48px rgba(15,23,42,.28);background:#eef2ff;display:none}
+#t2FloatingSponsor{position:fixed;right:18px;top:116px;width:min(270px,24vw);aspect-ratio:1/1;z-index:2147482000;border-radius:18px;overflow:hidden;box-shadow:0 18px 48px rgba(15,23,42,.28);background:#f8fafc;display:none}
 #t2FloatingSponsor.is-visible{display:block}
-#t2FloatingSponsor .t2-float-link{display:block;width:100%;height:100%;position:relative;background-size:cover;background-position:center;text-decoration:none;color:#fff;overflow:hidden}
+#t2FloatingSponsor .t2-float-link{display:block;width:100%;height:100%;position:relative;background-size:contain;background-repeat:no-repeat;background-position:center;background-color:#f8fafc;text-decoration:none;color:#fff;overflow:hidden}
 #t2FloatingSponsor .t2-float-pdf{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
-#t2FloatingSponsor .t2-float-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.04) 35%,rgba(0,0,0,.75) 100%)}
+#t2FloatingSponsor .t2-float-shade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,rgba(0,0,0,.42) 100%);pointer-events:none}
 #t2FloatingSponsor .t2-float-tag{position:absolute;left:10px;top:10px;background:#fff;color:#111827;border-radius:999px;padding:5px 8px;font-size:10px;font-weight:900;letter-spacing:.04em}
 #t2FloatingSponsor .t2-float-copy{position:absolute;left:12px;right:12px;bottom:12px;z-index:2;background:rgba(17,24,39,.78);border-radius:12px;padding:10px 11px}
 #t2FloatingSponsor .t2-float-copy strong{display:block;font-size:15px;line-height:1.2}
