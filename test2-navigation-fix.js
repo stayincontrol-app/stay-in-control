@@ -1,0 +1,12 @@
+(()=>{'use strict';
+const TARGETS={extras:'t2Operations',contracts:'t2Contracts',integrations:'t2Integrations',publicity:'t2Banners',logs:'t2Audit',properties:'t2ProfessionalProperties',owners:'t2ProfessionalOwners',admins:'t2ProfessionalAdmins',plans:'t2ProfessionalPlans',settings:'t2ProfessionalSettings'};
+const PRIMARY={home:'home',reservations:'reservations',calendar:'calendar',expenses:'expenses',reports:'reports'};
+function hideEverything(){document.querySelectorAll('.app-screen').forEach(x=>x.hidden=true);const root=document.getElementById('t2Suite');if(root){root.hidden=true;root.querySelectorAll(':scope > section').forEach(x=>{x.hidden=true;x.classList.add('t2-hidden')})}const ps=document.getElementById('propertySettings');if(ps)ps.hidden=true}
+function showTarget(id){const root=document.getElementById('t2Suite'),panel=document.getElementById(id);if(!root||!panel)return false;document.querySelectorAll('.app-screen').forEach(x=>x.hidden=true);document.getElementById('propertySettings')?.setAttribute('hidden','');root.hidden=false;root.querySelectorAll(':scope > section').forEach(x=>{const on=x===panel;x.hidden=!on;x.classList.toggle('t2-hidden',!on)});panel.hidden=false;panel.classList.remove('t2-hidden');panel.scrollIntoView({behavior:'smooth',block:'start'});return true}
+function primary(screen){const b=document.querySelector(`.app-nav [data-screen="${screen}"]`);if(!b)return false;b.click();return true}
+function active(key){document.querySelectorAll('.t2-pro-menu button,.t2-pro-mobilebar button').forEach(x=>x.classList.toggle('active',x.dataset.route===key))}
+function go(key){if(PRIMARY[key]){hideEverything();primary(PRIMARY[key]);active(key);return}const id=TARGETS[key];if(id&&showTarget(id)){active(key);return}if(key==='support'){document.querySelector('.t2-support')?.click();return}if(key==='logout')return;console.warn('[Stay in Control] destino ainda não disponível:',key)}
+function install(){document.querySelectorAll('.t2-pro-menu button[data-route],.t2-pro-mobilebar button[data-route]').forEach(b=>{if(b.dataset.navFixed)return;b.dataset.navFixed='1';b.addEventListener('click',e=>{const key=b.dataset.route;if(key==='logout')return;e.preventDefault();e.stopImmediatePropagation();go(key)},true)})}
+function boot(){install();new MutationObserver(install).observe(document.body,{childList:true,subtree:true})}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
