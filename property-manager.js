@@ -1,180 +1,30 @@
-(() => {
+(()=>{
   'use strict';
-
-  const STORAGE_KEY = 'ap207-dashboard-properties-v1';
-  const AUTH_CACHE_KEY = 'ap207-auth-profile-v1';
-  const PREFERRED_PROPERTY_KEY = 'ap207-preferred-property-v1';
-  const SELECTED_PROPERTY_KEY = 'stay-control-selected-property-v1';
-
-  function readAuth() { try { return JSON.parse(localStorage.getItem(AUTH_CACHE_KEY) || 'null'); } catch { return null; } }
-  function canManageProperties() { const role = readAuth()?.profile?.role; return role === 'super_admin' || role === 'admin'; }
-  function readStoredProperties() { try { const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); return parsed?.version === 1 && Array.isArray(parsed.properties) ? parsed.properties : []; } catch { return []; } }
-  async function readDefaultProperties() { try { const response = await fetch(`./data.json?ts=${Date.now()}`, { cache: 'no-store' }); const data = await response.json(); return Array.isArray(data.properties) ? data.properties : []; } catch { return []; } }
-  async function readDatabaseProperties() {
-    const client = globalThis.AP207Supabase;
-    if (!client) return [];
-    try {
-      const { data, error } = await client.from('properties').select('id,owner_name,name,unit,city,state,address,commission_rate,administrator_id,owner_id').order('created_at', { ascending: true });
-      if (error) throw error;
-      return (data || []).map((p) => ({
-        id: p.id,
-        ownerName: p.owner_name,
-        name: p.name,
-        unit: p.unit,
-        city: p.city,
-        state: p.state || '—',
-        address: p.address || 'Não informado',
-        commissionRate: Number(p.commission_rate ?? 0.15),
-        administratorId: p.administrator_id || 'unassigned-admin',
-        ownerId: p.owner_id || 'unassigned-owner'
-      }));
-    } catch { return []; }
-  }
-  function safeId(value) { return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 50); }
-  function writeProperties(properties){ localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, properties })); }
-  function currentPropertyId(){ return document.getElementById('propertySelector')?.value || localStorage.getItem(PREFERRED_PROPERTY_KEY) || localStorage.getItem(SELECTED_PROPERTY_KEY) || ''; }
-  function mergeProperties(...lists) { const map = new Map(); lists.flat().filter(Boolean).forEach((p) => { if (p?.id) map.set(p.id, { ...(map.get(p.id) || {}), ...p }); }); return [...map.values()]; }
-
-  async function getWorkingProperties(){
-    const [defaults, db] = await Promise.all([readDefaultProperties(), readDatabaseProperties()]);
-    const stored = readStoredProperties();
-    const merged = mergeProperties(defaults, stored, db);
-    if (merged.length) writeProperties(merged);
-    return merged;
-  }
-
-  function setPreferredProperty(id) {
-    if (!id) return;
-    localStorage.setItem(PREFERRED_PROPERTY_KEY, id);
-    localStorage.setItem(SELECTED_PROPERTY_KEY, id);
-    const properties = readStoredProperties();
-    const index = properties.findIndex((item) => item.id === id);
-    if (index > 0) { const selected = properties.splice(index, 1)[0]; properties.unshift(selected); writeProperties(properties); }
-  }
-
-  function ensureStyles() {
-    if (document.getElementById('propertyManagerStyles')) return;
-    const style = document.createElement('style'); style.id = 'propertyManagerStyles';
-    style.textContent = `.property-manager-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.property-create-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border,#dde3ea)}.property-create-form .field-wide{grid-column:1/-1}.property-create-note{grid-column:1/-1;margin:0;color:#64748b;font-size:.82rem;line-height:1.45}.property-create-error{grid-column:1/-1;color:#b42318;font-weight:700;margin:0}.property-create-success{grid-column:1/-1;padding:14px;border-radius:12px;background:#f0fdf4;border:1px solid #bbf7d0}.button-danger{background:#dc2626!important;border-color:#dc2626!important;color:#fff!important}.button-danger-soft{background:#fff1f2!important;border:1px solid #fecdd3!important;color:#b42318!important}.property-manager-empty{margin:12px 0 0;padding:12px 14px;border-radius:12px;background:#eff6ff;color:#1e3a8a;font-weight:700}@media(max-width:700px){.property-create-form{grid-template-columns:1fr}.property-create-form .field-wide{grid-column:auto}.property-manager-actions{width:100%}.property-manager-actions .button{flex:1 1 150px}}`;
-    document.head.append(style);
-  }
-
-  function field(label, id, options = {}) {
-    const wrap = document.createElement('div'); wrap.className = options.wide ? 'field field-wide' : 'field';
-    const lab = document.createElement('label'); lab.htmlFor = id; lab.textContent = label;
-    const input = document.createElement('input'); input.id = id; input.name = id; input.required = options.required !== false;
-    if (options.type) input.type = options.type; if (options.maxLength) input.maxLength = options.maxLength; if (options.min !== undefined) input.min = String(options.min); if (options.max !== undefined) input.max = String(options.max); if (options.step !== undefined) input.step = String(options.step); if (options.placeholder) input.placeholder = options.placeholder;
-    wrap.append(lab, input); return wrap;
-  }
-
-  function installPropertySwitcher() {
-    const selector = document.getElementById('propertySelector'); if (!selector || selector.dataset.reloadSwitcher === 'true') return;
-    selector.dataset.reloadSwitcher = 'true'; selector.addEventListener('change', () => { const id = selector.value; if (!id) return; setPreferredProperty(id); setTimeout(() => location.reload(), 40); });
-  }
-
-  async function removeOwnerFromCurrentUnit(){
-    const id=currentPropertyId(); if(!id)return alert('Selecione uma unidade primeiro.');
-    let properties=await getWorkingProperties(); const index=properties.findIndex(p=>p.id===id); if(index<0)return alert('Unidade não encontrada.');
-    const p=properties[index]; const owner=p.ownerName||'proprietário';
-    if(!confirm(`Remover ${owner} da unidade ${p.unit||p.name||''}?\n\nA unidade e as reservas serão mantidas. Apenas o vínculo com o proprietário será removido.`))return;
-    const client=globalThis.AP207Supabase;
-    if(client){const {error}=await client.from('properties').update({owner_name:'Sem proprietário',owner_id:null,updated_at:new Date().toISOString()}).eq('id',id);if(error&&!String(error.message||'').includes('relation'))return alert(`Não foi possível remover o proprietário: ${error.message}`);}
-    properties[index]={...p,ownerName:'Sem proprietário',ownerId:'unassigned-owner'}; writeProperties(properties); location.reload();
-  }
-
-  async function deleteCurrentUnit(){
-    const id=currentPropertyId(); if(!id)return alert('Selecione uma unidade primeiro.');
-    let properties=await getWorkingProperties(); const target=properties.find(p=>p.id===id); if(!target)return alert('Unidade não encontrada.');
-    const label=target.unit||target.name||'esta unidade';
-    if(!confirm(`Excluir a unidade ${label}?\n\nIsso removerá a unidade deste painel e também os dados locais de reservas e despesas dela. Esta ação não pode ser desfeita.`))return;
-    const client=globalThis.AP207Supabase;
-    if(client){await client.from('property_access').delete().eq('property_id',id);const {error}=await client.from('properties').delete().eq('id',id);if(error&&!String(error.message||'').includes('relation'))return alert(`Não foi possível excluir a unidade: ${error.message}`);}
-    properties=properties.filter(p=>p.id!==id); writeProperties(properties);
-    localStorage.removeItem(`ap207-dashboard-reservations-v1:${id}`); localStorage.removeItem(`ap207-dashboard-expenses-v1:${id}`);
-    const auth=readAuth(); if(auth?.propertyIds){auth.propertyIds=auth.propertyIds.filter(pid=>pid!==id); localStorage.setItem(AUTH_CACHE_KEY,JSON.stringify(auth));}
-    const next=properties[0]?.id||''; if(next)setPreferredProperty(next); else {localStorage.removeItem(PREFERRED_PROPERTY_KEY);localStorage.removeItem(SELECTED_PROPERTY_KEY);} location.reload();
-  }
-
-  async function persistNewProperty(property, auth) {
-    const client = globalThis.AP207Supabase;
-    if (!client) throw new Error('O serviço de dados ainda está carregando. Aguarde alguns segundos e tente novamente.');
-    const row = {
-      id: property.id, owner_name: property.ownerName, name: property.name, unit: property.unit,
-      city: property.city, state: property.state === '—' ? null : property.state,
-      address: property.address === 'Não informado' ? null : property.address,
-      commission_rate: property.commissionRate,
-      administrator_id: auth.profile.role === 'admin' ? auth.profile.id : null,
-      owner_id: null
-    };
-    const { data, error } = await client.from('properties').insert(row).select('id').single();
-    if (error) throw new Error(`Não foi possível gravar a propriedade no banco: ${error.message}`);
-    if (!data?.id) throw new Error('A propriedade não foi confirmada pelo banco de dados.');
-    if (auth.profile.role === 'admin') {
-      const { error: accessError } = await client.from('property_access').upsert({ user_id: auth.profile.id, property_id: property.id }, { onConflict: 'user_id,property_id' });
-      if (accessError) {
-        await client.from('properties').delete().eq('id', property.id);
-        throw new Error(`A unidade foi criada, mas não foi possível vinculá-la ao administrador: ${accessError.message}`);
-      }
-    }
-    const { data: verify, error: verifyError } = await client.from('properties').select('id').eq('id', property.id).single();
-    if (verifyError || verify?.id !== property.id) throw new Error('A gravação não pôde ser confirmada. Nada foi alterado no aplicativo.');
-  }
-
-  function install() {
-    installPropertySwitcher(); if (!canManageProperties()) return;
-    const section = document.getElementById('propertySettings'); if (!section || document.getElementById('newPropertyButton')) return; ensureStyles();
-    section.hidden=false;
-    const heading = section.querySelector('.panel-heading');
-    const title=heading?.querySelector('h2'); if(title) title.textContent='Gerenciar propriedades e unidades';
-    const existingButton = document.getElementById('editPropertyButton'); const actions = document.createElement('div'); actions.className = 'property-manager-actions';
-    const hasCurrent=Boolean(currentPropertyId());
-    if (existingButton) { existingButton.remove(); existingButton.hidden=!hasCurrent; actions.append(existingButton); }
-    const add = document.createElement('button'); add.id = 'newPropertyButton'; add.type = 'button'; add.className = 'button button-primary'; add.textContent = '+ Nova propriedade/unidade'; actions.append(add);
-    const removeOwner=document.createElement('button'); removeOwner.id='removeOwnerButton'; removeOwner.type='button'; removeOwner.className='button button-danger-soft'; removeOwner.textContent='Remover proprietário'; removeOwner.hidden=!hasCurrent; removeOwner.addEventListener('click',removeOwnerFromCurrentUnit); actions.append(removeOwner);
-    const del=document.createElement('button'); del.id='deletePropertyButton'; del.type='button'; del.className='button button-danger'; del.textContent='Excluir unidade'; del.hidden=!hasCurrent; del.addEventListener('click',deleteCurrentUnit); actions.append(del);
-    heading?.append(actions);
-    if(!hasCurrent){const info=document.createElement('p');info.className='property-manager-empty';info.textContent='Você ainda não possui uma unidade atribuída. Use “+ Nova propriedade/unidade” para cadastrar a primeira.';heading?.insertAdjacentElement('afterend',info);}
-
-    const form = document.createElement('form'); form.id = 'newPropertyForm'; form.className = 'property-create-form'; form.hidden = true;
-    form.append(field('Nome do proprietário', 'newPropertyOwnerName', { placeholder: 'Pode ser alterado depois' }),field('Nome da propriedade/empreendimento', 'newPropertyTitle', { placeholder: 'Ex.: One House Curitiba' }),field('Apartamento/unidade', 'newPropertyUnit', { placeholder: 'Ex.: AP305' }),field('Cidade', 'newPropertyCity'),field('Estado (opcional)', 'newPropertyState', { required: false, maxLength: 2, placeholder: 'Ex.: PR' }),field('Comissão administrativa (%)', 'newPropertyCommission', { type: 'number', min: 0, max: 100, step: 0.01 }),field('Endereço (opcional)', 'newPropertyAddress', { required: false, wide: true, placeholder: 'Pode ser preenchido depois' }));
-    const note = document.createElement('p'); note.className = 'property-create-note'; note.textContent = 'A unidade só será adicionada ao aplicativo depois que o banco de dados confirmar o cadastro e o vínculo com o administrador.';
-    const error = document.createElement('p'); error.id = 'newPropertyError'; error.className = 'property-create-error'; error.hidden = true;
-    const success = document.createElement('div'); success.id = 'newPropertySuccess'; success.className = 'property-create-success'; success.hidden = true;
-    const formActions = document.createElement('div'); formActions.className = 'form-actions field-wide';
-    const save = document.createElement('button'); save.type = 'submit'; save.className = 'button button-primary'; save.textContent = 'Salvar nova unidade';
-    const cancel = document.createElement('button'); cancel.type = 'button'; cancel.className = 'button button-secondary'; cancel.textContent = 'Cancelar'; formActions.append(save, cancel); form.append(note, error, success, formActions); section.append(form);
-
-    add.addEventListener('click', () => { form.hidden = false; error.hidden = true; success.hidden = true; formActions.hidden = false; document.getElementById('newPropertyCommission').value = '15'; form.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); });
-    cancel.addEventListener('click', () => { form.reset(); form.hidden = true; error.hidden = true; success.hidden = true; });
-
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault(); error.hidden = true; success.hidden = true; save.disabled=true; save.textContent='Salvando e confirmando…';
-      try {
-        const auth = readAuth(); if (!auth?.profile || !['super_admin','admin'].includes(auth.profile.role)) throw new Error('Seu usuário não tem permissão para criar propriedades.');
-        const name = document.getElementById('newPropertyTitle').value.trim(),unit = document.getElementById('newPropertyUnit').value.trim(),city = document.getElementById('newPropertyCity').value.trim(),stateInput = document.getElementById('newPropertyState').value.trim().toUpperCase(),addressInput = document.getElementById('newPropertyAddress').value.trim(),ownerName = document.getElementById('newPropertyOwnerName').value.trim(),commissionPercent = Number(document.getElementById('newPropertyCommission').value);
-        if (!name || !unit || !city || !ownerName) throw new Error('Preencha proprietário, propriedade, unidade e cidade.'); if (!Number.isFinite(commissionPercent) || commissionPercent < 0 || commissionPercent > 100) throw new Error('A comissão deve ficar entre 0% e 100%.');
-        let properties = await getWorkingProperties(); const baseId = `property-${safeId(unit || name) || Date.now()}`; let id = baseId, counter = 2; while (properties.some((item) => item.id === id)) { id = `${baseId}-${counter}`; counter += 1; }
-        const userId = auth.profile.id; const property = {id,ownerName,name,unit,city,state: stateInput || '—',address: addressInput || 'Não informado',commissionRate: commissionPercent / 100,administratorId: auth.profile.role === 'admin' ? userId : 'unassigned-admin',ownerId: 'unassigned-owner'};
-
-        await persistNewProperty(property, auth);
-
-        properties.push(property); writeProperties(mergeProperties(properties));
-        if (auth.profile.role === 'admin') { const ids = new Set(auth.propertyIds || []); ids.add(id); auth.propertyIds = [...ids]; localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(auth)); }
-        localStorage.setItem(`ap207-dashboard-reservations-v1:${id}`, JSON.stringify({ version: 1, reservations: [] })); localStorage.setItem(`ap207-dashboard-expenses-v1:${id}`, JSON.stringify({ version: 1, expenses: [] }));
-        setPreferredProperty(id);
-        success.innerHTML=`<strong>✅ Unidade criada e confirmada.</strong><span>${unit} foi vinculada ao seu acesso. Atualizando o painel…</span>`; success.hidden=false; formActions.hidden=true;
-        setTimeout(()=>location.reload(),900);
-      } catch (err) { error.textContent = err?.message || 'Não foi possível cadastrar a propriedade.'; error.hidden = false; save.disabled=false; save.textContent='Salvar nova unidade'; }
-    });
-  }
-
-  async function boot() {
-    const timer = setInterval(async () => {
-      if (!canManageProperties()) return;
-      const section=document.getElementById('propertySettings');
-      if(section){ clearInterval(timer); await getWorkingProperties(); install(); }
-    }, 250);
-    setTimeout(() => clearInterval(timer), 30000);
-  }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true }); else boot();
+  const STORAGE_KEY='ap207-dashboard-properties-v1',AUTH_CACHE_KEY='ap207-auth-profile-v1',PREFERRED_PROPERTY_KEY='system-control-test2-preferred-property-v1',SELECTED_PROPERTY_KEY='stay-control-selected-property-v1';
+  function readAuth(){try{return JSON.parse(localStorage.getItem(AUTH_CACHE_KEY)||'null')}catch{return null}}
+  function validProfile(){const p=readAuth()?.profile;return p&&p.active!==false&&['super_admin','admin','owner'].includes(p.role)?p:null}
+  function canManageProperties(){const r=validProfile()?.role;return r==='super_admin'||r==='admin'}
+  function allowedIds(){const a=readAuth(),p=validProfile();if(!p)return new Set();if(p.role==='super_admin')return null;const raw=Array.isArray(p.propertyIds)?p.propertyIds:Array.isArray(p.property_ids)?p.property_ids:Array.isArray(a?.propertyIds)?a.propertyIds:[];return new Set(raw.map(String))}
+  function authorized(id){if(!id)return false;const ids=allowedIds();return ids===null||ids.has(String(id))}
+  function readStoredProperties(){try{const x=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');return x?.version===1&&Array.isArray(x.properties)?x.properties:[]}catch{return[]}}
+  async function readDefaultProperties(){try{const r=await fetch(`./data.json?ts=${Date.now()}`,{cache:'no-store'}),d=await r.json();return Array.isArray(d.properties)?d.properties:[]}catch{return[]}}
+  async function readDatabaseProperties(){const c=globalThis.AP207Supabase;if(!c)return[];try{const{data,error}=await c.from('properties').select('*').order('created_at',{ascending:true});if(error)throw error;return(data||[]).map(p=>({id:p.id,ownerName:p.owner_name,name:p.name,unit:p.unit,propertyType:p.property_type||'',condominiumName:p.condominium_name||'',houseName:p.house_name||'',propertyNumber:p.property_number||p.unit||'',city:p.city,state:p.state,country:p.country||'',address:p.address||'Não informado',addressNumber:p.address_number||'',addressExtra:p.address_extra||'',district:p.district||'',zip:p.zip||'',commissionRate:Number(p.commission_rate??.15),administratorId:p.administrator_id||'unassigned-admin',ownerId:p.owner_id||'unassigned-owner'}))}catch{return[]}}
+  function safeId(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,50)}
+  function writeProperties(properties){const ids=allowedIds(),safe=ids===null?properties:properties.filter(p=>ids.has(String(p?.id)));localStorage.setItem(STORAGE_KEY,JSON.stringify({version:1,properties:safe}))}
+  function currentPropertyId(){for(const id of[document.getElementById('propertySelector')?.value,localStorage.getItem(PREFERRED_PROPERTY_KEY),localStorage.getItem(SELECTED_PROPERTY_KEY)].filter(Boolean))if(authorized(id))return String(id);return''}
+  function mergeProperties(...lists){const map=new Map();lists.flat().filter(Boolean).forEach(p=>{if(p?.id)map.set(String(p.id),{...(map.get(String(p.id))||{}),...p})});return[...map.values()]}
+  async function getWorkingProperties(){const[defaults,db]=await Promise.all([readDefaultProperties(),readDatabaseProperties()]),stored=readStoredProperties(),ids=allowedIds(),merged=mergeProperties(defaults,stored,db),safe=ids===null?merged:merged.filter(p=>ids.has(String(p.id)));if(safe.length)writeProperties(safe);return safe}
+  function setPreferredProperty(id){if(!authorized(id))return;localStorage.setItem(PREFERRED_PROPERTY_KEY,id);localStorage.setItem(SELECTED_PROPERTY_KEY,id);const ps=readStoredProperties(),i=ps.findIndex(x=>String(x.id)===String(id));if(i>0){const x=ps.splice(i,1)[0];ps.unshift(x);writeProperties(ps)}}
+  function ensureStyles(){if(document.getElementById('propertyManagerStyles'))return;const s=document.createElement('style');s.id='propertyManagerStyles';s.textContent='.property-manager-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.property-create-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border,#dde3ea)}.property-create-form .field-wide,.property-create-section{grid-column:1/-1}.property-create-section{padding:15px;border:1px solid #e5e7eb;border-radius:13px;background:#fff}.property-create-section h3{margin:0 0 12px;font-size:15px}.property-create-section-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.property-create-section-grid .field-wide{grid-column:1/-1}.property-create-note{grid-column:1/-1;margin:0;color:#64748b;font-size:.82rem}.property-create-error{grid-column:1/-1;color:#b42318;font-weight:700}.property-create-success{grid-column:1/-1;padding:14px;border-radius:12px;background:#f0fdf4}.button-danger{background:#dc2626!important;color:#fff!important}.button-danger-soft{background:#fff1f2!important;color:#b42318!important}@media(max-width:700px){.property-create-form,.property-create-section-grid{grid-template-columns:1fr}.property-create-section-grid .field-wide{grid-column:auto}}';document.head.append(s)}
+  function field(label,id,o={}){const w=document.createElement('div');w.className=o.wide?'field field-wide':'field';const l=document.createElement('label');l.htmlFor=id;l.textContent=label;const i=document.createElement('input');i.id=id;i.name=id;i.required=o.required!==false;if(o.type)i.type=o.type;if(o.maxLength)i.maxLength=o.maxLength;if(o.min!==undefined)i.min=String(o.min);if(o.max!==undefined)i.max=String(o.max);if(o.step!==undefined)i.step=String(o.step);if(o.placeholder)i.placeholder=o.placeholder;w.append(l,i);return w}
+  function selectField(label,id,options){const w=document.createElement('div');w.className='field';const l=document.createElement('label');l.htmlFor=id;l.textContent=label;const s=document.createElement('select');s.id=id;s.name=id;s.required=true;options.forEach(([v,t])=>{const o=document.createElement('option');o.value=v;o.textContent=t;s.append(o)});w.append(l,s);return w}
+  function section(title,fields){const s=document.createElement('div');s.className='property-create-section';const h=document.createElement('h3');h.textContent=title;const g=document.createElement('div');g.className='property-create-section-grid';fields.forEach(x=>g.append(x));s.append(h,g);return s}
+  function installPropertySwitcher(){const s=document.getElementById('propertySelector');if(!s||s.dataset.reloadSwitcher==='true')return;s.dataset.reloadSwitcher='true';s.addEventListener('change',()=>{if(!authorized(s.value))return;s.value&&setPreferredProperty(s.value);setTimeout(()=>location.reload(),40)})}
+  async function removeOwnerFromCurrentUnit(){if(!canManageProperties())return;const id=currentPropertyId();if(!id)return alert('Selecione uma unidade autorizada.');let ps=await getWorkingProperties(),i=ps.findIndex(p=>String(p.id)===id);if(i<0)return alert('Unidade não encontrada.');const p=ps[i];if(!confirm(`Remover ${p.ownerName||'proprietário'} da unidade ${p.unit||p.name||''}?`))return;const c=globalThis.AP207Supabase;if(c){const{error}=await c.from('properties').update({owner_name:'Sem proprietário',owner_id:null,updated_at:new Date().toISOString()}).eq('id',id);if(error){console.error(error);return alert('Não foi possível remover o proprietário.')}}ps[i]={...p,ownerName:'Sem proprietário',ownerId:'unassigned-owner'};writeProperties(ps);location.reload()}
+  async function deleteCurrentUnit(){if(!canManageProperties())return;const id=currentPropertyId();if(!id)return alert('Selecione uma unidade autorizada.');let ps=await getWorkingProperties(),target=ps.find(p=>String(p.id)===id);if(!target)return alert('Unidade não encontrada.');if(!confirm(`Excluir a unidade ${target.unit||target.name||'selecionada'}?\n\nEsta ação não pode ser desfeita.`))return;const c=globalThis.AP207Supabase;if(c){await c.from('property_access').delete().eq('property_id',id);const{error}=await c.from('properties').delete().eq('id',id);if(error){console.error(error);return alert('Não foi possível excluir a unidade.')}}ps=ps.filter(p=>String(p.id)!==id);writeProperties(ps);localStorage.removeItem(`ap207-dashboard-reservations-v1:${id}`);localStorage.removeItem(`ap207-dashboard-expenses-v1:${id}`);localStorage.removeItem(`stay-control-recurring-expenses-v1:${id}`);const a=readAuth();if(a?.propertyIds){a.propertyIds=a.propertyIds.filter(x=>String(x)!==id);localStorage.setItem(AUTH_CACHE_KEY,JSON.stringify(a))}const next=ps[0]?.id||'';if(next)setPreferredProperty(String(next));else{localStorage.removeItem(PREFERRED_PROPERTY_KEY);localStorage.removeItem(SELECTED_PROPERTY_KEY)}location.reload()}
+  async function persistNewProperty(property,auth){const c=globalThis.AP207Supabase;if(!c)throw new Error('SERVICE');const base={id:property.id,owner_name:property.ownerName,name:property.name,unit:property.unit,city:property.city,country:property.country,state:property.state==='—'?null:property.state,address:property.address==='Não informado'?null:property.address,commission_rate:property.commissionRate,administrator_id:auth.profile.role==='admin'?auth.profile.id:null,owner_id:null};let row={...base,property_type:property.propertyType,condominium_name:property.condominiumName||null,house_name:property.houseName||null,property_number:property.propertyNumber,address_number:property.addressNumber||null,address_extra:property.addressExtra||null,district:property.district||null,zip:property.zip||null};let res=await c.from('properties').insert(row).select('id').single();if(res.error){console.warn('Extended property fields unavailable; saving compatible core fields.',res.error);res=await c.from('properties').insert(base).select('id').single()}if(res.error){console.error(res.error);throw new Error('SAVE')}if(!res.data?.id)throw new Error('SAVE');if(auth.profile.role==='admin'){const{error:e}=await c.from('property_access').upsert({user_id:auth.profile.id,property_id:property.id},{onConflict:'user_id,property_id'});if(e){console.error(e);await c.from('properties').delete().eq('id',property.id);throw new Error('ACCESS')}}}
+  function openForm(){const sec=document.getElementById('propertySettings'),form=document.getElementById('newPropertyForm');if(!sec||!form)return false;document.querySelectorAll('.app-screen').forEach(x=>x.hidden=true);const suite=document.getElementById('t2Suite');if(suite)suite.hidden=true;sec.hidden=false;form.hidden=false;const err=form.querySelector('.property-create-error'),ok=form.querySelector('.property-create-success'),fa=form.querySelector('.form-actions');if(err)err.hidden=true;if(ok)ok.hidden=true;if(fa)fa.hidden=false;const country=document.getElementById('newPropertyCountry'),commission=document.getElementById('newPropertyCommission'),type=document.getElementById('newPropertyType');if(country&&!country.value)country.value='Brasil';if(commission&&!commission.value)commission.value='15';if(type){type.value=type.value||'apartment';type.dispatchEvent(new Event('change',{bubbles:true}))}sec.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>document.getElementById('newPropertyOwnerName')?.focus(),120);return true}
+  function install(){installPropertySwitcher();if(!canManageProperties())return false;const sec=document.getElementById('propertySettings');if(!sec)return false;if(document.getElementById('newPropertyButton'))return true;ensureStyles();sec.hidden=false;const heading=sec.querySelector('.panel-heading'),actions=document.createElement('div');actions.className='property-manager-actions';const has=Boolean(currentPropertyId()),edit=document.getElementById('editPropertyButton');if(edit){edit.remove();edit.hidden=!has;actions.append(edit)}const add=document.createElement('button');add.id='newPropertyButton';add.type='button';add.className='button button-primary';add.textContent='+ Nova propriedade';actions.append(add);const rem=document.createElement('button');rem.type='button';rem.className='button button-danger-soft';rem.textContent='Remover proprietário';rem.hidden=!has;rem.onclick=removeOwnerFromCurrentUnit;actions.append(rem);const del=document.createElement('button');del.type='button';del.className='button button-danger';del.textContent='Excluir propriedade';del.hidden=!has;del.onclick=deleteCurrentUnit;actions.append(del);heading?.append(actions);const form=document.createElement('form');form.id='newPropertyForm';form.className='property-create-form';form.hidden=true;form.append(section('Identificação da propriedade',[selectField('Tipo da propriedade','newPropertyType',[['apartment','Apartamento'],['house','Casa'],['other','Outro']]),field('Nome do proprietário','newPropertyOwnerName'),field('Nome do edifício / condomínio','newPropertyCondominium',{required:false}),field('Nome da casa / propriedade','newPropertyHouseName',{required:false}),field('Número do apartamento / unidade / casa','newPropertyUnit'),field('Nome de exibição da propriedade','newPropertyTitle',{placeholder:'Ex.: One House AP207'})]));form.append(section('Endereço da propriedade',[field('Endereço / Rua','newPropertyAddress',{wide:true}),field('Número do endereço','newPropertyAddressNumber'),field('Complemento (opcional)','newPropertyAddressExtra',{required:false}),field('Bairro (opcional)','newPropertyDistrict',{required:false}),field('Cidade','newPropertyCity'),field('Estado / Província','newPropertyState'),field('CEP / Código postal','newPropertyZip'),field('País','newPropertyCountry')]));form.append(section('Administração',[field('Comissão administrativa (%)','newPropertyCommission',{type:'number',min:0,max:100,step:.01})]));const note=document.createElement('p');note.className='property-create-note';note.textContent='Os dados desta seção pertencem à propriedade e ficam separados do endereço pessoal do proprietário.';const err=document.createElement('p');err.className='property-create-error';err.hidden=true;const ok=document.createElement('div');ok.className='property-create-success';ok.hidden=true;const fa=document.createElement('div');fa.className='form-actions field-wide';const save=document.createElement('button');save.type='submit';save.className='button button-primary';save.textContent='Salvar propriedade';const cancel=document.createElement('button');cancel.type='button';cancel.className='button button-secondary';cancel.textContent='Cancelar';fa.append(save,cancel);form.append(note,err,ok,fa);sec.append(form);const syncType=()=>{const type=document.getElementById('newPropertyType').value,cond=document.getElementById('newPropertyCondominium'),house=document.getElementById('newPropertyHouseName');cond.closest('.field').style.display=type==='house'?'none':'';house.closest('.field').style.display=type==='apartment'?'none':''};document.getElementById('newPropertyType').addEventListener('change',syncType);add.onclick=openForm;cancel.onclick=()=>{form.reset();form.hidden=true};form.addEventListener('submit',async e=>{e.preventDefault();err.hidden=true;save.disabled=true;try{const a=readAuth(),p=validProfile();if(!p||!canManageProperties())throw new Error('AUTH');const propertyType=document.getElementById('newPropertyType').value,ownerName=document.getElementById('newPropertyOwnerName').value.trim(),condominiumName=document.getElementById('newPropertyCondominium').value.trim(),houseName=document.getElementById('newPropertyHouseName').value.trim(),unit=document.getElementById('newPropertyUnit').value.trim(),name=document.getElementById('newPropertyTitle').value.trim(),country=document.getElementById('newPropertyCountry').value.trim(),city=document.getElementById('newPropertyCity').value.trim(),state=document.getElementById('newPropertyState').value.trim(),address=document.getElementById('newPropertyAddress').value.trim(),addressNumber=document.getElementById('newPropertyAddressNumber').value.trim(),addressExtra=document.getElementById('newPropertyAddressExtra').value.trim(),district=document.getElementById('newPropertyDistrict').value.trim(),zip=document.getElementById('newPropertyZip').value.trim(),pct=Number(document.getElementById('newPropertyCommission').value);if(!ownerName||!name||!unit||!country||!city||!state||!address||!addressNumber||!zip||!Number.isFinite(pct)||pct<0||pct>100)throw new Error('FIELDS');if(propertyType==='apartment'&&!condominiumName)throw new Error('IDENTITY');if(propertyType==='house'&&!houseName)throw new Error('IDENTITY');let ps=await getWorkingProperties(),base=`property-${safeId(unit||name)||Date.now()}`,id=base,n=2;while(ps.some(x=>String(x.id)===id))id=`${base}-${n++}`;const property={id,ownerName,name,unit,propertyNumber:unit,propertyType,condominiumName,houseName,country,city,state,address,addressNumber,addressExtra,district,zip,commissionRate:pct/100,administratorId:p.role==='admin'?p.id:'unassigned-admin',ownerId:'unassigned-owner'};await persistNewProperty(property,a);ps.push(property);if(p.role==='admin'){const ids=new Set(a.propertyIds||[]);ids.add(id);a.propertyIds=[...ids];localStorage.setItem(AUTH_CACHE_KEY,JSON.stringify(a))}writeProperties(ps);setPreferredProperty(id);ok.textContent=`Propriedade ${name} — ${unit} criada e confirmada.`;ok.hidden=false;fa.hidden=true;setTimeout(()=>location.reload(),700)}catch(x){console.error(x);err.textContent=x.message==='IDENTITY'?'Informe o nome do edifício/condomínio para apartamento ou o nome da casa/propriedade para casa.':x.message==='FIELDS'?'Preencha os campos obrigatórios da propriedade, endereço e comissão.':'Não foi possível cadastrar a propriedade.';err.hidden=false;save.disabled=false}});return true}
+  globalThis.SystemControlPropertyManager={open:()=>{if(!install())return false;return openForm()},install};
+  async function boot(){const timer=setInterval(async()=>{if(!canManageProperties())return;const s=document.getElementById('propertySettings');if(s){await getWorkingProperties();if(install())clearInterval(timer)}},250);setTimeout(()=>clearInterval(timer),30000)}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();

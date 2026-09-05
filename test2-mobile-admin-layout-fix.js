@@ -1,0 +1,24 @@
+(()=>{'use strict';
+const AUTH='ap207-auth-profile-v1';
+function profile(){try{return JSON.parse(localStorage.getItem(AUTH)||'{}')?.profile||{}}catch{return{}}}
+function isPhoneAdmin(){return matchMedia('(max-width:720px)').matches&&profile().role==='admin'}
+function ensureCss(){if(document.getElementById('t2MobileAdminLayoutCss'))return;const s=document.createElement('style');s.id='t2MobileAdminLayoutCss';s.textContent=`
+@media(max-width:720px){
+ body.t2-mobile-admin-layout main.container{-webkit-overflow-scrolling:touch;backface-visibility:hidden}
+ body.t2-mobile-admin-layout #homeScopePanel{margin:12px 0 18px!important;padding:16px!important;border:1px solid #ddd9ff!important;border-radius:16px!important;background:#fff!important;box-shadow:0 8px 28px rgba(67,56,202,.06)!important}
+ body.t2-mobile-admin-layout #homeScopePanel select{width:100%!important;min-height:52px!important;font-size:18px!important;font-weight:750!important}
+ body.t2-mobile-admin-layout .t2-mobile-admin-property-cta{display:flex!important;width:100%!important;min-height:56px!important;align-items:center!important;justify-content:center!important;margin:12px 0 16px!important;border:0!important;border-radius:14px!important;background:#5b4cf0!important;color:#fff!important;font-size:18px!important;font-weight:900!important;position:relative!important;z-index:20!important}
+ body.t2-mobile-admin-layout #propertySettings{display:block}
+ body.t2-mobile-admin-layout #newPropertyForm{padding-bottom:120px!important}
+}
+`;document.head.append(s)}
+function homeRoute(){const h=(location.hash||'#home').slice(1);return h==='home'||h===''}
+function moveOverviewToTop(){if(!isPhoneAdmin()||!homeRoute())return;const scope=document.getElementById('homeScopePanel'),main=document.querySelector('main.container'),banner=document.querySelector('.scenic-banner');if(!scope||!main)return;document.body.classList.add('t2-mobile-admin-layout');if(scope.parentElement!==main||scope.previousElementSibling!==banner){if(banner&&banner.parentElement===main)banner.insertAdjacentElement('afterend',scope);else main.prepend(scope)}scope.hidden=false}
+function revealPropertyForm(){const form=document.getElementById('newPropertyForm');if(form){form.hidden=false;form.style.display='block';form.scrollIntoView({behavior:'auto',block:'start'})}document.getElementById('newPropertyOwnerName')?.focus()}
+function openNewProperty(){const attempt=()=>{const settings=document.getElementById('propertySettings'),btn=document.getElementById('newPropertyButton');if(settings&&btn){document.querySelectorAll('.app-screen').forEach(x=>x.hidden=true);const suite=document.getElementById('t2Suite');if(suite)suite.hidden=true;settings.hidden=false;settings.style.display='block';btn.click();requestAnimationFrame(revealPropertyForm);return true}return false};if(attempt())return;const root=document.getElementById('t2Suite')||document.body,obs=new MutationObserver(()=>{if(attempt())obs.disconnect()});obs.observe(root,{childList:true,subtree:true})}
+function makeButton(){const b=document.createElement('button');b.type='button';b.className='t2-mobile-admin-property-cta';b.dataset.mobileAdminNewProperty='1';b.textContent='+ Adicionar nova propriedade';b.onclick=openNewProperty;return b}
+function ensurePropertyButton(){if(!isPhoneAdmin())return;document.body.classList.add('t2-mobile-admin-layout');const panel=document.getElementById('t2ProfessionalProperties');if(panel&&!panel.querySelector('[data-mobile-admin-new-property]')){const b=makeButton(),head=panel.querySelector('.t2pm-head');head?.insertAdjacentElement('afterend',b)||panel.prepend(b)}const settings=document.getElementById('propertySettings');if(settings&&!settings.querySelector('[data-mobile-admin-new-property]')){const b=makeButton(),heading=settings.querySelector('h1,h2,.section-title,.page-header');if(heading)heading.insertAdjacentElement('afterend',b);else settings.prepend(b)}}
+function maintain(){if(!isPhoneAdmin())return;moveOverviewToTop();ensurePropertyButton()}
+function boot(){ensureCss();maintain();document.addEventListener('click',e=>{if(!isPhoneAdmin())return;const b=e.target.closest('[data-route="properties"],a[href="#properties"],button[data-target="properties"]');if(!b)return;requestAnimationFrame(()=>{ensurePropertyButton();const target=document.getElementById('t2ProfessionalProperties')||document.getElementById('propertySettings');target?.scrollIntoView({behavior:'auto',block:'start'})})},true);window.addEventListener('stay:navigation',()=>requestAnimationFrame(maintain));window.addEventListener('hashchange',maintain);window.addEventListener('pageshow',maintain);window.addEventListener('resize',maintain,{passive:true})}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();

@@ -1,8 +1,9 @@
 (() => {
   'use strict';
 
-  const REDIRECT_URL = 'https://raw.githack.com/marcelinhone-code/Ap207-dashboard-/visual-share-working-20260818/index.html?type=recovery';
   const LAST_ACTIVITY_KEY = 'stay-control-last-activity-v1';
+  const APP_NAME = 'System Control Test 2.0';
+  const recoveryUrl = () => `${location.origin}${location.pathname}?type=recovery`;
 
   function recoveryRequested() {
     const search = new URLSearchParams(location.search || '');
@@ -40,7 +41,7 @@
       }
       button.disabled = true;
       if (message) message.textContent = 'Enviando link para nova senha…';
-      const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo: REDIRECT_URL });
+      const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo: recoveryUrl() });
       button.disabled = false;
       if (error) {
         const detail = String(error.message || '').toLowerCase();
@@ -80,7 +81,7 @@
     addStyles();
     const overlay = document.createElement('div');
     overlay.id = 'stayRecoveryOverlay';
-    overlay.innerHTML = `<section class="card"><p style="margin:0 0 4px;font-weight:800;color:#2563eb">Stay in Control 1.0</p><h1>Criar nova senha</h1><p>Digite e confirme a nova senha para sua conta.</p><form id="stayRecoveryForm"><label for="stayRecoveryPassword">Nova senha</label><div class="row"><input id="stayRecoveryPassword" type="password" minlength="6" autocomplete="new-password" required><button class="show" id="stayRecoveryShow1" type="button">Mostrar</button></div><label for="stayRecoveryConfirm">Confirmar nova senha</label><div class="row"><input id="stayRecoveryConfirm" type="password" minlength="6" autocomplete="new-password" required><button class="show" id="stayRecoveryShow2" type="button">Mostrar</button></div><button class="save" type="submit">Salvar nova senha e entrar</button></form><p id="stayRecoveryMessage" role="alert"></p></section>`;
+    overlay.innerHTML = `<section class="card"><p style="margin:0 0 4px;font-weight:800;color:#2563eb">${APP_NAME}</p><h1>Criar nova senha</h1><p>Digite e confirme a nova senha para sua conta.</p><form id="stayRecoveryForm"><label for="stayRecoveryPassword">Nova senha</label><div class="row"><input id="stayRecoveryPassword" type="password" minlength="6" autocomplete="new-password" required><button class="show" id="stayRecoveryShow1" type="button">Mostrar</button></div><label for="stayRecoveryConfirm">Confirmar nova senha</label><div class="row"><input id="stayRecoveryConfirm" type="password" minlength="6" autocomplete="new-password" required><button class="show" id="stayRecoveryShow2" type="button">Mostrar</button></div><button class="save" type="submit">Salvar nova senha e entrar</button></form><p id="stayRecoveryMessage" role="alert"></p></section>`;
     document.body.append(overlay);
     const password = overlay.querySelector('#stayRecoveryPassword');
     const confirm = overlay.querySelector('#stayRecoveryConfirm');
@@ -93,7 +94,7 @@
       if (password.value !== confirm.value) { message.textContent = 'As duas senhas precisam ser iguais.'; return; }
       message.textContent = 'Salvando nova senha…';
       const { error } = await client.auth.updateUser({ password: password.value });
-      if (error) { message.textContent = error.message || 'Não foi possível alterar a senha.'; return; }
+      if (error) { message.textContent = 'Não foi possível alterar a senha agora. Tente novamente.'; return; }
       localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now()));
       try { history.replaceState({}, document.title, location.pathname); } catch {}
       location.reload();

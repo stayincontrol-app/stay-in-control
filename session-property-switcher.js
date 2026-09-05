@@ -1,29 +1,6 @@
 (() => {
   'use strict';
 
-  // Compatibilidade temporária entre a lista antiga do núcleo e as novas
-  // categorias exibidas pela tela de despesas. O ajuste é restrito somente
-  // ao array legado de categorias do app, preservando o comportamento normal
-  // de Array.prototype.includes em todo o restante da aplicação.
-  if (!globalThis.__stayExpenseCategoryValidationCompat) {
-    const originalIncludes = Array.prototype.includes;
-    const extraExpenseCategories = new Set([
-      'Luz', 'Internet', 'Aluguel de garagem', 'Aluguel de garage',
-      'Prestação do imóvel', 'Limpeza', 'Prestação do carro',
-      'Prestação da moto', 'Aluguel', 'Sistema'
-    ]);
-    Array.prototype.includes = function(searchElement, fromIndex) {
-      const legacyExpenseCategoryArray = Array.isArray(this)
-        && this.length === 7
-        && originalIncludes.call(this, 'Manutenção/Reparo')
-        && originalIncludes.call(this, 'Compra para o apartamento')
-        && originalIncludes.call(this, 'Outro');
-      if (legacyExpenseCategoryArray && extraExpenseCategories.has(searchElement)) return true;
-      return originalIncludes.call(this, searchElement, fromIndex);
-    };
-    globalThis.__stayExpenseCategoryValidationCompat = true;
-  }
-
   const PROPERTIES_KEY = 'ap207-dashboard-properties-v1';
   const SELECTED_PROPERTY_KEY = 'stay-control-selected-property-v1';
   const AUTH_CACHE_KEY = 'ap207-auth-profile-v1';
