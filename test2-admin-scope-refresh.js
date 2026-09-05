@@ -1,36 +1,12 @@
 (()=>{'use strict';
 const AUTH='ap207-auth-profile-v1';
-function profile(){try{return JSON.parse(localStorage.getItem(AUTH)||'{}')?.profile||{}}catch{return{}}}
-function isAdmin(){return profile().role==='admin'}
-function installCss(){if(document.getElementById('t2AdminScopeRefreshCss'))return;const s=document.createElement('style');s.id='t2AdminScopeRefreshCss';s.textContent=`
-#t2AdminScopeRefresh{margin-top:14px;display:flex;justify-content:flex-end}
-#t2AdminScopeRefresh button{min-height:46px;padding:10px 18px;border:0;border-radius:11px;background:#5b4cf0;color:#fff;font:inherit;font-weight:900;cursor:pointer}
-#t2AdminScopeRefresh button:disabled{opacity:.65;cursor:wait}
-@media(max-width:720px){#t2AdminScopeRefresh{display:block}#t2AdminScopeRefresh button{width:100%;min-height:54px;font-size:17px}}
-`;document.head.append(s)}
-function copyImmediate(){
-  document.querySelectorAll('[data-copy]').forEach(x=>{const y=document.getElementById(x.dataset.copy);if(y)x.textContent=y.textContent});
-  const row=document.querySelector('.t2-pro-tablewrap tbody tr');
-  if(row){const cells=row.children;const values=[
-    document.getElementById('propertyName')?.textContent||'—',
-    (document.getElementById('ownerName')?.textContent||'—').replace(/^Proprietário:\s*/i,''),
-    document.getElementById('periodCount')?.textContent||'0',
-    document.getElementById('nightCount')?.textContent||'0',
-    document.getElementById('grossTotal')?.textContent||'R$ 0,00',
-    document.getElementById('summaryExpenses')?.textContent||'R$ 0,00',
-    document.getElementById('summaryCommission')?.textContent||'R$ 0,00',
-    document.getElementById('netTotal')?.textContent||'R$ 0,00'
-  ];
-  values.forEach((v,i)=>{if(cells[i])cells[i].textContent=v});}
-}
-function refresh(){
-  const unit=document.getElementById('homeUnit'),month=document.getElementById('homeMonth'),year=document.getElementById('homeYear');
-  if(unit)unit.dispatchEvent(new Event('change',{bubbles:true}));
-  else if(month)month.dispatchEvent(new Event('change',{bubbles:true}));
-  else if(year)year.dispatchEvent(new Event('change',{bubbles:true}));
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{copyImmediate();window.dispatchEvent(new CustomEvent('stay:admin-overview-refreshed'))}));
-}
-function install(){if(!isAdmin())return false;const box=document.getElementById('homeScopePanel');if(!box)return false;installCss();if(document.getElementById('t2AdminScopeRefresh'))return true;const wrap=document.createElement('div');wrap.id='t2AdminScopeRefresh';const b=document.createElement('button');b.type='button';b.textContent='Atualizar visão geral';b.onclick=()=>{b.disabled=true;b.textContent='Atualizando…';refresh();setTimeout(()=>{b.disabled=false;b.textContent='Atualizar visão geral'},260)};wrap.append(b);box.append(wrap);return true}
-function boot(){if(install())return;let n=0;const t=setInterval(()=>{if(install()||++n>40)clearInterval(t)},100)}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
-})();
+const money=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'});
+function profile(){try{return JSON.parse(localStorage.getItem(AUTH)||'{}')?.profile||{}}catch{return{}}}function isAdmin(){return profile().role==='admin'}
+function installCss(){if(document.getElementById('t2AdminScopeRefreshCss'))return;const s=document.createElement('style');s.id='t2AdminScopeRefreshCss';s.textContent=`#t2AdminScopeRefresh{margin-top:14px;display:flex;justify-content:flex-end}#t2AdminScopeRefresh button{min-height:46px;padding:10px 18px;border:0;border-radius:11px;background:#5b4cf0;color:#fff;font:inherit;font-weight:900;cursor:pointer}#t2AdminScopeRefresh button:disabled{opacity:.65;cursor:wait}@media(max-width:720px){#t2AdminScopeRefresh{display:block}#t2AdminScopeRefresh button{width:100%;min-height:54px;font-size:17px}}`;document.head.append(s)}
+function set(id,v){const e=document.getElementById(id);if(e)e.textContent=v}
+function applyScope(detail){const t=detail?.metrics;if(!t)return;set('periodCount',String(t.reservations||0));set('nightCount',String(t.nights||0));set('grossTotal',money.format(t.gross||0));set('netTotal',money.format(t.net||0));set('summaryGross',money.format(t.gross||0));set('summaryCleaning',money.format(t.clean||0));set('summaryCommission',money.format(t.commission||0));set('summaryNetBeforeExpenses',money.format((t.gross||0)-(t.clean||0)-(t.commission||0)));set('summaryExpenses',money.format(t.expenses||0));set('summaryNet',money.format(t.net||0))}
+function copyImmediate(){document.querySelectorAll('[data-copy]').forEach(x=>{const y=document.getElementById(x.dataset.copy);if(y)x.textContent=y.textContent});const row=document.querySelector('.t2-pro-tablewrap tbody tr');if(row){const cells=row.children,values=[document.getElementById('propertyName')?.textContent||'—',(document.getElementById('ownerName')?.textContent||'—').replace(/^Proprietário:\s*/i,''),document.getElementById('periodCount')?.textContent||'0',document.getElementById('nightCount')?.textContent||'0',document.getElementById('grossTotal')?.textContent||'R$ 0,00',document.getElementById('summaryExpenses')?.textContent||'R$ 0,00',document.getElementById('summaryCommission')?.textContent||'R$ 0,00',document.getElementById('netTotal')?.textContent||'R$ 0,00'];values.forEach((v,i)=>{if(cells[i])cells[i].textContent=v})}}
+function stabilize(detail){applyScope(detail);copyImmediate();setTimeout(()=>{applyScope(detail);copyImmediate()},140)}
+function refresh(){const unit=document.getElementById('homeUnit'),month=document.getElementById('homeMonth'),year=document.getElementById('homeYear');if(unit)unit.dispatchEvent(new Event('change',{bubbles:true}));else if(month)month.dispatchEvent(new Event('change',{bubbles:true}));else if(year)year.dispatchEvent(new Event('change',{bubbles:true}));requestAnimationFrame(()=>stabilize(window.__stayHomeScope))}
+function install(){if(!isAdmin())return false;const box=document.getElementById('homeScopePanel');if(!box)return false;installCss();if(document.getElementById('t2AdminScopeRefresh'))return true;const wrap=document.createElement('div');wrap.id='t2AdminScopeRefresh';const b=document.createElement('button');b.type='button';b.textContent='Atualizar visão geral';b.onclick=()=>{b.disabled=true;b.textContent='Atualizando…';refresh();setTimeout(()=>{b.disabled=false;b.textContent='Atualizar visão geral'},260)};wrap.append(b);box.append(wrap);window.addEventListener('stay:scope-change',e=>requestAnimationFrame(()=>stabilize(e.detail)));return true}
+function boot(){if(install())return;let n=0;const t=setInterval(()=>{if(install()||++n>40)clearInterval(t)},100)}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();})();
