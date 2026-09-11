@@ -1,63 +1,87 @@
 (()=>{'use strict';
 const K='system-control-test2-suite-v1';
-const LANGS=['pt-BR','en','es','fr','de','it','pt-PT','zh-CN','ja','ko'];
-const P={
-properties:['Propriedades / Proprietários','Properties / Owners','Propiedades / Propietarios','Propriétés / Propriétaires','Objekte / Eigentümer','Proprietà / Proprietari','Propriedades / Proprietários','房产 / 业主','物件 / オーナー','숙소 / 소유자'],
-expenses:['Despesas / Receitas adicionais','Expenses / Additional income','Gastos / Ingresos adicionales','Dépenses / Revenus supplémentaires','Ausgaben / Zusätzliche Einnahmen','Spese / Entrate aggiuntive','Despesas / Receitas adicionais','支出 / 额外收入','経費 / 追加収入','지출 / 추가 수입'],
-settings:['Configurações / Central de Atendimento','Settings / Support Center','Configuración / Centro de Atención','Paramètres / Centre d’assistance','Einstellungen / Support-Center','Impostazioni / Centro Assistenza','Configurações / Centro de Atendimento','设置 / 客服中心','設定 / サポートセンター','설정 / 고객 지원 센터'],
-share:['Compartilhar página','Share page','Compartir página','Partager la page','Seite teilen','Condividi pagina','Partilhar página','分享页面','ページを共有','페이지 공유'],
-plans:['Planos & Pagamentos','Plans & Payments','Planes y Pagos','Forfaits et Paiements','Pläne & Zahlungen','Piani e Pagamenti','Planos e Pagamentos','套餐与付款','プランと支払い','요금제 및 결제'],
-publicity:['Publicidade','Advertising','Publicidad','Publicité','Werbung','Pubblicità','Publicidade','广告','広告','광고'],
-logs:['Logs de Acessos','Access Logs','Registros de Acceso','Journaux d’accès','Zugriffsprotokolle','Registri Accessi','Registos de Acesso','访问日志','アクセスログ','접속 로그'],
-admins:['Administradores','Administrators','Administradores','Administrateurs','Administratoren','Amministratori','Administradores','管理员','管理者','관리자'],
-admin:['Administrador','Administrator','Administrador','Administrateur','Administrator','Amministratore','Administrador','管理员','管理者','관리자'],
-owner:['Proprietário','Owner','Propietario','Propriétaire','Eigentümer','Proprietario','Proprietário','业主','オーナー','소유자'],
-propertyUnit:['Propriedade / unidade','Property / unit','Propiedad / unidad','Propriété / unité','Objekt / Einheit','Proprietà / unità','Propriedade / unidade','房产 / 单元','物件 / ユニット','숙소 / 유닛'],
-month:['Mês','Month','Mes','Mois','Monat','Mese','Mês','月份','月','월'],
-year:['Ano','Year','Año','Année','Jahr','Anno','Ano','年份','年','연도'],
-allAdmins:['Todos os administradores','All administrators','Todos los administradores','Tous les administrateurs','Alle Administratoren','Tutti gli amministratori','Todos os administradores','所有管理员','すべての管理者','모든 관리자'],
-allOwners:['Todos os proprietários','All owners','Todos los propietarios','Tous les propriétaires','Alle Eigentümer','Tutti i proprietari','Todos os proprietários','所有业主','すべてのオーナー','모든 소유자'],
-allProps:['Todas as propriedades/unidades','All properties/units','Todas las propiedades/unidades','Toutes les propriétés/unités','Alle Objekte/Einheiten','Tutte le proprietà/unità','Todas as propriedades/unidades','所有房产/单元','すべての物件/ユニット','모든 숙소/유닛'],
-allMonths:['Todos os meses','All months','Todos los meses','Tous les mois','Alle Monate','Tutti i mesi','Todos os meses','所有月份','すべての月','모든 월'],
-activeAdmins:['Administradores ativos','Active administrators','Administradores activos','Administrateurs actifs','Aktive Administratoren','Amministratori attivi','Administradores ativos','活跃管理员','有効な管理者','활성 관리자'],
-activeOwners:['Proprietários ativos','Active owners','Propietarios activos','Propriétaires actifs','Aktive Eigentümer','Proprietari attivi','Proprietários ativos','活跃业主','有効なオーナー','활성 소유자'],
-activeProps:['Propriedades ativas','Active properties','Propiedades activas','Propriétés actives','Aktive Objekte','Proprietà attive','Propriedades ativas','活跃房产','有効な物件','활성 숙소'],
-gross:['Receita bruta','Gross revenue','Ingresos brutos','Revenu brut','Bruttoumsatz','Ricavi lordi','Receita bruta','总收入','総収益','총수익'],
-expense:['Despesas','Expenses','Gastos','Dépenses','Ausgaben','Spese','Despesas','支出','経費','지출'],
-commission:['Comissão','Commission','Comisión','Commission','Provision','Commissione','Comissão','佣金','手数料','수수료'],
-net:['Repasse líquido','Net payout','Pago neto','Versement net','Nettoauszahlung','Pagamento netto','Repasse líquido','净结算','純支払額','순지급액'],
-selectedPeriod:['período selecionado','selected period','período seleccionado','période sélectionnée','ausgewählter Zeitraum','periodo selezionato','período selecionado','所选期间','選択期間','선택 기간'],
-revExp:['Receitas x Despesas','Revenue x Expenses','Ingresos x Gastos','Revenus x Dépenses','Einnahmen x Ausgaben','Ricavi x Spese','Receitas x Despesas','收入 x 支出','収益 x 経費','수익 x 지출'],
-dist:['Distribuição das Despesas','Expense distribution','Distribución de gastos','Répartition des dépenses','Ausgabenverteilung','Distribuzione delle spese','Distribuição das Despesas','支出分布','経費分布','지출 분포'],
-lang:['Idioma','Language','Idioma','Langue','Sprache','Lingua','Idioma','语言','言語','언어'],
-superPanel:['Painel do Super Administrador','Super Administrator Dashboard','Panel del Superadministrador','Tableau de bord Super Administrateur','Superadministrator-Dashboard','Dashboard Super Amministratore','Painel do Super Administrador','超级管理员面板','スーパー管理者ダッシュボード','슈퍼 관리자 대시보드'],
-selectRotation:['Selecionar imagens da rotação','Select rotation images','Seleccionar imágenes de rotación','Sélectionner les images de rotation','Rotationsbilder auswählen','Seleziona immagini della rotazione','Selecionar imagens da rotação','选择轮播图片','ローテーション画像を選択','회전 이미지 선택'],
-bannersAdvertising:['Banners e publicidade','Banners and advertising','Banners y publicidad','Bannières et publicité','Banner und Werbung','Banner e pubblicità','Banners e publicidade','横幅与广告','バナーと広告','배너 및 광고']
-};
-const EN={
-'Visão geral':'Overview','VISÃO GERAL':'OVERVIEW','Selecionar visão da conta':'Select account view','Atualizar visão geral':'Update overview','Atualizar relatório geral':'Update overall report','Todos os meses de 2026 • Visão geral da conta':'All months of 2026 • Account overview',
-'Proprietário':'Owner','PROPRIETÁRIO':'OWNER','Administrador':'Administrator','ADMINISTRADOR':'ADMINISTRATOR','Super Administrador':'Super Administrator','SUPER ADMINISTRADOR':'SUPER ADMINISTRATOR','Unidade':'Unit','UNIDADE':'UNIT','Idioma':'Language','Sair':'Log out',
-'Propriedade / unidade':'Property / unit','Todas as propriedades/unidades':'All properties/units','Todos os proprietários':'All owners','Todos os administradores':'All administrators','Todos os meses':'All months','Mês':'Month','Ano':'Year',
-'Início':'Home','Reservas':'Reservations','Relatórios':'Reports','Calendário':'Calendar','Despesas':'Expenses','Configurações':'Settings','Central de Atendimento':'Support Center','Configurações / Central de Atendimento':'Settings / Support Center','Despesas / Receitas adicionais':'Expenses / Additional income','Planos & Pagamentos':'Plans & Payments','Publicidade':'Advertising','Logs de Acessos':'Access Logs','Administradores':'Administrators',
-'Receita Bruta (mês)':'Gross revenue (month)','Receita bruta (mês)':'Gross revenue (month)','Receita bruta':'Gross revenue','Valor bruto':'Gross amount','Gross amount':'Gross amount','Total de Despesas':'Total Expenses','Total de despesas':'Total expenses','Comissão':'Commission','Comissão da administradora':'Management commission','Limpeza':'Cleaning','Repasse antes de despesas':'Payout before expenses','Repasse antes das despesas':'Payout before expenses','Despesas recorrentes':'Recurring expenses','Repasse final':'Final payout','Repasse líquido':'Net payout','Saldo líquido':'Net balance','Resumo financeiro':'Financial summary','Consolidado':'Consolidated','CONSOLIDADO':'CONSOLIDATED','Agenda':'Schedule','AGENDA':'SCHEDULE','Próximas movimentações':'Upcoming activity','Próximo check-in':'Next check-in','Próximo check-out':'Next check-out','Nenhum agendado':'Nothing scheduled','Nenhuma reserva':'No reservations','após despesas':'after expenses','mês selecionado':'selected month',
-'Ocultar anúncio por quanto tempo?':'Hide ad for how long?','1 minuto':'1 minute','2 minutos':'2 minutes','3 minutos':'3 minutes','5 minutos':'5 minutes','PATROCINADO':'SPONSORED','Publicidade patrocinada':'Sponsored advertising','Ocultar anúncio temporariamente':'Hide ad temporarily',
-'Cadastre campanhas e mantenha anúncios antigos recolhidos para a tela não ficar cheia.':'Create campaigns and keep old ads collapsed so the screen stays uncluttered.','Campanhas':'Campaigns','Ativas':'Active','Inativas / encerradas':'Inactive / ended','Voltar ao painel':'Back to dashboard',
-'Imagens do carrossel':'Carousel images','27 imagens novas carregadas. Toque em uma imagem para marcar sua preferida.':'27 new images loaded. Tap an image to mark it as your favorite.','BLOCO':'BLOCK','Imagem':'Image','CURITIBA E CENTRO':'CURITIBA AND DOWNTOWN','ILHA DO MEL E PRAIAS':'ILHA DO MEL AND BEACHES','MORRETES E NATUREZA':'MORRETES AND NATURE','JARDIM BOTÂNICO E CURITIBA':'BOTANICAL GARDEN AND CURITIBA',
-'Propriedades / Proprietários':'Properties / Owners','Nova propriedade':'New property','Novo proprietário':'New owner','Nova despesa':'New expense','Nova receita':'New income','Contratos / iCal / API':'Contracts / iCal / API','Acesso Cortesia':'Courtesy Access','Relatório geral':'Overall report','Relatório da propriedade':'Property report','Relatório financeiro':'Financial report','Gerar relatório':'Generate report','Dias disponíveis':'Available days','Noites ocupadas':'Occupied nights','Taxa de ocupação':'Occupancy rate','Diária média':'Average daily rate','Média da diária':'Average daily rate','Total de limpeza':'Total cleaning','Outras despesas':'Other expenses','Saldo líquido dos proprietários':'Owners net balance','Reservas do mês selecionado':'Reservations for selected month',
-'Controle financeiro':'Financial control','Nova reserva':'New reservation','Nome do hóspede':'Guest name','Noites':'Nights','Salvar reserva':'Save reservation','Nova despesa':'New expense','Data':'Date','Categoria':'Category','Descrição':'Description','Salvar despesa':'Save expense','Cancelar':'Cancel','Ativo':'Active','Inativo':'Inactive','Excluir':'Delete','Editar':'Edit','Compartilhar':'Share','Voltar':'Back','Carregando dados…':'Loading data…','Carregando':'Loading'
-};
-const originalText=new WeakMap(),originalAttrs=new WeakMap();
-let busy=false,pending=false,lastLang='';
+const L=['pt-BR','en','es','fr','de','it','pt-PT','zh-CN','ja','ko'];
+const R=[
+['Propriedades / Proprietários','Properties / Owners','Propiedades / Propietarios','Propriétés / Propriétaires','Objekte / Eigentümer','Proprietà / Proprietari','Propriedades / Proprietários','房产 / 业主','物件 / オーナー','숙소 / 소유자'],
+['Despesas / Receitas adicionais','Expenses / Additional income','Gastos / Ingresos adicionales','Dépenses / Revenus supplémentaires','Ausgaben / Zusätzliche Einnahmen','Spese / Entrate aggiuntive','Despesas / Receitas adicionais','支出 / 额外收入','経費 / 追加収入','지출 / 추가 수입'],
+['Configurações / Central de Atendimento','Settings / Support Center','Configuración / Centro de Atención','Paramètres / Centre d’assistance','Einstellungen / Support-Center','Impostazioni / Centro Assistenza','Configurações / Centro de Atendimento','设置 / 客服中心','設定 / サポートセンター','설정 / 고객 지원 센터'],
+['Planos & Pagamentos','Plans & Payments','Planes y Pagos','Forfaits et Paiements','Pläne & Zahlungen','Piani e Pagamenti','Planos e Pagamentos','套餐与付款','プランと支払い','요금제 및 결제'],
+['Publicidade','Advertising','Publicidad','Publicité','Werbung','Pubblicità','Publicidade','广告','広告','광고'],
+['Logs de Acessos','Access Logs','Registros de Acceso','Journaux d’accès','Zugriffsprotokolle','Registri Accessi','Registos de Acesso','访问日志','アクセスログ','접속 로그'],
+['Administradores','Administrators','Administradores','Administrateurs','Administratoren','Amministratori','Administradores','管理员','管理者','관리자'],
+['Administrador','Administrator','Administrador','Administrateur','Administrator','Amministratore','Administrador','管理员','管理者','관리자'],
+['Proprietário','Owner','Propietario','Propriétaire','Eigentümer','Proprietario','Proprietário','业主','オーナー','소유자'],
+['Propriedade / unidade','Property / unit','Propiedad / unidad','Propriété / unité','Objekt / Einheit','Proprietà / unità','Propriedade / unidade','房产 / 单元','物件 / ユニット','숙소 / 유닛'],
+['Todos os administradores','All administrators','Todos los administradores','Tous les administrateurs','Alle Administratoren','Tutti gli amministratori','Todos os administradores','所有管理员','すべての管理者','모든 관리자'],
+['Todos os proprietários','All owners','Todos los propietarios','Tous les propriétaires','Alle Eigentümer','Tutti i proprietari','Todos os proprietários','所有业主','すべてのオーナー','모든 소유자'],
+['Todas as propriedades/unidades','All properties/units','Todas las propiedades/unidades','Toutes les propriétés/unités','Alle Objekte/Einheiten','Tutte le proprietà/unità','Todas as propriedades/unidades','所有房产/单元','すべての物件/ユニット','모든 숙소/유닛'],
+['Idioma','Language','Idioma','Langue','Sprache','Lingua','Idioma','语言','言語','언어'],
+['Sair','Log out','Salir','Déconnexion','Abmelden','Esci','Sair','退出','ログアウト','로그아웃'],
+['Início','Home','Inicio','Accueil','Start','Home','Início','首页','ホーム','홈'],
+['Reservas','Reservations','Reservas','Réservations','Reservierungen','Prenotazioni','Reservas','预订','予約','예약'],
+['Relatórios','Reports','Informes','Rapports','Berichte','Report','Relatórios','报告','レポート','보고서'],
+['Despesas','Expenses','Gastos','Dépenses','Ausgaben','Spese','Despesas','支出','経費','지출'],
+['Controle de usuários','User management','Control de usuarios','Gestion des utilisateurs','Benutzerverwaltung','Gestione utenti','Controlo de utilizadores','用户管理','ユーザー管理','사용자 관리'],
+['Alterar função, bloquear/desbloquear e revisar acessos cadastrados.','Change roles, block/unblock, and review registered access.','Cambiar función, bloquear/desbloquear y revisar accesos registrados.','Modifier les rôles, bloquer/débloquer et vérifier les accès enregistrés.','Rollen ändern, sperren/entsperren und registrierte Zugriffe prüfen.','Modifica ruoli, blocca/sblocca e verifica gli accessi registrati.','Alterar função, bloquear/desbloquear e rever acessos registados.','更改角色、锁定/解锁并查看已注册的访问权限。','役割の変更、ブロック/解除、登録済みアクセスの確認。','역할 변경, 차단/해제 및 등록된 접근 검토.'],
+['NOME','NAME','NOMBRE','NOM','NAME','NOME','NOME','姓名','名前','이름'],
+['E-MAIL','EMAIL','CORREO','E-MAIL','E-MAIL','E-MAIL','E-MAIL','电子邮件','メール','이메일'],
+['FUNÇÃO','ROLE','FUNCIÓN','RÔLE','ROLLE','RUOLO','FUNÇÃO','角色','役割','역할'],
+['Todos / sem administrador definido','All / no administrator assigned','Todos / sin administrador asignado','Tous / aucun administrateur attribué','Alle / kein Administrator zugewiesen','Tutti / nessun amministratore assegnato','Todos / sem administrador definido','全部 / 未分配管理员','すべて / 管理者未設定','전체 / 관리자 미지정'],
+['Selecione o proprietário','Select owner','Seleccione el propietario','Sélectionnez le propriétaire','Eigentümer auswählen','Seleziona proprietario','Selecione o proprietário','选择业主','オーナーを選択','소유자 선택'],
+['Selecione a propriedade/unidade','Select property/unit','Seleccione la propiedad/unidad','Sélectionnez la propriété/unité','Objekt/Einheit auswählen','Seleziona proprietà/unità','Selecione a propriedade/unidade','选择房产/单元','物件/ユニットを選択','숙소/유닛 선택'],
+['INTEGRAÇÃO DE CALENDÁRIO','CALENDAR INTEGRATION','INTEGRACIÓN DE CALENDARIO','INTÉGRATION DU CALENDRIER','KALENDERINTEGRATION','INTEGRAZIONE CALENDARIO','INTEGRAÇÃO DE CALENDÁRIO','日历集成','カレンダー連携','캘린더 연동'],
+['iCal por propriedade/unidade','iCal by property/unit','iCal por propiedad/unidad','iCal par propriété/unité','iCal nach Objekt/Einheit','iCal per proprietà/unità','iCal por propriedade/unidade','按房产/单元的 iCal','物件/ユニット別 iCal','숙소/유닛별 iCal'],
+['Cada link fica ligado somente à unidade selecionada.','Each link is connected only to the selected unit.','Cada enlace queda vinculado únicamente a la unidad seleccionada.','Chaque lien est associé uniquement à l’unité sélectionnée.','Jeder Link ist nur mit der ausgewählten Einheit verbunden.','Ogni link è collegato solo all’unità selezionata.','Cada link fica ligado apenas à unidade selecionada.','每个链接仅关联到所选单元。','各リンクは選択したユニットのみに紐づきます。','각 링크는 선택한 유닛에만 연결됩니다.'],
+['Link iCal desta propriedade','iCal link for this property','Enlace iCal de esta propiedad','Lien iCal de cette propriété','iCal-Link für dieses Objekt','Link iCal di questa proprietà','Link iCal desta propriedade','此房产的 iCal 链接','この物件の iCal リンク','이 숙소의 iCal 링크'],
+['Salvar iCal desta unidade','Save iCal for this unit','Guardar iCal de esta unidad','Enregistrer l’iCal de cette unité','iCal für diese Einheit speichern','Salva iCal per questa unità','Guardar iCal desta unidade','保存此单元的 iCal','このユニットの iCal を保存','이 유닛의 iCal 저장'],
+['Nova propriedade','New property','Nueva propiedad','Nouvelle propriété','Neues Objekt','Nuova proprietà','Nova propriedade','新建房产','新しい物件','새 숙소'],
+['Nova reserva','New reservation','Nueva reserva','Nouvelle réservation','Neue Reservierung','Nuova prenotazione','Nova reserva','新预订','新しい予約','새 예약'],
+['Gerar relatório','Generate report','Generar informe','Générer le rapport','Bericht erstellen','Genera report','Gerar relatório','生成报告','レポートを生成','보고서 생성'],
+['Desempenho por propriedade','Performance by property','Rendimiento por propiedad','Performance par propriété','Leistung nach Objekt','Prestazioni per proprietà','Desempenho por propriedade','按房产的表现','物件別パフォーマンス','숙소별 성과'],
+['Sem administrador','No administrator','Sin administrador','Sans administrateur','Kein Administrator','Nessun amministratore','Sem administrador','无管理员','管理者なし','관리자 없음'],
+['Arquivados / Excluídos','Archived / Deleted','Archivados / Eliminados','Archivés / Supprimés','Archiviert / Gelöscht','Archiviati / Eliminati','Arquivados / Eliminados','已归档 / 已删除','アーカイブ / 削除済み','보관됨 / 삭제됨'],
+['PATROCINADO','SPONSORED','PATROCINADO','SPONSORISÉ','GESPONSERT','SPONSORIZZATO','PATROCINADO','赞助','スポンサー','스폰서'],
+['Patrocinado','Sponsored','Patrocinado','Sponsorisé','Gesponsert','Sponsorizzato','Patrocinado','赞助','スポンサー','스폰서'],
+['Proprietários','Owners','Propietarios','Propriétaires','Eigentümer','Proprietari','Proprietários','业主','オーナー','소유자'],
+['Novo administrador','New administrator','Nuevo administrador','Nouvel administrateur','Neuer Administrator','Nuovo amministratore','Novo administrador','新管理员','新しい管理者','새 관리자'],
+['Novo proprietário','New owner','Nuevo propietario','Nouveau propriétaire','Neuer Eigentümer','Nuovo proprietario','Novo proprietário','新业主','新しいオーナー','새 소유자'],
+['Forma de acesso','Access method','Forma de acceso','Mode d’accès','Zugriffsmethode','Metodo di accesso','Forma de acesso','访问方式','アクセス方法','접근 방식'],
+['Nome completo','Full name','Nombre completo','Nom complet','Vollständiger Name','Nome completo','Nome completo','全名','氏名','전체 이름'],
+['WhatsApp (opcional)','WhatsApp (optional)','WhatsApp (opcional)','WhatsApp (facultatif)','WhatsApp (optional)','WhatsApp (opzionale)','WhatsApp (opcional)','WhatsApp（可选）','WhatsApp（任意）','WhatsApp(선택)'],
+['Salvar e enviar acesso','Save and send access','Guardar y enviar acceso','Enregistrer et envoyer l’accès','Speichern und Zugang senden','Salva e invia accesso','Guardar e enviar acesso','保存并发送访问权限','保存してアクセスを送信','저장하고 접근 전송'],
+['E-mail + senha','Email + password','Correo + contraseña','E-mail + mot de passe','E-Mail + Passwort','E-mail + password','E-mail + palavra-passe','电子邮件 + 密码','メール + パスワード','이메일 + 비밀번호'],
+['CPF + senha (Brasil)','CPF + password (Brazil)','CPF + contraseña (Brasil)','CPF + mot de passe (Brésil)','CPF + Passwort (Brasilien)','CPF + password (Brasile)','CPF + palavra-passe (Brasil)','CPF + 密码（巴西）','CPF + パスワード（ブラジル）','CPF + 비밀번호(브라질)'],
+['Gerar novo link','Generate new link','Generar nuevo enlace','Générer un nouveau lien','Neuen Link erstellen','Genera nuovo link','Gerar novo link','生成新链接','新しいリンクを生成','새 링크 생성'],
+['Copiar link','Copy link','Copiar enlace','Copier le lien','Link kopieren','Copia link','Copiar link','复制链接','リンクをコピー','링크 복사'],
+['Enviar pelo WhatsApp','Send via WhatsApp','Enviar por WhatsApp','Envoyer via WhatsApp','Über WhatsApp senden','Invia via WhatsApp','Enviar pelo WhatsApp','通过 WhatsApp 发送','WhatsAppで送信','WhatsApp으로 보내기'],
+['Fechar','Close','Cerrar','Fermer','Schließen','Chiudi','Fechar','关闭','閉じる','닫기'],
+['Bloquear','Block','Bloquear','Bloquer','Sperren','Blocca','Bloquear','锁定','ブロック','차단'],
+['Desbloquear','Unblock','Desbloquear','Débloquer','Entsperren','Sblocca','Desbloquear','解锁','ブロック解除','차단 해제'],
+['Alterar função','Change role','Cambiar función','Modifier le rôle','Rolle ändern','Cambia ruolo','Alterar função','更改角色','役割を変更','역할 변경'],
+['Reenviar acesso','Resend access','Reenviar acceso','Renvoyer l’accès','Zugang erneut senden','Reinvia accesso','Reenviar acesso','重新发送访问权限','アクセスを再送','접근 재전송'],
+['Controle financeiro','Financial control','Control financiero','Contrôle financier','Finanzkontrolle','Controllo finanziario','Controlo financeiro','财务管理','財務管理','재무 관리'],
+['Receita bruta','Gross revenue','Ingresos brutos','Revenu brut','Bruttoumsatz','Ricavi lordi','Receita bruta','总收入','総収益','총수익'],
+['Repasse líquido','Net payout','Pago neto','Versement net','Nettoauszahlung','Pagamento netto','Repasse líquido','净结算','純支払額','순지급액'],
+['Comissão','Commission','Comisión','Commission','Provision','Commissione','Comissão','佣金','手数料','수수료'],
+['Despesas recorrentes','Recurring expenses','Gastos recurrentes','Dépenses récurrentes','Wiederkehrende Ausgaben','Spese ricorrenti','Despesas recorrentes','经常性支出','定期経費','정기 지출'],
+['Relatório financeiro','Financial report','Informe financiero','Rapport financier','Finanzbericht','Report finanziario','Relatório financeiro','财务报告','財務レポート','재무 보고서'],
+['Relatório geral','Overall report','Informe general','Rapport général','Gesamtbericht','Report generale','Relatório geral','总报告','全体レポート','전체 보고서'],
+['Cancelar','Cancel','Cancelar','Annuler','Abbrechen','Annulla','Cancelar','取消','キャンセル','취소'],
+['Excluir','Delete','Eliminar','Supprimer','Löschen','Elimina','Eliminar','删除','削除','삭제'],
+['Editar','Edit','Editar','Modifier','Bearbeiten','Modifica','Editar','编辑','編集','편집'],
+['Ativo','Active','Activo','Actif','Aktiv','Attivo','Ativo','启用','有効','활성'],
+['Inativo','Inactive','Inactivo','Inactif','Inaktiv','Inattivo','Inativo','停用','無効','비활성']
+];
+const idx=new Map();R.forEach(r=>r.forEach(v=>{if(v)idx.set(v.trim(),r)}));
 function lang(){try{return JSON.parse(localStorage.getItem(K)||'{}').language||'pt-BR'}catch{return'pt-BR'}}
-function ix(){const i=LANGS.indexOf(lang());return i<0?0:i}
-function phraseFor(text){for(const vals of Object.values(P)){const j=vals.indexOf(text);if(j>=0)return vals[ix()]}return null}
-function englishFor(t){if(EN[t])return EN[t];let m=t.match(/^Todos os meses de (\d{4})\s*•\s*Visão geral da conta$/i);if(m)return `All months of ${m[1]} • Account overview`;m=t.match(/^PROPRIETÁRIO:\s*(.+)$/i);if(m)return `OWNER: ${m[1]}`;m=t.match(/^Proprietário:\s*(.+)$/i);if(m)return `Owner: ${m[1]}`;m=t.match(/^Unidade:\s*(.+)$/i);if(m)return `Unit: ${m[1]}`;m=t.match(/^Imagem\s+(\d+)$/i);if(m)return `Image ${m[1]}`;return null}
-function translateTextNode(n,code){if(!n||n.nodeType!==3)return;const raw=n.nodeValue||'',t=raw.trim();if(!t)return;let x=phraseFor(t);if(code==='en')x=englishFor(t)||x;if(!x||x===t)return;if(!originalText.has(n))originalText.set(n,t);n.nodeValue=raw.replace(t,x)}
-function restoreEnglishLeftover(n,code){if(code==='en'||!originalText.has(n))return false;const base=originalText.get(n),raw=n.nodeValue||'',t=raw.trim();const en=englishFor(base);if(en&&t===en){n.nodeValue=raw.replace(t,base);return true}return false}
-function translateAttrs(el,code){if(!el||el.nodeType!==1)return;['placeholder','aria-label','title'].forEach(attr=>{if(!el.hasAttribute(attr))return;const raw=(el.getAttribute(attr)||'').trim();if(!raw)return;let store=originalAttrs.get(el);if(!store){store={};originalAttrs.set(el,store)}if(code!=='en'&&store[attr]){const en=englishFor(store[attr]);if(en&&raw===en){el.setAttribute(attr,store[attr]);return}}let x=phraseFor(raw);if(code==='en')x=englishFor(raw)||x;if(x&&x!==raw){if(!store[attr])store[attr]=raw;el.setAttribute(attr,x)}})}
-function setButton(route,key){const vals=P[key];if(!vals)return;const text=vals[ix()];document.querySelectorAll(`.t2-pro-menu [data-route="${route}"],.t2-pro-mobilebar [data-route="${route}"]`).forEach(b=>{[...b.childNodes].filter(n=>n.nodeType===3).forEach(n=>n.remove());b.append(document.createTextNode(text))})}
-function apply(){if(busy||!document.body)return;busy=true;const code=lang();document.documentElement.lang=code;let restored=false;setButton('properties','properties');setButton('expenses','expenses');setButton('settings','settings');setButton('plans','plans');setButton('publicity','publicity');setButton('logs','logs');setButton('admins','admins');const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode(n){const e=n.parentElement;return e&&/^(SCRIPT|STYLE|NOSCRIPT|TEXTAREA)$/.test(e.tagName)?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT}});let n;while(n=w.nextNode()){restored=restoreEnglishLeftover(n,code)||restored;translateTextNode(n,code)}document.querySelectorAll('[placeholder],[aria-label],[title]').forEach(el=>translateAttrs(el,code));const sh=document.querySelector('#t2PageShareBar button');if(sh&&P.share[ix()])sh.textContent='↗ '+P.share[ix()];lastLang=code;busy=false;if(restored&&code!=='en')setTimeout(()=>window.dispatchEvent(new Event('stay:screens-organized')),0)}
+function li(){const i=L.indexOf(lang());return i<0?0:i}
+function dynamic(t,i){let m=t.match(/^(?:Olá|Hello|Hola|Bonjour|Hallo|Ciao|Olá|你好|こんにちは|안녕하세요),\s*(.+?)(?:!\s*👋)?$/i);if(m){const a=['Olá','Hello','Hola','Bonjour','Hallo','Ciao','Olá','你好','こんにちは','안녕하세요'];return `${a[i]}, ${m[1]}! 👋`}m=t.match(/^(?:Proprietário|Owner|Propietario|Propriétaire|Eigentümer|Proprietario|业主|オーナー|소유자):\s*(.+)$/i);if(m){const a=['Proprietário','Owner','Propietario','Propriétaire','Eigentümer','Proprietario','Proprietário','业主','オーナー','소유자'];return `${a[i]}: ${m[1]}`}m=t.match(/^(?:Administrador|Administrator|Administrateur|Amministratore|管理员|管理者|관리자):\s*(.+)$/i);if(m){const a=['Administrador','Administrator','Administrador','Administrateur','Administrator','Amministratore','Administrador','管理员','管理者','관리자'];return `${a[i]}: ${m[1]}`}return null}
+let busy=false,pending=false,last='';
+function tr(t){const i=li(),r=idx.get(t.trim());return r?r[i]:dynamic(t.trim(),i)}
+function text(n){if(!n||n.nodeType!==3)return;const raw=n.nodeValue||'',t=raw.trim();if(!t)return;const x=tr(t);if(x&&x!==t)n.nodeValue=raw.replace(t,x)}
+function attrs(el){['placeholder','aria-label','title'].forEach(a=>{if(!el.hasAttribute?.(a))return;const v=el.getAttribute(a)||'',x=tr(v);if(x&&x!==v)el.setAttribute(a,x)})}
+function apply(){if(busy||!document.body)return;busy=true;document.documentElement.lang=lang();const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode(n){const e=n.parentElement;return e&&/^(SCRIPT|STYLE|NOSCRIPT)$/.test(e.tagName)?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT}});let n;while(n=w.nextNode())text(n);document.querySelectorAll('body *').forEach(attrs);last=lang();busy=false}
 function schedule(){if(pending)return;pending=true;setTimeout(()=>{pending=false;apply()},40)}
-function boot(){apply();['stay:language-change','stay:unified-navigation','t2-banners-updated','stay:navigation','stay:screens-organized'].forEach(ev=>window.addEventListener(ev,schedule));document.addEventListener('change',e=>{if(['t2AppLanguage','t2V2Language'].includes(e.target?.id))schedule()});new MutationObserver(m=>{if(!busy&&m.some(x=>x.type==='characterData'||x.addedNodes.length))schedule()}).observe(document.body,{childList:true,subtree:true,characterData:true});setInterval(()=>{if(lang()!==lastLang)schedule()},600)}
+function boot(){apply();new MutationObserver(m=>{if(!busy&&m.some(x=>x.addedNodes.length||x.type==='characterData'))schedule()}).observe(document.body,{childList:true,subtree:true,characterData:true});document.addEventListener('change',e=>{if(['t2AppLanguage','t2V2Language'].includes(e.target?.id))schedule()},true);['stay:language-change','stay:navigation','stay:unified-navigation','stay:screens-organized','stay:management-ready','stay:roles-changed'].forEach(ev=>window.addEventListener(ev,schedule));setInterval(()=>{if(lang()!==last)schedule()},400);window.Test2I18nUnified={apply,schedule,languages:L.slice()}}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
