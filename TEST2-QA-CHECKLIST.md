@@ -1,4 +1,16 @@
-# System Control Test 2.0 — QA
+# Stay in Control — QA
+
+## Padrão permanente de paridade
+- [x] Uma única aplicação e uma única lógica para celular, tablet, laptop e desktop.
+- [x] Correções e novas funções devem valer para todos os tamanhos de tela; somente a apresentação/layout pode mudar.
+- [x] A mesma função autorizada deve funcionar da mesma forma para Super Administrador, Administrador e Proprietário em qualquer dispositivo.
+- [x] Nenhuma função pode ficar disponível somente no celular ou somente no computador sem uma decisão explícita de produto.
+- [x] Todos os 10 idiomas devem acompanhar a interface estática e dinâmica em todos os dispositivos e perfis.
+- [x] Dados, permissões, propriedades, usuários, reservas e valores financeiros usam o mesmo backend como fonte de verdade em todos os dispositivos.
+- [x] Login, sessão, reset de senha, convites, CPF, WhatsApp, banners/rotação, navegação, propriedades, reservas, iCal, despesas, receitas, relatórios, contratos e controles de usuários fazem parte da paridade obrigatória.
+- [x] Toda correção futura herda automaticamente estes critérios, mesmo quando o pedido vier a partir de um print de apenas um aparelho.
+
+> Referência obrigatória: `DEVICE-PARITY-STANDARD.md`.
 
 ## Bloco 1 — implementação e revisão estática
 - [x] Login e sessão com validação de perfil/usuário e limpeza de estado inválido.
@@ -24,12 +36,11 @@
 - [x] Contratos e receitas adicionais vinculados à propriedade e renderizados com saída segura.
 - [x] Gestão de propriedade com país persistido no backend e cache, inclusive na edição.
 - [x] Impressão de relatório revalida sessão e propriedade antes de imprimir.
-- [x] Suíte Test 2.0 revisada para falhar fechada sem perfil válido.
+- [x] Suíte revisada para falhar fechada sem perfil válido.
 
 ## Regras obrigatórias
-- [x] Branch separada da produção.
-- [x] Sem CNAME de produção no ambiente de teste.
-- [x] Layout responsivo base: celular, tablet e desktop.
+- [x] Layout responsivo base: celular, tablet, laptop e desktop.
+- [x] Paridade funcional obrigatória entre celular, tablet, laptop e desktop.
 - [x] Super Administrador com área de Administradores e Analíticos.
 - [x] Administrador sem Analíticos.
 - [x] Proprietário em modo somente leitura.
@@ -54,7 +65,7 @@
 - [x] Relatório identifica administrador responsável, proprietário, unidade e período antes de imprimir/salvar PDF.
 - [x] Troca de propriedade recarrega o contexto da unidade para evitar mistura de reservas/despesas entre imóveis.
 - [x] Histórico/auditoria visível.
-- [x] Banners/publicidade controlados pelo Super Administrador.
+- [x] Banners/publicidade controlados pelo Super Administrador e rotação consistente entre dispositivos.
 - [x] RLS habilitado nas tabelas públicas verificadas.
 - [x] Funções SECURITY DEFINER internas sem execução direta para `anon` e `authenticated`.
 - [x] Políticas RLS otimizadas para evitar reavaliação de `auth.uid()` por linha.
@@ -62,19 +73,16 @@
 - [x] Índices de chaves estrangeiras críticas adicionados.
 - [x] Edge Function `ical-sync` ativa com JWT obrigatório, HTTPS e proteção contra hosts privados.
 - [x] Edge Function de controle de usuários ativa e protegida por JWT.
-- [x] Interface do Test 2.0 conectada ao fluxo real de sincronização iCal.
+- [x] Interface conectada ao fluxo real de sincronização iCal.
 - [x] Fluxo de CPF + senha conectado ao backend existente para proprietário Brasil.
-- [x] Último build de validação do Test 2.0 aprovado pelo Vercel.
 
-## Antes da aprovação final
-- [ ] Validar login/convite em URL de preview do Vercel com conta real de teste.
-- [ ] Validar fluxo real de CPF no Brasil com uma conta de proprietário configurada para CPF.
-- [ ] Validar reset de senha e retorno para a mesma URL do Test 2.0.
+## Validação contínua
+- [ ] Validar login com uma tentativa em celular, tablet e desktop/laptop após mudanças de autenticação.
+- [ ] Validar reset de senha e convite sem reutilizar sessão antiga.
 - [ ] Validar isolamento real de dados entre Super Administrador, Administrador e Proprietário com sessões distintas.
-- [ ] Ativar proteção contra senhas vazadas no Supabase Auth.
-- [ ] Testar iPhone Safari, Android Chrome e desktop com interação real.
-- [ ] Testar importação de pelo menos um feed iCal real de uma propriedade.
-- [ ] Testar impressão/exportação do relatório em PDF no navegador.
-- [ ] Aprovação do usuário antes de qualquer promoção para `main`/produção.
+- [ ] Validar as funções principais em pelo menos um navegador móvel e um navegador desktop após mudanças de interface.
+- [ ] Validar os 10 idiomas em conteúdo estático e dinâmico quando houver alteração de tradução.
+- [ ] Testar importação de pelo menos um feed iCal real de uma propriedade quando o módulo iCal mudar.
+- [ ] Testar impressão/exportação do relatório em PDF quando o módulo de relatório mudar.
 
-> O ambiente Test 2.0 não deve ser promovido para produção até todos os itens de validação final estarem aprovados.
+> Uma alteração não é considerada concluída somente porque funciona em um aparelho. O padrão de aceitação é paridade funcional entre dispositivos e respeito às permissões do perfil.
