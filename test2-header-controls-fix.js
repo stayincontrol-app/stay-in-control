@@ -8,7 +8,8 @@ function isTopDashboardShare(el){const text=String(el?.textContent||'').replace(
 function removeDashboardShare(){document.getElementById('t2V2Share')?.remove();document.querySelectorAll('button,a').forEach(el=>{if(isTopDashboardShare(el))el.remove()});document.querySelectorAll('.t2-dash-share-modal').forEach(x=>x.remove())}
 function loadLiveSync(){if(document.querySelector('script[data-t2-live-user-sync]'))return;const s=document.createElement('script');s.src='./test2-live-user-sync.js?v=20260910-2025';s.dataset.t2LiveUserSync='1';document.body.append(s)}
 function loadFinalShell(){if(document.querySelector('script[data-t2-shell-final]'))return;const s=document.createElement('script');s.src='./test2-shell-final-fix.js?v=20260911-1945';s.dataset.t2ShellFinal='1';document.body.append(s)}
-function run(){installLanguage();removeDashboardShare();loadLiveSync();loadFinalShell()}
+function loadCrossDevice(){if(document.querySelector('script[data-t2-cross-device]'))return;const s=document.createElement('script');s.src='./test2-cross-device-stability.js?v=20260911-2245';s.dataset.t2CrossDevice='1';document.body.append(s)}
+function run(){installLanguage();removeDashboardShare();loadLiveSync();loadFinalShell();loadCrossDevice()}
 function boot(){run();const obs=new MutationObserver(run);obs.observe(document.body,{childList:true,subtree:true});window.addEventListener('stay:unified-navigation',()=>requestAnimationFrame(run));window.addEventListener('pageshow',()=>requestAnimationFrame(run))}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
