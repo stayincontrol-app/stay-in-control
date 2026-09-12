@@ -1,5 +1,5 @@
 (()=>{'use strict';
-const REDIRECT_BASE='https://stay-in-control-git-system-c-253bf0-marcelinhone-9670s-projects.vercel.app/invite.html';
+const REDIRECT_BASE='https://ap207-dashboard.vercel.app/invite.html';
 const states=new Map();
 const emailFromRow=row=>String(row?.querySelectorAll('td')?.[1]?.textContent||'').trim().toLowerCase();
 const isEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
