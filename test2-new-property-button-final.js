@@ -1,0 +1,5 @@
+(()=>{'use strict';
+function openModal(){if(window.Test2PropertyModalV2?.open){return window.Test2PropertyModalV2.open()}let n=0;const t=setInterval(()=>{n++;if(window.Test2PropertyModalV2?.open){clearInterval(t);window.Test2PropertyModalV2.open()}else if(n>=30)clearInterval(t)},100);return false}
+function bind(){document.querySelectorAll('[data-t2uc-action="new-property"]').forEach(btn=>{if(btn.dataset.t2FinalProperty==='1')return;const clone=btn.cloneNode(true);clone.dataset.t2FinalProperty='1';clone.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();openModal()});btn.replaceWith(clone)})}
+function boot(){bind();const o=new MutationObserver(()=>bind());o.observe(document.body,{childList:true,subtree:true})}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();})();
