@@ -1,0 +1,7 @@
+(()=>{'use strict';
+function waitFor(fn,tries=30){return new Promise(resolve=>{let n=0;const tick=()=>{try{const r=fn();if(r)return resolve(true)}catch{}if(++n>=tries)return resolve(false);setTimeout(tick,100)};tick()})}
+async function openProperty(){if(window.Test2Unified?.show)window.Test2Unified.show('properties',false);const ok=await waitFor(()=>{if(window.SystemControlPropertyManager?.open){return window.SystemControlPropertyManager.open()!==false}const b=document.getElementById('newPropertyButton');if(b){b.click();return true}return false});if(!ok)alert('Não foi possível abrir o cadastro de nova propriedade agora.');}
+async function openOwner(){if(window.Test2Unified?.show)window.Test2Unified.show('properties',false);const ok=await waitFor(()=>{if(typeof window.Test2OpenOwnerForm==='function'){window.Test2OpenOwnerForm();return true}return false});if(!ok)alert('Não foi possível abrir o cadastro de novo proprietário agora.');}
+function handler(e){const b=e.target.closest?.('[data-t2uc-action]');if(!b)return;const a=b.dataset.t2ucAction;if(a!=='new-property'&&a!=='new-owner')return;e.preventDefault();e.stopImmediatePropagation();if(a==='new-property')openProperty();else openOwner();}
+document.addEventListener('click',handler,true);
+})();
