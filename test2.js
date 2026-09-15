@@ -181,6 +181,7 @@
       ["./test2-features.js", "features"],
       ["./test2-access.js", "access"],
       ["./test2-report.js", "report"],
+      ["./test2-report-share-override.js", "report-share-override"],
       ["./test2-pro-internals.js", "pro-internals"],
       ["./test2-pro-management.js", "pro-management"],
       [
