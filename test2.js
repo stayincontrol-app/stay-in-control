@@ -1,6 +1,6 @@
 (() => {
   "use strict";
-  const NAME = "System Control Test 2.0",
+  const NAME = "Stay in Control",
     LANG_KEY = "system-control-test2-suite-v1",
     SB_PREFIX = "sb-cwtpeabebkoveachrclo-",
     AUTH = "ap207-auth-profile-v1";
@@ -182,6 +182,7 @@
       ["./test2-access.js", "access"],
       ["./test2-report.js", "report"],
       ["./test2-report-share-override.js", "report-share-override"],
+      ["./test2-official-branding.js", "official-branding"],
       ["./test2-pro-internals.js", "pro-internals"],
       ["./test2-pro-management.js", "pro-management"],
       [
@@ -226,7 +227,7 @@
     if (!document.querySelector(".test2-badge")) {
       const badge = document.createElement("div");
       badge.className = "test2-badge";
-      badge.textContent = "TEST 2.0";
+      badge.textContent = "PRINCIPAL";
       document.body.append(badge);
     }
     if (!document.querySelector(".t2-support")) {

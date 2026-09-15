@@ -112,8 +112,7 @@
     return u.login_identifier_type === "cpf" || u.cpf ? "CPF" : "E-mail";
   }
   function linkFor(token) {
-    const base = location.href.replace(/[^/?#]+(?:[?#].*)?$/, "");
-    return `${base}cpf-invite.html?token=${encodeURIComponent(token)}`;
+    return `https://stay-in-control-git-main-marcelinhone-9670s-projects.vercel.app/cpf-invite.html?token=${encodeURIComponent(token)}`;
   }
   function phoneDigits(u) {
     let d = String(u.phone || "").replace(/\D/g, "");
@@ -127,7 +126,7 @@
       throw new Error("Serviço de convite indisponível.");
     const cpf = String(u.cpf || "").replace(/\D/g, ""),
       isCpf = u.login_identifier_type === "cpf" || cpf.length === 11,
-      redirectTo = `${location.origin}${location.pathname.replace(/[^/]*$/, "")}invite.html?invite=1&v=${Date.now()}`,
+      redirectTo = `https://stay-in-control-git-main-marcelinhone-9670s-projects.vercel.app/invite.html?invite=1&v=${Date.now()}`,
       body = isCpf
         ? {
             name: u.name,

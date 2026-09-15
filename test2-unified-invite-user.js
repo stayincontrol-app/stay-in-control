@@ -45,8 +45,7 @@
     return all.filter((x) => ids.has(String(x.id)));
   }
   function linkFor(token) {
-    const base = location.href.replace(/[^/?#]+(?:[?#].*)?$/, "");
-    return `${base}cpf-invite.html?token=${encodeURIComponent(token)}`;
+    return `https://stay-in-control-git-main-marcelinhone-9670s-projects.vercel.app/cpf-invite.html?token=${encodeURIComponent(token)}`;
   }
   function phoneDigits(v) {
     let d = digits(v);
@@ -139,7 +138,7 @@
           ? "Criando acesso por CPF…"
           : "Enviando convite por e-mail…";
       try {
-        const redirectTo = `${location.origin}${location.pathname.replace(/[^/]*$/, "")}invite.html?invite=1&v=${Date.now()}`,
+        const redirectTo = `https://stay-in-control-git-main-marcelinhone-9670s-projects.vercel.app/invite.html?invite=1&v=${Date.now()}`,
           body =
             mode === "cpf"
               ? {
