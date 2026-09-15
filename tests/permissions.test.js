@@ -50,7 +50,14 @@ test('dados atuais do AP207 continuam válidos e preservam os cálculos', () => 
   const dashboard = validateDashboard(sourceData);
   assert.equal(dashboard.properties[0].name, 'AP207');
   assert.equal(dashboard.properties[0].city, 'Curitiba');
-  const reservation = normalizeReservation(dashboard.reservations[0], 0, dashboard);
+  const darlanIndex = dashboard.reservations.findIndex(
+    (item) => item.guest === 'Darlan',
+  );
+  const reservation = normalizeReservation(
+    dashboard.reservations[darlanIndex],
+    darlanIndex,
+    dashboard,
+  );
   assert.equal(reservation.guest, 'Darlan');
   assert.equal(reservation.net, 379.95);
 });
