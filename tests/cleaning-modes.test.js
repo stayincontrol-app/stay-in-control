@@ -12,6 +12,13 @@ test("formulário de reserva oferece os três tratamentos de limpeza", () => {
   const html = read("index.html");
   for (const mode of ["included", "separate", "none"])
     assert.match(html, new RegExp(`name="cleaningMode" value="${mode}"`));
+  assert.match(html, /Comissão sobre a estadia/);
+  assert.match(html, /nunca entra no cálculo da comissão/);
+});
+
+test("opções de limpeza se adaptam a telas menores", () => {
+  assert.match(read("style.css"), /\.cleaning-mode-options/);
+  assert.match(read("style.css"), /@media\(max-width:800px\)\{\.cleaning-mode-options\{grid-template-columns:1fr\}\}/);
 });
 
 test("cadastros iCal persistem tratamento e valor da limpeza", () => {

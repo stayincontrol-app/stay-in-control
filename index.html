@@ -196,9 +196,10 @@
                 step=".01"
                 required
               />
+              <small class="field-help">A limpeza é exibida separadamente e nunca entra no cálculo da comissão.</small>
             </div>
             <div class="field">
-              <label for="commissionRate">Comissão administradora (%)</label
+              <label for="commissionRate">Comissão sobre a estadia (%)</label
               ><input
                 id="commissionRate"
                 type="number"
@@ -209,7 +210,7 @@
               />
             </div>
             <div class="field output-field">
-              <span>Comissão em R$</span
+              <span>Comissão sobre estadia (R$)</span
               ><output id="calculatedCommission">R$ 0,00</output>
             </div>
             <div class="field output-field">
@@ -410,7 +411,7 @@
               <small>Limpeza</small><strong id="reportCleaning">R$ 0,00</strong>
             </div>
             <div>
-              <small>Comissão da administradora</small
+              <small>Comissão da administradora (sobre estadia)</small
               ><strong id="reportCommission">R$ 0,00</strong>
             </div>
           </div>
@@ -427,7 +428,7 @@
                   <dd id="reportSummaryCleaning">R$ 0,00</dd>
                 </div>
                 <div class="line subtraction">
-                  <dt>− Comissão da administradora</dt>
+                  <dt>− Comissão da administradora (sobre estadia)</dt>
                   <dd id="reportSummaryCommission">R$ 0,00</dd>
                 </div>
                 <div class="line subtotal">
