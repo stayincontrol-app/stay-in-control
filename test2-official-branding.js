@@ -4,6 +4,30 @@
     .replace(/SYSTEM CONTROL TEST 2\.0/gi, 'STAY IN CONTROL')
     .replace(/System Control Test 2\.0/gi, 'Stay in Control')
     .replace(/\bTEST 2\.0\b/gi, 'PRINCIPAL');
+  function installResponsiveGuard() {
+    if (document.getElementById('stayOfficialResponsiveGuard')) return;
+    const style = document.createElement('style');
+    style.id = 'stayOfficialResponsiveGuard';
+    style.textContent = `
+      @media (max-width: 720px) {
+        html, body { max-width: 100%; overflow-x: hidden !important; }
+        .t2v2-head-actions { width: 100%; max-width: 100%; flex-wrap: wrap; overflow: visible; }
+        .t2v2-head-actions > select,
+        .t2v2-head-actions > button { flex: 1 1 100%; width: 100%; max-width: 100%; box-sizing: border-box; }
+        #consolidatedReports,
+        #consolidatedReports .report-toolbar,
+        #consolidatedReports .report-filters,
+        #consolidatedReports .stay-general-actions,
+        #consolidatedReports select,
+        #consolidatedReports button { min-width: 0; max-width: 100%; box-sizing: border-box; }
+        #consolidatedReports .report-filters,
+        #consolidatedReports .stay-general-actions,
+        #consolidatedReports select,
+        #consolidatedReports .stay-general-actions > button { width: 100%; }
+      }
+    `;
+    document.head.append(style);
+  }
   function apply(root = document.body) {
     document.title = 'Stay in Control';
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
@@ -20,6 +44,7 @@
     });
   }
   function boot() {
+    installResponsiveGuard();
     apply();
     new MutationObserver((records) => {
       for (const record of records) {
