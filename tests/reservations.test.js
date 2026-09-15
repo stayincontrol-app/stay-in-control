@@ -1,143 +1,371 @@
-'use strict';
+"use strict";
 
-const test = require('node:test');
-const assert = require('node:assert/strict');
+const test = require("node:test");
+const assert = require("node:assert/strict");
 const {
-  countNights, calculateFinancials, calculateTotals, normalizeReservation, removeReservation, upsertReservation, validateDashboard,
-  normalizeExpense, upsertExpense, removeExpense, calculateExpensesTotal, calculateFinalPayout,
-  nightsInMonth, calculateMonthlyReport,
-  getCalendarDays, getNextStay,
-} = require('../app.js');
+  countNights,
+  calculateFinancials,
+  calculateTotals,
+  normalizeReservation,
+  removeReservation,
+  upsertReservation,
+  validateDashboard,
+  normalizeExpense,
+  upsertExpense,
+  removeExpense,
+  calculateExpensesTotal,
+  calculateFinalPayout,
+  nightsInMonth,
+  calculateMonthlyReport,
+  getCalendarDays,
+  getNextStay,
+} = require("../app.js");
 
 const defaults = { cleaningFee: 135, commissionRate: 0.15 };
 
-test('calcula noites entre check-in e check-out', () => assert.equal(countNights('2026-08-10', '2026-08-13'), 3));
-test('rejeita check-out anterior ou igual', () => assert.throws(() => countNights('2026-08-13', '2026-08-13'), /depois/));
-test('calcula comissão sobre bruto menos limpeza e repasse líquido', () => {
-  assert.deepEqual(calculateFinancials(582, 135, 15), { gross: 582, cleaning: 135, commissionRate: 15, commission: 67.05, net: 379.95 });
+test("calcula noites entre check-in e check-out", () =>
+  assert.equal(countNights("2026-08-10", "2026-08-13"), 3));
+test("rejeita check-out anterior ou igual", () =>
+  assert.throws(() => countNights("2026-08-13", "2026-08-13"), /depois/));
+test("calcula comissão sobre bruto menos limpeza e repasse líquido", () => {
+  assert.deepEqual(calculateFinancials(582, 135, 15), {
+    gross: 582,
+    cleaning: 135,
+    cleaningMode: "included",
+    deductibleCleaning: 135,
+    separateCleaning: 0,
+    commissionRate: 15,
+    commission: 67.05,
+    net: 379.95,
+  });
 });
-test('rejeita valores negativos e limpeza acima do bruto', () => {
+test("registra limpeza separada sem descontar do valor bruto", () => {
+  assert.deepEqual(calculateFinancials(600, 100, 15, "separate"), {
+    gross: 600,
+    cleaning: 100,
+    cleaningMode: "separate",
+    deductibleCleaning: 0,
+    separateCleaning: 100,
+    commissionRate: 15,
+    commission: 90,
+    net: 510,
+  });
+});
+test("ignora valor de limpeza quando a reserva não possui taxa", () => {
+  const result = calculateFinancials(600, 100, 15, "none");
+  assert.equal(result.cleaning, 0);
+  assert.equal(result.commission, 90);
+  assert.equal(result.net, 510);
+});
+test("rejeita valores negativos e limpeza acima do bruto", () => {
   assert.throws(() => calculateFinancials(-1, 0, 15), /maior ou igual/);
   assert.throws(() => calculateFinancials(100, -1, 15), /maior ou igual/);
   assert.throws(() => calculateFinancials(100, 0, -1), /maior ou igual/);
   assert.throws(() => calculateFinancials(100, 0, 101), /entre 0% e 100%/);
   assert.throws(() => calculateFinancials(100, 101, 15), /não pode superar/);
 });
-test('preserva os dados existentes aplicando padrões do painel', () => {
-  const item = normalizeReservation({ guest: 'Darlan', checkIn: '2026-08-10', checkOut: '2026-08-13', status: 'estimado', gross: 582 }, 0, defaults);
-  assert.equal(item.platform, 'Airbnb'); assert.equal(item.cleaning, 135); assert.equal(item.commissionRate, 15); assert.equal(item.net, 379.95);
-  assert.equal(item.status, 'Estimada');
+test("preserva os dados existentes aplicando padrões do painel", () => {
+  const item = normalizeReservation(
+    {
+      guest: "Darlan",
+      checkIn: "2026-08-10",
+      checkOut: "2026-08-13",
+      status: "estimado",
+      gross: 582,
+    },
+    0,
+    defaults,
+  );
+  assert.equal(item.platform, "Airbnb");
+  assert.equal(item.cleaning, 135);
+  assert.equal(item.cleaningMode, "included");
+  assert.equal(item.commissionRate, 15);
+  assert.equal(item.net, 379.95);
+  assert.equal(item.status, "Estimada");
 });
 
-test('cria uma reserva sem alterar as existentes', () => {
-  const existing = [{ id: 'sample' }];
-  const created = { id: 'manual', guest: 'Ana' };
-  assert.deepEqual(upsertReservation(existing, created), [existing[0], created]);
-  assert.deepEqual(existing, [{ id: 'sample' }]);
+test("cria uma reserva sem alterar as existentes", () => {
+  const existing = [{ id: "sample" }];
+  const created = { id: "manual", guest: "Ana" };
+  assert.deepEqual(upsertReservation(existing, created), [
+    existing[0],
+    created,
+  ]);
+  assert.deepEqual(existing, [{ id: "sample" }]);
 });
 
-test('edita uma reserva existente mantendo sua posição', () => {
-  const result = upsertReservation([{ id: 'sample', guest: 'Antes' }], { id: 'sample', guest: 'Depois' });
-  assert.deepEqual(result, [{ id: 'sample', guest: 'Depois' }]);
+test("edita uma reserva existente mantendo sua posição", () => {
+  const result = upsertReservation([{ id: "sample", guest: "Antes" }], {
+    id: "sample",
+    guest: "Depois",
+  });
+  assert.deepEqual(result, [{ id: "sample", guest: "Depois" }]);
 });
 
-test('exclui somente a reserva selecionada', () => {
-  assert.deepEqual(removeReservation([{ id: 'a' }, { id: 'b' }], 'a'), [{ id: 'b' }]);
+test("exclui somente a reserva selecionada", () => {
+  assert.deepEqual(removeReservation([{ id: "a" }, { id: "b" }], "a"), [
+    { id: "b" },
+  ]);
 });
 
-test('exclui reservas canceladas dos totais financeiros e de noites', () => {
-  const active = { status: 'Confirmada', nights: 3, gross: 500, cleaning: 100, commission: 60, net: 340 };
-  const cancelled = { status: 'Cancelada', nights: 5, gross: 900, cleaning: 100, commission: 120, net: 680 };
-  assert.deepEqual(calculateTotals([active, cancelled]), { nights: 3, gross: 500, cleaning: 100, commission: 60, net: 340 });
+test("exclui reservas canceladas dos totais financeiros e de noites", () => {
+  const active = {
+    status: "Confirmada",
+    nights: 3,
+    gross: 500,
+    cleaning: 100,
+    deductibleCleaning: 100,
+    separateCleaning: 0,
+    commission: 60,
+    net: 340,
+  };
+  const cancelled = {
+    status: "Cancelada",
+    nights: 5,
+    gross: 900,
+    cleaning: 100,
+    deductibleCleaning: 100,
+    separateCleaning: 0,
+    commission: 120,
+    net: 680,
+  };
+  assert.deepEqual(calculateTotals([active, cancelled]), {
+    nights: 3,
+    gross: 500,
+    cleaning: 100,
+    cleaningRecorded: 100,
+    separateCleaning: 0,
+    commission: 60,
+    net: 340,
+  });
 });
-test('valida a configuração original do dashboard', () => {
-  const data = validateDashboard({ property: 'AP207', city: 'Curitiba', month: 'Agosto 2026', cleaningFee: 135, commissionRate: 0.15, reservations: [] });
-  assert.equal(data.property, 'AP207');
+test("valida a configuração original do dashboard", () => {
+  const data = validateDashboard({
+    property: "AP207",
+    city: "Curitiba",
+    month: "Agosto 2026",
+    cleaningFee: 135,
+    commissionRate: 0.15,
+    reservations: [],
+  });
+  assert.equal(data.property, "AP207");
 });
 
-const expense = { id: 'expense-1', date: '2026-08-15', category: 'Material', description: 'Lâmpadas', value: 42.5 };
+const expense = {
+  id: "expense-1",
+  date: "2026-08-15",
+  category: "Material",
+  description: "Lâmpadas",
+  value: 42.5,
+};
 
-test('cria uma despesa sem alterar as existentes', () => {
+test("cria uma despesa sem alterar as existentes", () => {
   const existing = [expense];
-  const created = normalizeExpense({ date: '2026-08-16', category: 'Serviço', description: 'Chaveiro', value: 80 });
+  const created = normalizeExpense({
+    date: "2026-08-16",
+    category: "Serviço",
+    description: "Chaveiro",
+    value: 80,
+  });
   const result = upsertExpense(existing, created);
-  assert.equal(result.length, 2); assert.equal(result[1].description, 'Chaveiro'); assert.deepEqual(existing, [expense]);
+  assert.equal(result.length, 2);
+  assert.equal(result[1].description, "Chaveiro");
+  assert.deepEqual(existing, [expense]);
 });
 
-test('edita uma despesa existente mantendo sua posição', () => {
-  const updated = { ...expense, description: 'Lâmpadas LED', value: 50 };
+test("edita uma despesa existente mantendo sua posição", () => {
+  const updated = { ...expense, description: "Lâmpadas LED", value: 50 };
   assert.deepEqual(upsertExpense([expense], updated), [updated]);
 });
 
-test('exclui somente a despesa selecionada', () => {
-  assert.deepEqual(removeExpense([expense, { ...expense, id: 'expense-2' }], 'expense-1'), [{ ...expense, id: 'expense-2' }]);
+test("exclui somente a despesa selecionada", () => {
+  assert.deepEqual(
+    removeExpense([expense, { ...expense, id: "expense-2" }], "expense-1"),
+    [{ ...expense, id: "expense-2" }],
+  );
 });
 
-test('totaliza outras despesas com centavos', () => {
-  assert.equal(calculateExpensesTotal([expense, { ...expense, id: 'expense-2', value: 10.25 }]), 52.75);
+test("totaliza outras despesas com centavos", () => {
+  assert.equal(
+    calculateExpensesTotal([
+      expense,
+      { ...expense, id: "expense-2", value: 10.25 },
+    ]),
+    52.75,
+  );
 });
 
-test('calcula repasse final e permite resultado negativo', () => {
+test("calcula repasse final e permite resultado negativo", () => {
   assert.equal(calculateFinalPayout(379.95, 52.75), 327.2);
   assert.equal(calculateFinalPayout(100, 125.5), -25.5);
 });
 
-test('rejeita despesa negativa e categoria inválida', () => {
-  assert.throws(() => normalizeExpense({ ...expense, value: -1 }), /maior ou igual a zero/);
-  assert.throws(() => normalizeExpense({ ...expense, category: 'Inválida' }), /Categoria/);
+test("rejeita despesa negativa e categoria inválida", () => {
+  assert.throws(
+    () => normalizeExpense({ ...expense, value: -1 }),
+    /maior ou igual a zero/,
+  );
+  assert.throws(
+    () => normalizeExpense({ ...expense, category: "Inválida" }),
+    /Categoria/,
+  );
 });
 
-test('calcula somente as noites da reserva que pertencem ao mês', () => {
-  assert.equal(nightsInMonth('2026-08-29', '2026-09-03', 2026, 8), 3);
-  assert.equal(nightsInMonth('2026-08-29', '2026-09-03', 2026, 9), 2);
+test("calcula somente as noites da reserva que pertencem ao mês", () => {
+  assert.equal(nightsInMonth("2026-08-29", "2026-09-03", 2026, 8), 3);
+  assert.equal(nightsInMonth("2026-08-29", "2026-09-03", 2026, 9), 2);
 });
 
-test('gera fechamento mensal sem reservas canceladas e com despesas do mês da data', () => {
+test("gera fechamento mensal sem reservas canceladas e com despesas do mês da data", () => {
   const reservations = [
-    { id: 'a', guest: 'Ana', platform: 'Direto', status: 'Confirmada', checkIn: '2026-08-10', checkOut: '2026-08-13', nights: 3, gross: 600, cleaning: 100, commission: 75, net: 425 },
-    { id: 'b', guest: 'Bia', platform: 'Airbnb', status: 'Cancelada', checkIn: '2026-08-15', checkOut: '2026-08-20', nights: 5, gross: 1000, cleaning: 100, commission: 135, net: 765 },
-    { id: 'c', guest: 'Caio', platform: 'Airbnb', status: 'Confirmada', checkIn: '2026-09-01', checkOut: '2026-09-03', nights: 2, gross: 400, cleaning: 100, commission: 45, net: 255 },
+    {
+      id: "a",
+      guest: "Ana",
+      platform: "Direto",
+      status: "Confirmada",
+      checkIn: "2026-08-10",
+      checkOut: "2026-08-13",
+      nights: 3,
+      gross: 600,
+      cleaning: 100,
+      commission: 75,
+      net: 425,
+    },
+    {
+      id: "b",
+      guest: "Bia",
+      platform: "Airbnb",
+      status: "Cancelada",
+      checkIn: "2026-08-15",
+      checkOut: "2026-08-20",
+      nights: 5,
+      gross: 1000,
+      cleaning: 100,
+      commission: 135,
+      net: 765,
+    },
+    {
+      id: "c",
+      guest: "Caio",
+      platform: "Airbnb",
+      status: "Confirmada",
+      checkIn: "2026-09-01",
+      checkOut: "2026-09-03",
+      nights: 2,
+      gross: 400,
+      cleaning: 100,
+      commission: 45,
+      net: 255,
+    },
   ];
-  const expenses = [expense, { ...expense, id: 'expense-2', date: '2026-09-01', value: 90 }];
+  const expenses = [
+    expense,
+    { ...expense, id: "expense-2", date: "2026-09-01", value: 90 },
+  ];
   const report = calculateMonthlyReport(reservations, expenses, 2026, 8);
-  assert.equal(report.reservationCount, 1); assert.equal(report.occupiedNights, 3); assert.equal(report.daysInMonth, 31);
-  assert.equal(report.availableDays, 28); assert.equal(report.occupancyRate, 9.68); assert.equal(report.averageDailyRate, 200);
-  assert.equal(report.gross, 600); assert.equal(report.cleaning, 100); assert.equal(report.commission, 75); assert.equal(report.net, 425);
-  assert.equal(report.expensesTotal, 42.5); assert.equal(report.finalPayout, 382.5); assert.deepEqual(report.expenses, [expense]);
+  assert.equal(report.reservationCount, 1);
+  assert.equal(report.occupiedNights, 3);
+  assert.equal(report.daysInMonth, 31);
+  assert.equal(report.availableDays, 28);
+  assert.equal(report.occupancyRate, 9.68);
+  assert.equal(report.averageDailyRate, 200);
+  assert.equal(report.gross, 600);
+  assert.equal(report.cleaning, 100);
+  assert.equal(report.commission, 75);
+  assert.equal(report.net, 425);
+  assert.equal(report.expensesTotal, 42.5);
+  assert.equal(report.finalPayout, 382.5);
+  assert.deepEqual(report.expenses, [expense]);
 });
 
-test('relatório mensal vazio mantém médias e totais em zero', () => {
+test("relatório mensal vazio mantém médias e totais em zero", () => {
   const report = calculateMonthlyReport([], [], 2026, 2);
-  assert.equal(report.daysInMonth, 28); assert.equal(report.availableDays, 28); assert.equal(report.occupancyRate, 0);
-  assert.equal(report.averageDailyRate, 0); assert.equal(report.finalPayout, 0);
+  assert.equal(report.daysInMonth, 28);
+  assert.equal(report.availableDays, 28);
+  assert.equal(report.occupancyRate, 0);
+  assert.equal(report.averageDailyRate, 0);
+  assert.equal(report.finalPayout, 0);
 });
 
-test('calendário marca ocupação, check-in e check-out sem ocupar reservas canceladas', () => {
+test("calendário marca ocupação, check-in e check-out sem ocupar reservas canceladas", () => {
   const reservations = [
-    { id: 'a', guest: 'Ana', status: 'Confirmada', checkIn: '2026-08-10', checkOut: '2026-08-13' },
-    { id: 'b', guest: 'Bia', status: 'Cancelada', checkIn: '2026-08-20', checkOut: '2026-08-22' },
+    {
+      id: "a",
+      guest: "Ana",
+      status: "Confirmada",
+      checkIn: "2026-08-10",
+      checkOut: "2026-08-13",
+    },
+    {
+      id: "b",
+      guest: "Bia",
+      status: "Cancelada",
+      checkIn: "2026-08-20",
+      checkOut: "2026-08-22",
+    },
   ];
   const days = getCalendarDays(reservations, 2026, 8);
   assert.equal(days.length, 31);
-  assert.deepEqual({ occupied: days[9].occupied, checkIn: days[9].checkIn, checkOut: days[9].checkOut }, { occupied: true, checkIn: true, checkOut: false });
+  assert.deepEqual(
+    {
+      occupied: days[9].occupied,
+      checkIn: days[9].checkIn,
+      checkOut: days[9].checkOut,
+    },
+    { occupied: true, checkIn: true, checkOut: false },
+  );
   assert.equal(days[11].occupied, true);
-  assert.deepEqual({ occupied: days[12].occupied, checkOut: days[12].checkOut }, { occupied: false, checkOut: true });
-  assert.equal(days[19].occupied, false); assert.equal(days[19].reservations.length, 0);
+  assert.deepEqual(
+    { occupied: days[12].occupied, checkOut: days[12].checkOut },
+    { occupied: false, checkOut: true },
+  );
+  assert.equal(days[19].occupied, false);
+  assert.equal(days[19].reservations.length, 0);
 });
 
-test('encontra os próximos check-in e check-out ignorando reservas canceladas', () => {
+test("encontra os próximos check-in e check-out ignorando reservas canceladas", () => {
   const reservations = [
-    { guest: 'Cancelada', status: 'Cancelada', checkIn: '2026-08-16', checkOut: '2026-08-17' },
-    { guest: 'Depois', status: 'Confirmada', checkIn: '2026-08-20', checkOut: '2026-08-23' },
-    { guest: 'Antes', status: 'Confirmada', checkIn: '2026-08-18', checkOut: '2026-08-19' },
+    {
+      guest: "Cancelada",
+      status: "Cancelada",
+      checkIn: "2026-08-16",
+      checkOut: "2026-08-17",
+    },
+    {
+      guest: "Depois",
+      status: "Confirmada",
+      checkIn: "2026-08-20",
+      checkOut: "2026-08-23",
+    },
+    {
+      guest: "Antes",
+      status: "Confirmada",
+      checkIn: "2026-08-18",
+      checkOut: "2026-08-19",
+    },
   ];
-  assert.equal(getNextStay(reservations, 'checkIn', '2026-08-15').guest, 'Antes');
-  assert.equal(getNextStay(reservations, 'checkOut', '2026-08-20').guest, 'Depois');
+  assert.equal(
+    getNextStay(reservations, "checkIn", "2026-08-15").guest,
+    "Antes",
+  );
+  assert.equal(
+    getNextStay(reservations, "checkOut", "2026-08-20").guest,
+    "Depois",
+  );
 });
 
-test('HTML oferece cinco telas independentes na navegação', () => {
-  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'index.html'), 'utf8');
-  for (const screen of ['home', 'reservations', 'calendar', 'expenses', 'reports']) {
+test("HTML oferece cinco telas independentes na navegação", () => {
+  const html = require("node:fs").readFileSync(
+    require("node:path").join(__dirname, "..", "index.html"),
+    "utf8",
+  );
+  for (const screen of [
+    "home",
+    "reservations",
+    "calendar",
+    "expenses",
+    "reports",
+  ]) {
     assert.match(html, new RegExp(`data-screen="${screen}"`));
     assert.match(html, new RegExp(`data-screen-panel="${screen}"`));
   }

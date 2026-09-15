@@ -179,6 +179,14 @@
               <label for="gross">Valor bruto recebido (R$)</label
               ><input id="gross" type="number" min="0" step=".01" required />
             </div>
+            <fieldset class="field field-wide cleaning-mode-field" id="cleaningModeGroup">
+              <legend>Como a limpeza foi cobrada?</legend>
+              <div class="cleaning-mode-options">
+                <label class="cleaning-mode-option"><input type="radio" name="cleaningMode" value="included" checked /><span><b>Dentro do valor bruto</b><small>Desconta a limpeza antes de calcular a comissão.</small></span></label>
+                <label class="cleaning-mode-option"><input type="radio" name="cleaningMode" value="separate" /><span><b>Cobrada separadamente</b><small>Registra a limpeza, sem descontá-la do valor bruto.</small></span></label>
+                <label class="cleaning-mode-option"><input type="radio" name="cleaningMode" value="none" /><span><b>Sem taxa de limpeza</b><small>Nenhum valor de limpeza será considerado.</small></span></label>
+              </div>
+            </fieldset>
             <div class="field">
               <label for="cleaningFee">Limpeza (R$)</label
               ><input

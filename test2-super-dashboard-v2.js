@@ -81,7 +81,13 @@
       .forEach((x) => {
         reservations++;
         gross += Number(x.gross) || 0;
-        const c = Number(x.cleaningFee ?? x.cleaning) || 0,
+        const cleaningMode = ["included", "separate", "none"].includes(
+            x.cleaningMode,
+          )
+            ? x.cleaningMode
+            : "included",
+          rawCleaning = Math.max(0, Number(x.cleaningFee ?? x.cleaning) || 0),
+          c = cleaningMode === "included" ? rawCleaning : 0,
           r =
             Number(
               x.commissionRate ?? prop.commissionRate ?? prop.commission,
