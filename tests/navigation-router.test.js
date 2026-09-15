@@ -10,6 +10,13 @@ test('carrega somente o roteador unificado do menu', () => {
   const loader = read('test2.js');
   assert.match(loader, /test2-unified-runtime\.js/);
   assert.doesNotMatch(loader, /test2-direct-route-fix\.js/);
+  assert.doesNotMatch(read('test2-white-screen-recovery.js'), /test2-navigation-health\.js/);
+});
+
+test('recuperação visual preserva a rota ativa', () => {
+  const recovery = read('test2-white-screen-recovery.js');
+  assert.match(recovery, /show\(requested,false\)/);
+  assert.doesNotMatch(recovery, /show\('home',false\)/);
 });
 
 test('menu não instala manipuladores de rota concorrentes', () => {
