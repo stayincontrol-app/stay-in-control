@@ -690,6 +690,7 @@
   }
   function renderReservation(reservation) {
     const article = createElement("article", "booking");
+    article.dataset.reservationId = reservation.id;
     const top = createElement("div", "bookingtop");
     const heading = createElement("div");
     heading.append(

@@ -192,6 +192,10 @@
       ["./test2-attachment-ui.js?v=20260915-final", "attachment-ui"],
       ["./test2-reservations-ux.js?v=20260912-2202", "reservations-ux"],
       [
+        "./test2-reservation-payouts.js?v=20260916-final",
+        "reservation-payouts",
+      ],
+      [
         "./test2-reservations-pager-v2.js?v=20260912-2202",
         "reservations-pager-v2",
       ],
