@@ -302,7 +302,8 @@
           submit = document.getElementById("submit"),
           title = document.getElementById("title"),
           intro = document.getElementById("intro");
-        let recovery = false;
+        let recovery = false,
+          submitting = false;
         const txt = {
           "pt-BR": {
             title: "Acessar painel",
@@ -404,6 +405,22 @@
         function t() {
           return txt[lang.value] || txt.en;
         }
+        function loginBad() {
+          return (
+            {
+              "pt-BR": "E-mail ou senha inválidos.",
+              en: "Invalid email or password.",
+              es: "Correo o contraseña no válidos.",
+              fr: "E-mail ou mot de passe invalide.",
+              de: "E-Mail oder Passwort ungültig.",
+              it: "E-mail o password non validi.",
+              "pt-PT": "E-mail ou palavra-passe inválidos.",
+              "zh-CN": "电子邮件或密码无效。",
+              ja: "メールアドレスまたはパスワードが無効です。",
+              ko: "이메일 또는 비밀번호가 올바르지 않습니다.",
+            }[lang.value] || "Invalid email or password."
+          );
+        }
         function isCpf() {
           return mode.value === "cpf" && lang.value === "pt-BR";
         }
@@ -468,12 +485,20 @@
           }
         }
         async function profile(user) {
-          const { data: p, error } = await client
-            .from("profiles")
-            .select("id,email,name,role,active")
-            .eq("id", user.id)
-            .single();
-          if (error || !p?.active) throw new Error("Inactive");
+          let p = null,
+            profileError = null;
+          for (let attempt = 0; attempt < 2; attempt += 1) {
+            const result = await client
+              .from("profiles")
+              .select("id,email,name,role,active")
+              .eq("id", user.id)
+              .single();
+            p = result.data;
+            profileError = result.error;
+            if (!profileError && p) break;
+            await new Promise((resolve) => setTimeout(resolve, 250));
+          }
+          if (profileError || !p?.active) throw new Error("Inactive");
           let propertyIds = [];
           if (p.role !== "super_admin") {
             const { data: rows, error: e } = await client
@@ -495,7 +520,9 @@
             password: pwd.value,
           });
           if (error) throw error;
-          await profile(data.user);
+          const session = data.session || (await client.auth.getSession()).data.session;
+          if (!session?.user) throw new Error("Session");
+          await profile(session.user);
         }
         async function cpfLogin() {
           const cpf = digits(id.value);
@@ -571,10 +598,13 @@
         };
         form.onsubmit = async (e) => {
           e.preventDefault();
+          if (submitting) return;
           if (recovery) {
             if (!isCpf()) await sendReset();
             return;
           }
+          submitting = true;
+          submit.disabled = true;
           msg.className = "msg";
           msg.textContent = t().entering;
           try {
@@ -583,7 +613,10 @@
             else await emailLogin();
             location.replace("./index.html");
           } catch {
-            msg.textContent = isCpf() ? t().invalidCpf : t().bad;
+            msg.textContent = isCpf() ? t().invalidCpf : loginBad();
+            submitting = false;
+            submit.disabled = false;
+            submit.textContent = t().enter;
           }
         };
         try {

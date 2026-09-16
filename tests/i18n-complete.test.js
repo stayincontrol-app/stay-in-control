@@ -9,18 +9,18 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
 function unifiedRows() {
   const source = read("test2-i18n-unified.js");
-  const literal = source.match(/const R=(\[[\s\S]*?\]);\s*const idx=/)?.[1];
+  const literal = source.match(/const R=(\[[\s\S]*?\]);\s*const external=/)?.[1];
   assert.ok(literal, "catálogo unificado não encontrado");
   return vm.runInNewContext(literal);
 }
 
-test("carrega os catálogos completos antes da camada dinâmica unificada", () => {
+test("carrega um catálogo de dados e apenas um tradutor dinâmico", () => {
   const loader = read("test2.js");
-  const base = loader.indexOf("i18n-base-catalog");
-  const safe = loader.indexOf("i18n-safe-catalog");
-  const extras = loader.indexOf("i18n-extras-catalog");
+  const catalog = loader.indexOf("i18n-catalog");
   const unified = loader.indexOf("i18n-unified");
-  assert.ok(base > -1 && safe > base && extras > safe && unified > extras);
+  assert.ok(catalog > -1 && unified > catalog);
+  assert.doesNotMatch(loader, /i18n-base-catalog|i18n-safe-catalog|i18n-extras-catalog/);
+  assert.equal((read("test2-i18n-unified.js").match(/new MutationObserver/g) || []).length, 1);
 });
 
 test("cada texto unificado tem tradução nos dez idiomas suportados", () => {
@@ -71,4 +71,48 @@ test("a tela de acesso traduz os dez idiomas sem fallback indevido para inglês"
   assert.match(login, /passwordLabel\.textContent = x\.password/);
   assert.match(login, /first\.innerHTML = x\.first/);
   assert.match(login, /settings\.language = lang\.value/);
+});
+
+test("o catálogo consolidado cobre o dashboard que o usuário vê", () => {
+  const source = read("test2-i18n-catalog.js");
+  const literal = source.match(/window\.StayI18nCatalog=(\{[\s\S]*\});\}\)\(\);/)?.[1];
+  assert.ok(literal, "catálogo consolidado ausente");
+  const catalog = vm.runInNewContext(`(${literal})`);
+  const unified = new Set(unifiedRows().map((row) => row[0]));
+  assert.deepEqual(Array.from(catalog.languages), [
+    "pt-BR", "en", "es", "fr", "de", "it", "pt-PT", "zh-CN", "ja", "ko",
+  ]);
+  [
+    "Receita bruta",
+    "Despesas",
+    "Comissão",
+    "Repasse líquido",
+    "Compartilhar",
+    "Gerar relatório",
+    "Nova propriedade",
+    "Nova reserva",
+  ].forEach((label) => {
+    const row = catalog.entries[label];
+    assert.ok(row || unified.has(label), `texto ausente: ${label}`);
+    if (row)
+      catalog.languages.forEach((language) => assert.ok(row[language], `${label} sem ${language}`));
+  });
+});
+
+test("login é idempotente e confirma a sessão antes de abrir o painel", () => {
+  const login = read("test2-login.html");
+  assert.match(login, /if \(submitting\) return/);
+  assert.match(login, /submit\.disabled = true/);
+  assert.match(login, /client\.auth\.getSession\(\)/);
+  assert.match(login, /attempt < 2/);
+});
+
+test("logout usa uma única ação sem clicar recursivamente no próprio botão", () => {
+  const runtime = read("test2-unified-runtime.js");
+  const shell = read("test2-pro-shell.js");
+  assert.match(runtime, /if\(r==='logout'\)/);
+  assert.match(runtime, /clearSession\(\)/);
+  assert.match(runtime, /signOut\?\.\(\{scope:'local'\}\)/);
+  assert.match(runtime, /location\.replace\('\.\/test2-login\.html'\)/);
+  assert.doesNotMatch(shell, /find\(x=>\/\^\(sair\|logout/);
 });
