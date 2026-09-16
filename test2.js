@@ -176,7 +176,7 @@
       ["./test2-admin-mobile-stability.js", "admin-mobile-stability"],
       ["./test2-suite.js", "suite-core"],
       ["./test2-performance-guard.js", "performance-guard"],
-      ["./test2-pro-shell.js", "pro-shell"],
+      ["./test2-pro-shell.js?v=20260916-session-i18n", "pro-shell"],
       ["./test2-ui-stability.js", "ui-stability"],
       ["./test2-features.js", "features"],
       ["./test2-access.js", "access"],
@@ -201,7 +201,7 @@
       ["./test2-admins-dashboard.js?v=20260915-final", "admins-dashboard"],
       ["./test2-plans-v2.js", "plans-v2"],
       ["./test2-regional-analytics.js", "regional-analytics"],
-      ["./test2-unified-runtime.js?v=20260915-navigation", "unified-runtime"],
+      ["./test2-unified-runtime.js?v=20260916-session-i18n", "unified-runtime"],
       ["./test2-owner-modal-v2.js?v=20260912-2056", "owner-modal-v2"],
       ["./test2-property-modal-v2.js?v=20260912-2135", "property-modal-v2"],
       [
