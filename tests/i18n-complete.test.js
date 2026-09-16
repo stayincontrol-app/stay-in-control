@@ -60,3 +60,15 @@ test("atualiza textos dinâmicos, atributos e conteúdo inserido depois da naveg
   assert.match(source, /stay:navigation/);
   assert.match(source, /stay:language-change/);
 });
+
+test("a tela de acesso traduz os dez idiomas sem fallback indevido para inglês", () => {
+  const login = read("test2-login.html");
+  ["pt-BR", "en", "es", "fr", "de", "it", "pt-PT", "zh-CN", "ja", "ko"].forEach(
+    (language) => assert.match(login, new RegExp(`(?:"${language}"|${language}):\\s*\\{`)),
+  );
+  assert.match(login, /return txt\[lang\.value\] \|\| txt\.en/);
+  assert.match(login, /languageLabel\.textContent = x\.language/);
+  assert.match(login, /passwordLabel\.textContent = x\.password/);
+  assert.match(login, /first\.innerHTML = x\.first/);
+  assert.match(login, /settings\.language = lang\.value/);
+});

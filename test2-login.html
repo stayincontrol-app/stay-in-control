@@ -191,7 +191,7 @@
           Acesse sua conta para gerenciar suas propriedades.
         </p>
         <div class="field">
-          <label for="lang">Idioma / Language</label
+          <label id="languageLabel" for="lang">Idioma / Language</label
           ><select id="lang">
             <option value="pt-BR">🇧🇷 Português (Brasil)</option>
             <option value="en">🇺🇸 English</option>
@@ -206,12 +206,12 @@
           </select>
         </div>
         <div class="field" id="modeWrap">
-          <label for="mode">Entrar com</label
+          <label id="modeLabel" for="mode">Entrar com</label
           ><select id="mode">
             <option value="email">E-mail</option>
             <option value="cpf">CPF</option>
           </select>
-          <p class="note">
+          <p class="note" id="modeNote">
             CPF + senha disponível somente para proprietários no Brasil.
           </p>
         </div>
@@ -226,7 +226,7 @@
             />
           </div>
           <div class="field" id="passwordField">
-            <label for="password">Senha</label>
+            <label id="passwordLabel" for="password">Senha</label>
             <div class="row">
               <input
                 id="password"
@@ -284,12 +284,16 @@
         const client = supabase.createClient(URL, KEY),
           form = document.getElementById("loginForm"),
           lang = document.getElementById("lang"),
+          languageLabel = document.getElementById("languageLabel"),
           mode = document.getElementById("mode"),
           modeWrap = document.getElementById("modeWrap"),
+          modeLabel = document.getElementById("modeLabel"),
+          modeNote = document.getElementById("modeNote"),
           id = document.getElementById("identifier"),
           idLabel = document.getElementById("idLabel"),
           pwd = document.getElementById("password"),
           passwordField = document.getElementById("passwordField"),
+          passwordLabel = document.getElementById("passwordLabel"),
           msg = document.getElementById("msg"),
           show = document.getElementById("show"),
           forgot = document.getElementById("forgot"),
@@ -300,9 +304,19 @@
           intro = document.getElementById("intro");
         let recovery = false;
         const txt = {
-          pt: {
+          "pt-BR": {
             title: "Acessar painel",
             intro: "Acesse sua conta para gerenciar suas propriedades.",
+            language: "Idioma",
+            mode: "Entrar com",
+            modeNote: "CPF + senha disponível somente para proprietários no Brasil.",
+            password: "Senha",
+            show: "Mostrar",
+            hide: "Ocultar",
+            enter: "Entrar",
+            entering: "Entrando…",
+            invalidCpf: "CPF ou senha inválidos.",
+            first: "<strong>Primeiro acesso?</strong> Se você recebeu um convite, use o mesmo e-mail do convite e crie sua senha pelo link recebido. Se o seu acesso no Brasil foi criado por CPF, selecione CPF acima e entre com CPF + senha.",
             forgot: "Esqueci minha senha",
             resetTitle: "Redefinir senha",
             resetIntro:
@@ -318,6 +332,16 @@
           en: {
             title: "Sign in",
             intro: "Access your account to manage your properties.",
+            language: "Language",
+            mode: "Sign in with",
+            modeNote: "CPF + password is available only to owners in Brazil.",
+            password: "Password",
+            show: "Show",
+            hide: "Hide",
+            enter: "Sign in",
+            entering: "Signing in…",
+            invalidCpf: "Invalid CPF or password.",
+            first: "<strong>First access?</strong> If you received an invitation, use the same invitation email and create your password from the link you received. If your access in Brazil was created with a CPF, select CPF above and sign in with CPF + password.",
             forgot: "Forgot my password",
             resetTitle: "Reset password",
             resetIntro:
@@ -333,6 +357,16 @@
           es: {
             title: "Acceder al panel",
             intro: "Accede a tu cuenta para gestionar tus propiedades.",
+            language: "Idioma",
+            mode: "Entrar con",
+            modeNote: "CPF + contraseña está disponible solo para propietarios en Brasil.",
+            password: "Contraseña",
+            show: "Mostrar",
+            hide: "Ocultar",
+            enter: "Entrar",
+            entering: "Entrando…",
+            invalidCpf: "CPF o contraseña no válidos.",
+            first: "<strong>¿Primer acceso?</strong> Si recibiste una invitación, usa el mismo correo de la invitación y crea tu contraseña desde el enlace recibido. Si tu acceso en Brasil fue creado con CPF, selecciona CPF arriba y entra con CPF + contraseña.",
             forgot: "Olvidé mi contraseña",
             resetTitle: "Restablecer contraseña",
             resetIntro:
@@ -345,13 +379,30 @@
             bad: "No fue posible enviarlo ahora. Inténtalo de nuevo.",
             cpf: "Acceso por CPF: solicita al administrador un nuevo enlace de acceso. El administrador puede enviarlo por WhatsApp.",
           },
+          fr: {
+            title: "Se connecter", intro: "Accédez à votre compte pour gérer vos propriétés.", language: "Langue", mode: "Se connecter avec", modeNote: "CPF + mot de passe est disponible uniquement pour les propriétaires au Brésil.", password: "Mot de passe", show: "Afficher", hide: "Masquer", enter: "Se connecter", entering: "Connexion…", invalidCpf: "CPF ou mot de passe invalide.", first: "<strong>Première connexion ?</strong> Si vous avez reçu une invitation, utilisez la même adresse e-mail et créez votre mot de passe depuis le lien reçu. Si votre accès au Brésil a été créé avec un CPF, sélectionnez CPF ci-dessus.", forgot: "Mot de passe oublié", resetTitle: "Réinitialiser le mot de passe", resetIntro: "Saisissez votre e-mail. Nous vous enverrons un lien pour créer un nouveau mot de passe.", send: "Envoyer le lien", back: "Retour à la connexion", sending: "Envoi de l’e-mail…", sent: "Si cet e-mail est enregistré, nous avons envoyé un lien pour créer votre nouveau mot de passe.", need: "Saisissez votre e-mail.", bad: "Envoi impossible pour le moment. Réessayez.", cpf: "Accès par CPF : demandez un nouveau lien d’accès à l’administrateur, qui peut l’envoyer par WhatsApp."
+          },
+          de: {
+            title: "Anmelden", intro: "Melden Sie sich an, um Ihre Objekte zu verwalten.", language: "Sprache", mode: "Anmelden mit", modeNote: "CPF + Passwort ist nur für Eigentümer in Brasilien verfügbar.", password: "Passwort", show: "Anzeigen", hide: "Ausblenden", enter: "Anmelden", entering: "Anmeldung…", invalidCpf: "CPF oder Passwort ungültig.", first: "<strong>Erster Zugang?</strong> Wenn Sie eine Einladung erhalten haben, verwenden Sie dieselbe E-Mail-Adresse und erstellen Sie Ihr Passwort über den erhaltenen Link. Wurde Ihr Zugang in Brasilien mit CPF erstellt, wählen Sie oben CPF.", forgot: "Passwort vergessen", resetTitle: "Passwort zurücksetzen", resetIntro: "Geben Sie Ihre E-Mail-Adresse ein. Wir senden Ihnen einen Link zum Erstellen eines neuen Passworts.", send: "Link senden", back: "Zurück zur Anmeldung", sending: "E-Mail wird gesendet…", sent: "Wenn diese E-Mail registriert ist, haben wir einen Link zum Erstellen eines neuen Passworts gesendet.", need: "Geben Sie Ihre E-Mail-Adresse ein.", bad: "Senden derzeit nicht möglich. Versuchen Sie es erneut.", cpf: "CPF-Zugang: Fordern Sie beim Administrator einen neuen Zugangslink an. Er kann ihn per WhatsApp senden."
+          },
+          it: {
+            title: "Accedi", intro: "Accedi al tuo account per gestire le proprietà.", language: "Lingua", mode: "Accedi con", modeNote: "CPF + password è disponibile solo per i proprietari in Brasile.", password: "Password", show: "Mostra", hide: "Nascondi", enter: "Accedi", entering: "Accesso…", invalidCpf: "CPF o password non validi.", first: "<strong>Primo accesso?</strong> Se hai ricevuto un invito, usa la stessa e-mail e crea la password dal link ricevuto. Se il tuo accesso in Brasile è stato creato con CPF, seleziona CPF sopra.", forgot: "Password dimenticata", resetTitle: "Reimposta password", resetIntro: "Inserisci la tua e-mail. Ti invieremo un link per creare una nuova password.", send: "Invia link", back: "Torna all’accesso", sending: "Invio e-mail…", sent: "Se questa e-mail è registrata, abbiamo inviato un link per creare una nuova password.", need: "Inserisci la tua e-mail.", bad: "Invio non disponibile al momento. Riprova.", cpf: "Accesso con CPF: chiedi all’amministratore un nuovo link di accesso, che può essere inviato tramite WhatsApp."
+          },
+          "pt-PT": {
+            title: "Aceder ao painel", intro: "Aceda à sua conta para gerir as suas propriedades.", language: "Idioma", mode: "Entrar com", modeNote: "CPF + palavra-passe está disponível apenas para proprietários no Brasil.", password: "Palavra-passe", show: "Mostrar", hide: "Ocultar", enter: "Entrar", entering: "A entrar…", invalidCpf: "CPF ou palavra-passe inválidos.", first: "<strong>Primeiro acesso?</strong> Se recebeu um convite, utilize o mesmo e-mail e crie a palavra-passe através da ligação recebida. Se o seu acesso no Brasil foi criado com CPF, selecione CPF acima.", forgot: "Esqueci-me da palavra-passe", resetTitle: "Redefinir palavra-passe", resetIntro: "Indique o seu e-mail. Enviaremos uma ligação para criar uma nova palavra-passe.", send: "Enviar ligação", back: "Voltar ao acesso", sending: "A enviar e-mail…", sent: "Se este e-mail estiver registado, enviámos uma ligação para criar a nova palavra-passe.", need: "Indique o seu e-mail.", bad: "Não foi possível enviar agora. Tente novamente.", cpf: "Acesso por CPF: peça ao administrador uma nova ligação de acesso, que pode ser enviada pelo WhatsApp."
+          },
+          "zh-CN": {
+            title: "登录", intro: "登录账户以管理您的房产。", language: "语言", mode: "登录方式", modeNote: "CPF + 密码仅适用于巴西业主。", password: "密码", show: "显示", hide: "隐藏", enter: "登录", entering: "正在登录…", invalidCpf: "CPF 或密码无效。", first: "<strong>首次访问？</strong> 如果您收到了邀请，请使用邀请中的同一电子邮件，并通过收到的链接创建密码。如果您在巴西的访问权限使用 CPF 创建，请在上方选择 CPF。", forgot: "忘记密码", resetTitle: "重置密码", resetIntro: "请输入电子邮件。我们会发送创建新密码的链接。", send: "发送重置链接", back: "返回登录", sending: "正在发送电子邮件…", sent: "如果该电子邮件已注册，我们已发送创建新密码的链接。", need: "请输入电子邮件。", bad: "目前无法发送，请重试。", cpf: "CPF 访问：请向管理员申请新的访问链接。管理员可以通过 WhatsApp 发送。"
+          },
+          ja: {
+            title: "ログイン", intro: "アカウントにログインして物件を管理します。", language: "言語", mode: "ログイン方法", modeNote: "CPF + パスワードはブラジルのオーナーのみ利用できます。", password: "パスワード", show: "表示", hide: "非表示", enter: "ログイン", entering: "ログイン中…", invalidCpf: "CPFまたはパスワードが無効です。", first: "<strong>初回アクセスですか？</strong> 招待を受け取った場合は同じメールアドレスを使用し、受信したリンクからパスワードを作成してください。ブラジルでCPFによるアクセスが作成された場合は、上でCPFを選択してください。", forgot: "パスワードを忘れた", resetTitle: "パスワードをリセット", resetIntro: "メールアドレスを入力してください。新しいパスワードを作成するリンクを送信します。", send: "リセットリンクを送信", back: "ログインに戻る", sending: "メール送信中…", sent: "このメールが登録されている場合、新しいパスワード作成リンクを送信しました。", need: "メールアドレスを入力してください。", bad: "現在送信できません。もう一度お試しください。", cpf: "CPFアクセス：管理者に新しいアクセスリンクを依頼してください。管理者はWhatsAppで送信できます。"
+          },
+          ko: {
+            title: "로그인", intro: "계정에 로그인하여 숙소를 관리하세요.", language: "언어", mode: "로그인 방법", modeNote: "CPF + 비밀번호는 브라질 소유자만 사용할 수 있습니다.", password: "비밀번호", show: "표시", hide: "숨기기", enter: "로그인", entering: "로그인 중…", invalidCpf: "CPF 또는 비밀번호가 올바르지 않습니다.", first: "<strong>첫 접속인가요?</strong> 초대를 받았다면 초대에 사용된 동일한 이메일을 사용하고 받은 링크에서 비밀번호를 만드세요. 브라질에서 CPF로 접근이 생성된 경우 위에서 CPF를 선택하세요.", forgot: "비밀번호를 잊었습니다", resetTitle: "비밀번호 재설정", resetIntro: "이메일을 입력하세요. 새 비밀번호를 만들 수 있는 링크를 보내드립니다.", send: "재설정 링크 보내기", back: "로그인으로 돌아가기", sending: "이메일 전송 중…", sent: "이 이메일이 등록되어 있다면 새 비밀번호 생성 링크를 보냈습니다.", need: "이메일을 입력하세요.", bad: "지금은 보낼 수 없습니다. 다시 시도하세요.", cpf: "CPF 접근: 관리자에게 새 접근 링크를 요청하세요. 관리자는 WhatsApp으로 보낼 수 있습니다."
+          },
         };
         function t() {
-          return lang.value === "pt-BR" || lang.value === "pt-PT"
-            ? txt.pt
-            : lang.value === "es"
-              ? txt.es
-              : txt.en;
+          return txt[lang.value] || txt.en;
         }
         function isCpf() {
           return mode.value === "cpf" && lang.value === "pt-BR";
@@ -373,6 +424,13 @@
         function paint() {
           const x = t(),
             cpf = isCpf();
+          document.documentElement.lang = lang.value;
+          languageLabel.textContent = x.language;
+          modeLabel.textContent = x.mode;
+          modeNote.textContent = x.modeNote;
+          passwordLabel.textContent = x.password;
+          first.innerHTML = x.first;
+          show.textContent = pwd.type === "text" ? x.hide : x.show;
           pwd.required = !recovery;
           id.required = true;
           if (recovery) {
@@ -402,7 +460,7 @@
             modeWrap.classList.remove("hidden");
             recoveryInfo.classList.add("hidden");
             submit.classList.remove("hidden");
-            submit.textContent = "Entrar";
+            submit.textContent = x.enter;
             forgot.textContent = x.forgot;
             idLabel.textContent = cpf ? "CPF" : "E-mail";
             id.type = cpf ? "text" : "email";
@@ -487,7 +545,7 @@
         }
         show.onclick = () => {
           pwd.type = pwd.type === "text" ? "password" : "text";
-          show.textContent = pwd.type === "text" ? "Ocultar" : "Mostrar";
+          show.textContent = pwd.type === "text" ? t().hide : t().show;
         };
         forgot.onclick = () => {
           recovery = !recovery;
@@ -504,6 +562,11 @@
         lang.onchange = () => {
           recovery = false;
           if (lang.value !== "pt-BR") mode.value = "email";
+          try {
+            const settings = JSON.parse(localStorage.getItem(SUITE) || "{}");
+            settings.language = lang.value;
+            localStorage.setItem(SUITE, JSON.stringify(settings));
+          } catch {}
           paint();
         };
         form.onsubmit = async (e) => {
@@ -513,16 +576,22 @@
             return;
           }
           msg.className = "msg";
-          msg.textContent = "Entrando…";
+          msg.textContent = t().entering;
           try {
             if (pwd.value.length < 6) throw new Error("password");
             if (isCpf()) await cpfLogin();
             else await emailLogin();
             location.replace("./index.html");
           } catch {
-            msg.textContent = isCpf() ? "CPF ou senha inválidos." : t().bad;
+            msg.textContent = isCpf() ? t().invalidCpf : t().bad;
           }
         };
+        try {
+          const savedLanguage = JSON.parse(
+            localStorage.getItem(SUITE) || "{}",
+          ).language;
+          if (txt[savedLanguage]) lang.value = savedLanguage;
+        } catch {}
         paint();
       })();
     </script>
