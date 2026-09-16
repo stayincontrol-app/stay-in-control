@@ -28,6 +28,20 @@ test("menu não instala manipuladores de rota concorrentes", () => {
   assert.doesNotMatch(shell, /b\.onclick=\(\)=>route\(k\)/);
 });
 
+test("módulo de gestão aguarda autenticação e criação do painel", () => {
+  const management = read("test2-pro-management.js");
+  assert.match(management, /setInterval\(\(\) =>/);
+  assert.match(management, /attributeFilter: \["class"\]/);
+  assert.match(management, /stay:management-ready/);
+});
+
+test("roteador aguarda telas administrativas carregadas depois", () => {
+  const router = read("test2-unified-runtime.js");
+  assert.match(router, /pendingRoute/);
+  assert.match(router, /stay:management-ready/);
+  assert.match(router, /show\(pendingRoute\|\|routeFromState\(\),false\)/);
+});
+
 test("roteador unificado cobre todas as telas obrigatórias", () => {
   const router = read("test2-unified-runtime.js");
   for (const route of [

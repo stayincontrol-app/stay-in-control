@@ -441,7 +441,24 @@
   }
   function start() {
     if (boot()) return;
-    requestAnimationFrame(boot);
+    let attempts = 0;
+    const observer = new MutationObserver(() => {
+      if (boot()) finish();
+    });
+    const timer = setInterval(() => {
+      attempts += 1;
+      if (boot() || attempts >= 120) finish();
+    }, 250);
+    function finish() {
+      clearInterval(timer);
+      observer.disconnect();
+    }
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["class"],
+    });
   }
   if (document.readyState === "loading")
     document.addEventListener("DOMContentLoaded", start, { once: true });
