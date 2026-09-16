@@ -213,7 +213,10 @@
         "./test2-properties-owners-layout.js?v=20260912-2152",
         "properties-owners-layout",
       ],
-      ["./test2-i18n-unified.js?v=20260911-i18n-final", "i18n-unified"],
+      ["./test2-i18n.js?v=20260916-catalog", "i18n-base-catalog"],
+      ["./test2-i18n-safe.js?v=20260916-catalog", "i18n-safe-catalog"],
+      ["./test2-i18n-extras.js?v=20260916-catalog", "i18n-extras-catalog"],
+      ["./test2-i18n-unified.js?v=20260916-complete", "i18n-unified"],
       [
         "./test2-white-screen-recovery.js?v=20260915-navigation",
         "white-screen-recovery",
