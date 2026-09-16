@@ -167,16 +167,16 @@
       l.dataset.t2Suite = "1";
       document.head.append(l);
     }
-    loadCss("./test2-pro-shell.css", "pro-shell");
+    loadCss("./test2-pro-shell.css?v=20260916-charts", "pro-shell");
     loadCss("./test2-pro-internals.css", "pro-internals");
     loadCss("./test2-pro-management.css", "pro-management");
-    loadCss("./test2-super-dashboard-v2.css", "super-dashboard-v2");
+    loadCss("./test2-super-dashboard-v2.css?v=20260916-charts", "super-dashboard-v2");
     [
       ["./test2-inactivity-logout.js", "inactivity-logout"],
       ["./test2-admin-mobile-stability.js", "admin-mobile-stability"],
       ["./test2-suite.js", "suite-core"],
       ["./test2-performance-guard.js", "performance-guard"],
-      ["./test2-pro-shell.js?v=20260916-session-i18n", "pro-shell"],
+      ["./test2-pro-shell.js?v=20260916-session-i18n&charts=1", "pro-shell"],
       ["./test2-ui-stability.js", "ui-stability"],
       ["./test2-features.js", "features"],
       ["./test2-access.js", "access"],
@@ -197,7 +197,7 @@
       ],
       ["./test2-financial-ux.js", "financial-ux"],
       ["./test2-publicity-ux.js", "publicity-ux"],
-      ["./test2-super-dashboard-v2.js?v=20260915-final", "super-dashboard-v2"],
+      ["./test2-super-dashboard-v2.js?v=20260916-charts", "super-dashboard-v2"],
       ["./test2-admins-dashboard.js?v=20260915-final", "admins-dashboard"],
       ["./test2-plans-v2.js", "plans-v2"],
       ["./test2-regional-analytics.js", "regional-analytics"],

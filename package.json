@@ -1,0 +1,24 @@
+{
+  "name": "90f7523d1201",
+  "version": "1.0.0",
+  "description": "Painel responsivo de reservas, calendário, despesas e relatórios, agora preparado para múltiplas propriedades e controle de acesso por papel.",
+  "main": "all-months-reports.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stayincontrol-app/stay-in-control.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/stayincontrol-app/stay-in-control/issues"
+  },
+  "homepage": "https://github.com/stayincontrol-app/stay-in-control#readme"
+}

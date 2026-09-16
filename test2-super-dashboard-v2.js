@@ -432,7 +432,7 @@
       const d = create("div", "t2v2-bar-pair");
       const gh = Math.max(x.gross ? 8 : 2, Math.round((x.gross / max) * 100)),
         eh = Math.max(x.expenses ? 8 : 2, Math.round((x.expenses / max) * 100));
-      d.innerHTML = `<i class="revenue" style="height:${gh}%" title="${x.label}/${x.y} — Receita bruta: ${money.format(x.gross)}"></i><i class="expense" style="height:${eh}%" title="${x.label}/${x.y} — Despesas: ${money.format(x.expenses)}"></i><small title="${monthNames[x.m]} de ${x.y}">${x.label}</small>`;
+      d.innerHTML = `<i class="revenue" style="height:${gh}%" title="${x.label}/${x.y} — Receita bruta: ${money.format(x.gross)}"></i><i class="expense" style="height:${eh}%" title="${x.label}/${x.y} — Despesas: ${money.format(x.expenses)}"></i><small title="${monthNames[x.m]} de ${x.y}">${x.label}<b>${money.format(x.gross)}</b><em>${money.format(x.expenses)}</em></small>`;
       bars.append(d);
     });
     const recurring = num(
@@ -468,7 +468,7 @@
       .style.setProperty("--b", pct(t.commission + recurring) + "%");
     document.querySelectorAll(".t2v2-donut-wrap [data-slice]").forEach((li) => {
       const q = parts[li.dataset.slice];
-      if (q) li.title = `${q.label}: ${money.format(q.value)} (${q.pct}%)`;
+      if (q) { li.title = `${q.label}: ${money.format(q.value)} (${q.pct}%)`; const value = li.querySelector('b'); if (value) value.textContent = `${q.pct}% · ${money.format(q.value)}`; }
     });
     const donut = document.getElementById("t2V2Donut");
     donut.title = `Comissão: ${money.format(parts.commission.value)} (${parts.commission.pct}%)\nDespesas recorrentes: ${money.format(parts.recurring.value)} (${parts.recurring.pct}%)\nOutras despesas: ${money.format(parts.other.value)} (${parts.other.pct}%)`;
