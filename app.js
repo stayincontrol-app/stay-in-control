@@ -691,6 +691,14 @@
   function renderReservation(reservation) {
     const article = createElement("article", "booking");
     article.dataset.reservationId = reservation.id;
+    article.dataset.guest = reservation.guest;
+    article.dataset.platform = reservation.platform;
+    article.dataset.checkIn = reservation.checkIn;
+    article.dataset.checkOut = reservation.checkOut;
+    article.dataset.gross = String(reservation.gross);
+    article.dataset.cleaningFee = String(reservation.cleaning);
+    article.dataset.cleaningMode = reservation.cleaningMode;
+    article.dataset.commissionRate = String(reservation.commissionRate);
     const top = createElement("div", "bookingtop");
     const heading = createElement("div");
     heading.append(

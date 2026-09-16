@@ -118,7 +118,7 @@ test("logout usa uma única ação sem clicar recursivamente no próprio botão"
 });
 
 test("produção força celulares e computadores a baixar os runtimes corrigidos", () => {
-  assert.match(read("index.html"), /test2\.js\?v=20260916-session-i18n/);
+  assert.match(read("index.html"), /test2\.js\?v=20260916-final2/);
   const loader = read("test2.js");
   assert.match(loader, /test2-pro-shell\.js\?v=20260916-session-i18n/);
   assert.match(loader, /test2-unified-runtime\.js\?v=20260916-session-i18n/);

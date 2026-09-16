@@ -182,7 +182,7 @@
       ["./test2-access.js", "access"],
       ["./test2-report.js", "report"],
       ["./test2-report-share-override.js", "report-share-override"],
-      ["./test2-official-branding.js", "official-branding"],
+      ["./test2-official-branding.js?v=20260916-principal", "official-branding"],
       ["./test2-pro-internals.js", "pro-internals"],
       ["./test2-pro-management.js", "pro-management"],
       [
@@ -192,7 +192,7 @@
       ["./test2-attachment-ui.js?v=20260915-final", "attachment-ui"],
       ["./test2-reservations-ux.js?v=20260912-2202", "reservations-ux"],
       [
-        "./test2-reservation-payouts.js?v=20260916-final",
+        "./test2-reservation-payouts.js?v=20260916-final2",
         "reservation-payouts",
       ],
       [

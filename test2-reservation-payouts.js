@@ -184,7 +184,22 @@
     const scoped = read(`${RESERVATIONS}:${propertyId}`, {});
     const legacy = read(RESERVATIONS, {});
     const rows = Array.isArray(scoped?.reservations) ? scoped.reservations : Array.isArray(legacy?.reservations) ? legacy.reservations : [];
-    return rows.find((row) => String(row.id) === String(id)) || null;
+    const stored = rows.find((row) => String(row.id) === String(id));
+    if (stored) return stored;
+    const card = Array.from(document.querySelectorAll("#reservations .booking[data-reservation-id]"))
+      .find((element) => String(element.dataset.reservationId) === String(id));
+    if (!card) return null;
+    return {
+      id: card.dataset.reservationId,
+      guest: card.dataset.guest || "",
+      platform: card.dataset.platform || "Airbnb",
+      checkIn: card.dataset.checkIn || "",
+      checkOut: card.dataset.checkOut || "",
+      gross: number(card.dataset.gross),
+      cleaningFee: number(card.dataset.cleaningFee),
+      cleaningMode: card.dataset.cleaningMode || "included",
+      commissionRate: number(card.dataset.commissionRate),
+    };
   }
 
   function financials(reservation) {
@@ -261,7 +276,17 @@
     modal.innerHTML = `<div class="t2-rp-dialog" role="dialog" aria-modal="true" aria-labelledby="t2RpTitle"><header class="t2-rp-header"><div><h2 id="t2RpTitle">${escapeHtml(w.title)}</h2><p>${escapeHtml(w.subtitle)}</p></div><button class="t2-rp-close" type="button" aria-label="${escapeHtml(w.close)}">×</button></header><div class="t2-rp-context"><div>${escapeHtml(w.stay)}<strong>…</strong></div></div></div>`;
     modal.querySelector(".t2-rp-close").onclick = close;
     try {
-      const [property, record] = await Promise.all([propertyRow(propertyId), loadRecord(propertyId, reservationId)]);
+      const selectedLabel = document.getElementById("propertySelector")?.selectedOptions?.[0]?.textContent?.trim() || propertyId;
+      let property = { id: propertyId, name: selectedLabel, unit: "", owner_name: "", owner_id: null, administrator_id: null };
+      let record = null;
+      const [propertyResult, recordResult] = await Promise.allSettled([
+        propertyRow(propertyId),
+        loadRecord(propertyId, reservationId),
+      ]);
+      if (propertyResult.status === "fulfilled" && propertyResult.value) property = propertyResult.value;
+      else console.warn("reservation payout property fallback", propertyResult.reason);
+      if (recordResult.status === "fulfilled") record = recordResult.value;
+      else console.warn("reservation payout record fallback", recordResult.reason);
       const f = financials(reservation), disabled = !manager;
       const data = record || {};
       const platformFees = number(data.platform_fees);
@@ -295,8 +320,8 @@
       form.querySelector("input,select,button")?.focus({ preventScroll: true });
     } catch (error) {
       console.error("reservation payout load", error);
-      close();
-      alert(error?.message || w.error);
+      const state = modal.querySelector(".t2-rp-context");
+      if (state) state.innerHTML = `<div><strong>${escapeHtml(error?.message || w.error)}</strong></div>`;
     }
   }
 

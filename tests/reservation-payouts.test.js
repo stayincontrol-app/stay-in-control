@@ -12,6 +12,8 @@ const payoutSource = fs.readFileSync(path.join(root, "test2-reservation-payouts.
 
 test("cada cartão expõe o identificador estável da reserva", () => {
   assert.match(appSource, /article\.dataset\.reservationId = reservation\.id/);
+  assert.match(appSource, /article\.dataset\.cleaningMode = reservation\.cleaningMode/);
+  assert.match(payoutSource, /card\.dataset\.reservationId/);
 });
 
 test("o fluxo de repasse de reservas é carregado somente na área de reservas", () => {
