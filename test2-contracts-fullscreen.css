@@ -2,8 +2,8 @@
 .test2.ap207-authenticated #t2UnifiedContracts,
 .test2.ap207-authenticated #t2Contracts,
 .test2.ap207-authenticated #t2ContractPayments{width:100%!important;max-width:none!important;box-sizing:border-box!important}
-.test2.ap207-authenticated #t2Contracts{padding-left:24px!important;padding-right:24px!important}
-.test2.ap207-authenticated #t2ContractPayments{font-size:15px!important;padding:26px 0 36px!important}
+.test2.ap207-authenticated #t2Contracts{padding-left:18px!important;padding-right:8px!important}
+.test2.ap207-authenticated #t2ContractPayments{font-size:15px!important;padding:26px 0 36px!important;width:calc(100% + 34px)!important;max-width:none!important;margin-right:-34px!important}
 #t2ContractPayments .t2-contract-pay-head h3{font-size:25px!important;line-height:1.2!important}
 #t2ContractPayments .t2-contract-pay-head p{font-size:14px!important;line-height:1.5!important}
 #t2ContractPayments .t2-contract-role{font-size:12px!important;padding:9px 14px!important}
@@ -17,6 +17,6 @@
 #t2ContractPayments .t2-contract-ledger{width:100%!important;margin-top:22px!important}
 #t2ContractPayments .t2-contract-ledger table{width:100%!important;font-size:14px!important}
 #t2ContractPayments .t2-contract-ledger th,#t2ContractPayments .t2-contract-ledger td{padding:13px 11px!important}
-@media (min-width:1200px){.test2.ap207-authenticated main.container{padding-right:28px!important}.test2.ap207-authenticated #t2Contracts{padding-left:28px!important;padding-right:28px!important}}
-@media (max-width:1100px){#t2ContractPayments form{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media (min-width:1200px){.test2.ap207-authenticated main.container{padding-right:8px!important;max-width:none!important}.test2.ap207-authenticated #t2Contracts{padding-left:22px!important;padding-right:0!important}.test2.ap207-authenticated #t2ContractPayments{width:calc(100% + 48px)!important;margin-right:-48px!important}}
+@media (max-width:1100px){#t2ContractPayments form{grid-template-columns:repeat(2,minmax(0,1fr))!important}.test2.ap207-authenticated #t2ContractPayments{width:100%!important;margin-right:0!important}}
 @media (max-width:720px){.test2.ap207-authenticated #t2Contracts{padding-left:12px!important;padding-right:12px!important}#t2ContractPayments{font-size:14px!important}#t2ContractPayments form{grid-template-columns:1fr!important;gap:14px!important}#t2ContractPayments .t2-contract-wide{grid-column:1!important}#t2ContractPayments .t2-contract-pay-head h3{font-size:21px!important}}
