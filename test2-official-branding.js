@@ -52,7 +52,8 @@
     new MutationObserver((records) => {
       for (const record of records) {
         if (record.type === 'characterData') {
-          record.target.nodeValue = replace(record.target.nodeValue);
+          const next = replace(record.target.nodeValue);
+          if (next !== record.target.nodeValue) record.target.nodeValue = next;
           continue;
         }
         record.addedNodes.forEach((node) => {
