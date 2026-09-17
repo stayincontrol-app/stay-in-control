@@ -180,6 +180,7 @@
       ["./test2-ui-stability.js", "ui-stability"],
       ["./test2-features.js", "features"],
       ["./test2-access.js", "access"],
+      ["./test2-page-share.js?v=20260917-full-page", "page-share"],
       ["./test2-report.js", "report"],
       ["./test2-report-share-override.js", "report-share-override"],
       ["./test2-official-branding.js?v=20260916-principal", "official-branding"],

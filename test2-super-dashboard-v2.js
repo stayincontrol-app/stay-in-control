@@ -258,11 +258,22 @@
     head.querySelector("#t2V2Report").onclick = actions.querySelector(
       '[data-go="reports"]',
     ).onclick;
-    head.querySelector("#t2V2Share").onclick = () =>
-      document
-        .getElementById("t2PageShareBar")
-        ?.querySelector("button")
-        ?.click();
+    head.querySelector("#t2V2Share").onclick = () => {
+      const shareRoot = root.querySelector(".t2v2-content") || root;
+      if (window.Test2Share?.open) {
+        window.Test2Share.open(
+          "Visão geral",
+          window.Test2Share.cleanText?.(shareRoot) || "Visão geral",
+          shareRoot,
+        );
+        return;
+      }
+      window.dispatchEvent(
+        new CustomEvent("stay:approved-share", {
+          detail: { title: "Visão geral", element: shareRoot },
+        }),
+      );
+    };
     alert.onclick = () => window.Test2Unified?.show?.("properties", true);
     orderMenu();
     moveFilters();
