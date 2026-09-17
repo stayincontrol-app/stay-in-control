@@ -259,7 +259,7 @@
         <p id="msg" class="msg" role="alert"></p>
       </section>
     </main>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.0"></script>
     <script>
       (() => {
         "use strict";
@@ -421,6 +421,35 @@
             }[lang.value] || "Invalid email or password."
           );
         }
+        function loginSlow() {
+          return (
+            {
+              "pt-BR": "O acesso demorou mais que o esperado. Verifique sua conexão e tente novamente.",
+              en: "Sign-in took longer than expected. Check your connection and try again.",
+              es: "El acceso tardó más de lo esperado. Revisa tu conexión e inténtalo de nuevo.",
+              fr: "La connexion a pris plus de temps que prévu. Vérifiez votre connexion et réessayez.",
+              de: "Die Anmeldung hat länger als erwartet gedauert. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+              it: "L'accesso ha richiesto più tempo del previsto. Controlla la connessione e riprova.",
+              "pt-PT": "O acesso demorou mais do que o esperado. Verifique a ligação e tente novamente.",
+              "zh-CN": "登录时间超过预期。请检查网络连接后重试。",
+              ja: "ログインに通常より時間がかかっています。接続を確認して、もう一度お試しください。",
+              ko: "로그인 시간이 예상보다 오래 걸렸습니다. 연결을 확인한 후 다시 시도하세요.",
+            }[lang.value] || "Sign-in took longer than expected. Try again."
+          );
+        }
+        function withTimeout(promise, milliseconds = 12000) {
+          let timer;
+          return Promise.race([
+            Promise.resolve(promise),
+            new Promise((_, reject) => {
+              timer = setTimeout(() => {
+                const error = new Error("AUTH_TIMEOUT");
+                error.code = "AUTH_TIMEOUT";
+                reject(error);
+              }, milliseconds);
+            }),
+          ]).finally(() => clearTimeout(timer));
+        }
         function isCpf() {
           return mode.value === "cpf" && lang.value === "pt-BR";
         }
@@ -488,11 +517,13 @@
           let p = null,
             profileError = null;
           for (let attempt = 0; attempt < 2; attempt += 1) {
-            const result = await client
-              .from("profiles")
-              .select("id,email,name,role,active")
-              .eq("id", user.id)
-              .single();
+            const result = await withTimeout(
+              client
+                .from("profiles")
+                .select("id,email,name,role,active")
+                .eq("id", user.id)
+                .single(),
+            );
             p = result.data;
             profileError = result.error;
             if (!profileError && p) break;
@@ -501,10 +532,12 @@
           if (profileError || !p?.active) throw new Error("Inactive");
           let propertyIds = [];
           if (p.role !== "super_admin") {
-            const { data: rows, error: e } = await client
-              .from("property_access")
-              .select("property_id")
-              .eq("user_id", user.id);
+            const { data: rows, error: e } = await withTimeout(
+              client
+                .from("property_access")
+                .select("property_id")
+                .eq("user_id", user.id),
+            );
             if (e) throw e;
             propertyIds = (rows || []).map((r) => r.property_id);
           }
@@ -515,21 +548,26 @@
           localStorage.setItem(ACT, String(Date.now()));
         }
         async function emailLogin() {
-          const { data, error } = await client.auth.signInWithPassword({
-            email: id.value.trim(),
-            password: pwd.value,
-          });
+          const { data, error } = await withTimeout(
+            client.auth.signInWithPassword({
+              email: id.value.trim(),
+              password: pwd.value,
+            }),
+          );
           if (error) throw error;
-          const session = data.session || (await client.auth.getSession()).data.session;
+          const session =
+            data.session ||
+            (await withTimeout(client.auth.getSession())).data.session;
           if (!session?.user) throw new Error("Session");
           await profile(session.user);
         }
         async function cpfLogin() {
           const cpf = digits(id.value);
           if (!validCpf(cpf)) throw new Error("CPF");
-          const { data, error } = await client.functions.invoke(
-            "cpf-owner-access",
-            { body: { action: "login", cpf, password: pwd.value } },
+          const { data, error } = await withTimeout(
+            client.functions.invoke("cpf-owner-access", {
+              body: { action: "login", cpf, password: pwd.value },
+            }),
           );
           if (error || !data?.ok) throw new Error("CPF");
           const { error: setError } = await client.auth.setSession({
@@ -612,8 +650,13 @@
             if (isCpf()) await cpfLogin();
             else await emailLogin();
             location.replace("./index.html");
-          } catch {
-            msg.textContent = isCpf() ? t().invalidCpf : loginBad();
+          } catch (error) {
+            msg.textContent =
+              error?.code === "AUTH_TIMEOUT"
+                ? loginSlow()
+                : isCpf()
+                  ? t().invalidCpf
+                  : loginBad();
             submitting = false;
             submit.disabled = false;
             submit.textContent = t().enter;

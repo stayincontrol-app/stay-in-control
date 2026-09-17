@@ -96,34 +96,6 @@
     return true;
   }
 
-  function installLogout() {
-    if (document.getElementById('stayControlLogoutButton')) return true;
-    const unitTitle = document.getElementById('propertyName');
-    if (!unitTitle || !unitTitle.parentElement) return false;
-    const button = document.createElement('button');
-    button.id = 'stayControlLogoutButton';
-    button.type = 'button';
-    button.className = 'button';
-    button.textContent = 'Sair';
-    button.style.display = 'block';
-    button.style.width = 'min(72%, 310px)';
-    button.style.margin = '10px 0 6px';
-    button.style.padding = '10px 14px';
-    button.style.minHeight = '42px';
-    button.style.borderRadius = '12px';
-    button.style.background = '#dc2626';
-    button.style.borderColor = '#dc2626';
-    button.style.color = '#ffffff';
-    button.style.fontSize = '0.92rem';
-    button.style.fontWeight = '700';
-    button.addEventListener('click', () => {
-      if (!window.confirm('Deseja sair do Stay in Control?')) return;
-      signOut();
-    });
-    unitTitle.insertAdjacentElement('afterend', button);
-    return true;
-  }
-
   const DEDUCTION_IDS = [
     'summaryCleaning', 'summaryCommission', 'summaryExpenses',
     'reportSummaryCleaning', 'reportSummaryCommission', 'reportOtherExpenses',
@@ -251,11 +223,10 @@
   function boot() {
     const timer = setInterval(() => {
       const a = installPropertySwitching();
-      const b = installLogout();
-      const c = styleEditPropertyButton();
-      const d = installInactivityTracking();
-      const e = installOutgoingValueObserver();
-      if (a && b && c && d && e) clearInterval(timer);
+      const b = styleEditPropertyButton();
+      const c = installInactivityTracking();
+      const d = installOutgoingValueObserver();
+      if (a && b && c && d) clearInterval(timer);
     }, 200);
     setTimeout(() => clearInterval(timer), 15000);
   }
