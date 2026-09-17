@@ -1,0 +1,7 @@
+(()=>{'use strict';const K='system-control-test2-suite-v1';const invalid={
+'pt-BR':'CPF ou senha inválidos.',en:'Invalid CPF or password.',es:'CPF o contraseña no válidos.',fr:'CPF ou mot de passe invalide.',de:'CPF oder Passwort ungültig.',it:'CPF o password non validi.','pt-PT':'CPF ou palavra-passe inválidos.','zh-CN':'CPF或密码无效。',ja:'CPFまたはパスワードが無効です。',ko:'CPF 또는 비밀번호가 올바르지 않습니다.'};
+const lang=()=>{try{return JSON.parse(localStorage.getItem(K)||'{}').language||'pt-BR'}catch{return'pt-BR'}};
+const isCpf=()=>document.querySelector('#t2Language')?.value==='pt-BR'&&document.querySelector('#t2LoginMode')?.value==='cpf';
+const safeText=text=>{const s=String(text||'').trim();if(!s)return true;return /^(Entrando…|Digite um CPF válido com 11 números\.|Digite sua senha\.|Serviço de login ainda está carregando\. Tente novamente\.|CPF ou senha inválidos\.|Para recuperar acesso usando CPF,)/.test(s)};
+function guard(){const msg=document.getElementById('ap207AuthMessage');if(!msg||msg.dataset.t2ErrorGuard==='1')return false;msg.dataset.t2ErrorGuard='1';new MutationObserver(()=>{if(!isCpf())return;const text=msg.textContent;if(!safeText(text))msg.textContent=invalid[lang()]||invalid['pt-BR']}).observe(msg,{childList:true,characterData:true,subtree:true});return true}
+function boot(){let tries=0;const t=setInterval(()=>{tries++;if(guard()||tries>80)clearInterval(t)},250)}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot()})();

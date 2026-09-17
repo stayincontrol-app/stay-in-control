@@ -172,6 +172,7 @@
     loadCss("./test2-pro-management.css", "pro-management");
     loadCss("./test2-super-dashboard-v2.css?v=20260916-charts", "super-dashboard-v2");
     [
+      ["./test2-inactivity-logout.js", "inactivity-logout"],
       ["./test2-admin-mobile-stability.js", "admin-mobile-stability"],
       ["./test2-suite.js", "suite-core"],
       ["./test2-performance-guard.js", "performance-guard"],
