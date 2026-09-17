@@ -625,7 +625,20 @@
           ).language;
           if (txt[savedLanguage]) lang.value = savedLanguage;
         } catch {}
+        async function resumeExistingSession() {
+          try {
+            const { data } = await client.auth.getSession();
+            const session = data?.session;
+            if (!session?.user) return;
+            const saved = JSON.parse(localStorage.getItem(AUTH) || "null");
+            if (!saved?.profile?.id || String(saved.profile.id) !== String(session.user.id) || saved.profile.active === false) {
+              await profile(session.user);
+            }
+            location.replace("./index.html");
+          } catch {}
+        }
         paint();
+        resumeExistingSession();
       })();
     </script>
   </body>
