@@ -156,73 +156,29 @@
   async function capturePage(title, source) {
     const root = pageRoot(source) || source;
     if (!root) throw new Error("NO_SHARE_ROOT");
+    if (typeof window.html2canvas !== "function")
+      throw new Error("CAPTURE_LIBRARY_NOT_READY");
     if (document.fonts?.ready) await document.fonts.ready.catch(() => {});
-    const rect = root.getBoundingClientRect();
-    const width = Math.max(
-      760,
-      Math.ceil(root.scrollWidth || rect.width || 1000),
+    const canvas = await window.html2canvas(root, {
+      backgroundColor: "#eef1f8",
+      scale: Math.min(2, Math.max(1.25, window.devicePixelRatio || 1)),
+      useCORS: true,
+      allowTaint: false,
+      logging: false,
+      scrollX: 0,
+      scrollY: -window.scrollY,
+      ignoreElements: (element) =>
+        element.matches?.(
+          "#t2V2Share,#t2V2Report,#t2FloatingSponsor,#t2UniversalShareModal,.t2-overview-sharebar,.t2-page-sharebar,.t2-support,.stay-share-modal,[data-share-capture-hide]",
+        ),
+    });
+    const blob = await new Promise((resolve) =>
+      canvas.toBlob(resolve, "image/png", 0.96),
     );
-    const height = Math.min(
-      14000,
-      Math.max(560, Math.ceil(root.scrollHeight || rect.height || 760)),
-    );
-    const clone = prepareClone(root);
-    clone.style.setProperty("width", `${width}px`, "important");
-
-    const wrapper = document.createElement("div");
-    wrapper.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
-    wrapper.style.cssText = `width:${width + 56}px;min-height:${height + 112}px;background:#eef1f8;padding:28px;box-sizing:border-box;font-family:Arial,sans-serif`;
-    const paper = document.createElement("div");
-    paper.style.cssText =
-      "background:#fff;border:1px solid #dbe2ea;border-radius:22px;padding:22px;box-sizing:border-box;overflow:visible";
-    const brand = document.createElement("div");
-    brand.textContent = "STAY IN CONTROL";
-    brand.style.cssText =
-      "font:900 20px Arial,sans-serif;color:#4f46e5;margin:0 0 6px";
-    const heading = document.createElement("div");
-    heading.textContent = title;
-    heading.style.cssText =
-      "font:900 30px Arial,sans-serif;color:#172033;margin:0 0 16px";
-    paper.append(brand, heading, clone);
-    wrapper.append(paper);
-
-    const serialized = new XMLSerializer().serializeToString(wrapper);
-    const totalWidth = width + 56;
-    const totalHeight = height + 112;
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalWidth}" height="${totalHeight}"><foreignObject width="100%" height="100%">${serialized}</foreignObject></svg>`;
-    const svgUrl = URL.createObjectURL(
-      new Blob([svg], { type: "image/svg+xml;charset=utf-8" }),
-    );
-    try {
-      const image = await new Promise((resolve, reject) => {
-        const item = new Image();
-        item.onload = () => resolve(item);
-        item.onerror = () => reject(new Error("IMAGE_RENDER_FAILED"));
-        item.src = svgUrl;
-      });
-      const maxPixels = 14_000_000;
-      const scale = Math.min(
-        1.7,
-        2400 / totalWidth,
-        Math.sqrt(maxPixels / (totalWidth * totalHeight)),
-      );
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.max(1, Math.round(totalWidth * scale));
-      canvas.height = Math.max(1, Math.round(totalHeight * scale));
-      const context = canvas.getContext("2d");
-      context.fillStyle = "#eef1f8";
-      context.fillRect(0, 0, canvas.width, canvas.height);
-      context.drawImage(image, 0, 0, canvas.width, canvas.height);
-      const blob = await new Promise((resolve) =>
-        canvas.toBlob(resolve, "image/png", 0.96),
-      );
-      if (!blob) throw new Error("PNG_FAILED");
-      return new File([blob], `Stay-in-Control-${safeName(title)}.png`, {
-        type: "image/png",
-      });
-    } finally {
-      URL.revokeObjectURL(svgUrl);
-    }
+    if (!blob) throw new Error("PNG_FAILED");
+    return new File([blob], `Stay-in-Control-${safeName(title)}.png`, {
+      type: "image/png",
+    });
   }
 
   function download(file) {
@@ -459,12 +415,14 @@
 
   function installOverviewButton() {
     const home = overviewRoot();
-    if (!home || $("#t2V2Share") || $(".t2-overview-sharebar", home)) return;
+    if (!home || $(".t2-overview-sharebar", home)) return;
     const bar = document.createElement("div");
     bar.className = "t2-overview-sharebar";
     bar.innerHTML =
       '<button type="button" class="button button-secondary">↗ Compartilhar</button>';
-    home.prepend(bar);
+    const heading = $(".t2v2-head", home);
+    if (heading) heading.insertAdjacentElement("afterend", bar);
+    else home.prepend(bar);
   }
 
   function approvedShare(event) {

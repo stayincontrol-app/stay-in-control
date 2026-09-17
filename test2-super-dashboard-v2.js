@@ -224,7 +224,7 @@
     root.append(content, ad);
     home.prepend(root);
     const head = create("header", "t2v2-head");
-    head.innerHTML = `<div><h1>Olá, ${String(profile().name || "Marcelinho").split(" ")[0]}! 👋</h1><p>Painel do Super Administrador</p></div><div class="t2v2-head-actions"><select id="t2V2Language" aria-label="Idioma"><option>🇧🇷 Português (Brasil)</option></select><button type="button" id="t2V2Share">↗ Compartilhar</button><button type="button" class="primary" id="t2V2Report">▣ Gerar relatório</button></div>`;
+    head.innerHTML = `<div><h1>Olá, ${String(profile().name || "Marcelinho").split(" ")[0]}! 👋</h1><p>Painel do Super Administrador</p></div><div class="t2v2-head-actions"><select id="t2V2Language" aria-label="Idioma"><option>🇧🇷 Português (Brasil)</option></select></div>`;
     content.append(head);
     const filters = create("div", "t2v2-filters");
     filters.id = "t2V2Filters";
@@ -243,7 +243,7 @@
     content.append(charts);
     const actions = create("div", "t2v2-actions");
     actions.innerHTML =
-      '<button type="button" data-go="properties">＋ Nova propriedade</button><button type="button" data-go="reservations">＋ Nova reserva</button><button type="button" data-go="reports">▣ Gerar relatório</button>';
+      '<button type="button" data-go="properties">＋ Nova propriedade</button><button type="button" data-go="reservations">＋ Nova reserva</button>';
     content.append(actions);
     const table = create("section", "t2v2-table-card");
     table.innerHTML =
@@ -255,25 +255,6 @@
         (b) =>
           (b.onclick = () => window.Test2Unified?.show?.(b.dataset.go, true)),
       );
-    head.querySelector("#t2V2Report").onclick = actions.querySelector(
-      '[data-go="reports"]',
-    ).onclick;
-    head.querySelector("#t2V2Share").onclick = () => {
-      const shareRoot = root.querySelector(".t2v2-content") || root;
-      if (window.Test2Share?.open) {
-        window.Test2Share.open(
-          "Visão geral",
-          window.Test2Share.cleanText?.(shareRoot) || "Visão geral",
-          shareRoot,
-        );
-        return;
-      }
-      window.dispatchEvent(
-        new CustomEvent("stay:approved-share", {
-          detail: { title: "Visão geral", element: shareRoot },
-        }),
-      );
-    };
     alert.onclick = () => window.Test2Unified?.show?.("properties", true);
     orderMenu();
     moveFilters();

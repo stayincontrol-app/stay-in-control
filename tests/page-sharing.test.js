@@ -7,13 +7,13 @@ const sharing = fs.readFileSync("test2-page-share.js", "utf8");
 const dashboard = fs.readFileSync("test2-super-dashboard-v2.js", "utf8");
 
 test("carrega o compartilhamento visual na versão principal", () => {
-  assert.match(loader, /test2-page-share\.js\?v=20260917-full-page/);
+  assert.match(loader, /test2-page-share\.js\?v=20260918-share-fix/);
 });
 
 test("captura a página real com filtros, gráficos e tabela", () => {
   assert.match(sharing, /t2SuperDashboardV2 \.t2v2-content/);
-  assert.match(sharing, /copyComputedStyles/);
-  assert.match(sharing, /input,select,textarea,details/);
+  assert.match(sharing, /window\.html2canvas/);
+  assert.match(sharing, /useCORS: true/);
   assert.match(sharing, /t2v2-donut/);
   assert.match(sharing, /image\/png/);
 });
@@ -25,8 +25,8 @@ test("oferece compartilhamento com arquivo, WhatsApp, e-mail e download", () => 
   assert.match(sharing, /Baixar imagem/);
 });
 
-test("o botão do painel abre diretamente o cartão aprovado", () => {
-  assert.match(dashboard, /window\.Test2Share\?\.open/);
-  assert.match(dashboard, /"Visão geral"/);
-  assert.match(dashboard, /stay:approved-share/);
+test("a tela principal mantém compartilhar e remove gerar relatório", () => {
+  assert.doesNotMatch(dashboard, /id="t2V2Report"/);
+  assert.doesNotMatch(dashboard, /data-go="reports"/);
+  assert.match(sharing, /t2-overview-sharebar/);
 });
