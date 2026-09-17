@@ -7,10 +7,9 @@
     button.dataset.shareOverride = '1';
     button.classList.remove('t2-hidden-action');
     button.style.removeProperty('display');
-    button.style.removeProperty('display');
     button.textContent = '↗ Compartilhar';
     button.title = 'Compartilhar relatório';
-    button.onclick = async (event) => {
+    button.onclick = (event) => {
       event.preventDefault();
       event.stopImmediatePropagation();
       const title = document.getElementById('t2MetaTitle')?.textContent?.trim() || 'Relatório financeiro';
@@ -19,12 +18,7 @@
         window.Test2Share.open(title, text, report);
         return;
       }
-      try {
-        if (navigator.share) await navigator.share({ title, text });
-        else await navigator.clipboard.writeText(text);
-      } catch (e) {
-        if (e?.name !== 'AbortError') alert('Não foi possível compartilhar o relatório agora.');
-      }
+      window.dispatchEvent(new CustomEvent('stay:approved-share', {detail:{title,text,element:report}}));
     };
     return true;
   }
