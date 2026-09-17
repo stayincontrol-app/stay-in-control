@@ -31,6 +31,13 @@
     `;
     document.head.append(style);
   }
+  function loadSafeFixes() {
+    if (document.querySelector('script[data-stay-safe-fixes]')) return;
+    const script = document.createElement('script');
+    script.src = './safe-fixes-2026-09-16.js?v=1';
+    script.dataset.staySafeFixes = '1';
+    document.body.append(script);
+  }
   function apply(root = document.body) {
     document.title = 'Stay in Control';
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
@@ -49,6 +56,7 @@
   function boot() {
     installResponsiveGuard();
     apply();
+    loadSafeFixes();
     new MutationObserver((records) => {
       for (const record of records) {
         if (record.type === 'characterData') {
