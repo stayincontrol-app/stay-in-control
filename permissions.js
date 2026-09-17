@@ -156,24 +156,6 @@
     status.innerHTML = `<section class="ap207-auth-status-card" role="alert"><h1>Não foi possível abrir o painel</h1><p>${detail}</p><div class="ap207-auth-status-actions"><button id="ap207RetrySession" type="button">Tentar novamente</button><a href="./test2-login.html">Voltar ao acesso</a></div></section>`;
     status.querySelector("#ap207RetrySession")?.addEventListener("click", () => location.reload());
   }
-  function cacheMatchesSession(session) {
-    const profile = cachedAuth?.profile;
-    return Boolean(profile && profile.active !== false && PERMISSIONS[profile.role] && String(profile.id) === String(session?.user?.id));
-  }
-  async function refreshInBackground(client, user) {
-    try {
-      const fresh = await loadAuthenticatedProfile(client, user);
-      writeAuthCache(fresh.profile, fresh.propertyIds);
-      root.dispatchEvent?.(new Event("stay:auth-refreshed"));
-    } catch (error) {
-      console.warn("[auth] profile refresh failed", error?.code || error?.message);
-      if (error?.code === "ACCESS_DISABLED" || error?.code === "INVALID_ROLE") {
-        clearAuthCache();
-        try { await withTimeout(client.auth.signOut({ scope: "local" }), 1200); } catch {}
-        location.replace("./test2-login.html");
-      }
-    }
-  }
   async function bootstrapAuth() {
     if (typeof document === "undefined") return;
     injectAuthStyles();
@@ -190,12 +172,6 @@
       if (!session?.user) {
         clearAuthCache();
         location.replace("./test2-login.html");
-        return;
-      }
-      if (cacheMatchesSession(session)) {
-        if (!localStorage.getItem(LAST_ACTIVITY_KEY)) markActivity();
-        activateApplication();
-        void refreshInBackground(client, session.user);
         return;
       }
       const authenticated = await loadAuthenticatedProfile(client, session.user);

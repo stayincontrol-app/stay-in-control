@@ -21,9 +21,10 @@ test("login usa dependência fixa e nunca espera autenticação indefinidamente"
 test("painel valida uma sessão sem instalar outro formulário de login", () => {
   const permissions = read("permissions.js");
   assert.match(permissions, /client\.auth\.getSession\(\)/);
-  assert.match(permissions, /cacheMatchesSession\(session\)/);
+  assert.match(permissions, /await loadAuthenticatedProfile\(client, session\.user\)/);
   assert.match(permissions, /activateApplication\(\)/);
-  assert.match(permissions, /refreshInBackground/);
+  assert.doesNotMatch(permissions, /refreshInBackground/);
+  assert.doesNotMatch(permissions, /stay:auth-refreshed/);
   assert.doesNotMatch(permissions, /ap207LoginForm/);
   assert.doesNotMatch(permissions, /signInWithPassword/);
   assert.doesNotMatch(permissions, /resetPasswordForEmail/);
@@ -34,8 +35,8 @@ test("somente um controle de inatividade e um botão de saída ficam ativos", ()
   const html = read("index.html");
   const loader = read("test2.js");
   const switcher = read("session-property-switcher.js");
-  assert.match(html, /permissions\.js\?v=20260917-auth/);
-  assert.match(html, /session-property-switcher\.js\?v=20260917-auth/);
+  assert.match(html, /permissions\.js\?v=20260917-auth-stable/);
+  assert.match(html, /session-property-switcher\.js\?v=20260917-auth-stable/);
   assert.doesNotMatch(loader, /test2-inactivity-logout\.js/);
   assert.doesNotMatch(switcher, /stayControlLogoutButton/);
   assert.doesNotMatch(switcher, /function installLogout/);
