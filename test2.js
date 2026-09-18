@@ -180,7 +180,7 @@
       ["./test2-ui-stability.js", "ui-stability"],
       ["./test2-features.js", "features"],
       ["./test2-access.js", "access"],
-      ["./test2-page-share.js?v=20260918-ical-exact3", "page-share"],
+      ["./test2-page-share.js?v=20260918-share-deepfix1", "page-share"],
       ["./test2-report.js", "report"],
       ["./test2-report-share-override.js", "report-share-override"],
       ["./test2-official-branding.js?v=20260916-principal", "official-branding"],
@@ -206,7 +206,7 @@
       ["./test2-admins-dashboard.js?v=20260915-final", "admins-dashboard"],
       ["./test2-plans-v2.js", "plans-v2"],
       ["./test2-regional-analytics.js", "regional-analytics"],
-      ["./test2-unified-runtime.js?v=20260916-session-i18n", "unified-runtime"],
+      ["./test2-unified-runtime.js?v=20260918-share-deepfix1", "unified-runtime"],
       ["./test2-owner-modal-v2.js?v=20260912-2056", "owner-modal-v2"],
       ["./test2-property-modal-v2.js?v=20260912-2135", "property-modal-v2"],
       [
