@@ -12,6 +12,19 @@
     <link rel="stylesheet" href="./test2.css" />
   </head>
   <body class="test2">
+    <div id="viewModeChooser" class="view-mode-chooser no-print" role="dialog" aria-modal="true" aria-labelledby="viewModeTitle">
+      <div class="view-mode-card">
+        <p class="eyebrow">Stay in Control 1.0 • teste</p>
+        <h2 id="viewModeTitle">Como você deseja acessar?</h2>
+        <p class="view-mode-copy">Escolha a visualização que deseja testar. Você poderá trocar depois.</p>
+        <div class="view-mode-options">
+          <button type="button" data-view-mode="mobile"><span class="view-mode-icon">▯</span><strong>Versão Mobile</strong><small>Celular e tablet</small></button>
+          <button type="button" data-view-mode="desktop"><span class="view-mode-icon">▭</span><strong>Versão Desktop</strong><small>Computador e laptop</small></button>
+        </div>
+        <label class="view-mode-remember"><input id="rememberViewMode" type="checkbox"> Lembrar minha escolha neste teste</label>
+      </div>
+    </div>
+    <button id="changeViewMode" class="change-view-mode no-print" type="button" hidden>Trocar versão</button>
     <nav class="app-nav" aria-label="Navegação principal">
       <button class="nav-item active" type="button" data-screen="home">
         <span>⌂</span>Início</button
@@ -480,6 +493,7 @@
         <span id="ruleCleaning"></span><span id="ruleCommission"></span>
       </section>
     </main>
+    <script src="./view-mode-test.js?v=20260918"></script>
     <script src="./monthly-scenery.js"></script>
     <script src="./session-property-switcher.js"></script>
     <script src="./permissions.js" defer></script>
