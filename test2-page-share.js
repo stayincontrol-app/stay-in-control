@@ -32,9 +32,37 @@
       .join("\n");
   }
 
+  function calendarShareRoot(source) {
+    const direct = source?.closest?.('[data-share-scope="calendar-integration"]');
+    if (direct) return direct;
+    const candidates = [...document.querySelectorAll("section,.panel,div")].filter(visible);
+    const matches = candidates.filter((node) => {
+      const t = node.innerText || "";
+      return /iCal por propriedade\/unidade/i.test(t) && /Link iCal desta propriedade/i.test(t);
+    });
+    if (!matches.length) return null;
+    matches.sort((a,b) => a.querySelectorAll("*").length - b.querySelectorAll("*").length);
+    return matches[0];
+  }
+
+  function isCalendarShareButton(source) {
+    if (!source) return false;
+    if (source.dataset?.shareCapture === "calendar-integration") return true;
+    const calendar = calendarShareRoot(source);
+    if (calendar && calendar.contains(source)) return true;
+    const home = source.closest?.('[data-screen-panel="home"]');
+    if (!home) return false;
+    const calendarTop = calendar?.getBoundingClientRect?.().top;
+    const buttonTop = source.getBoundingClientRect?.().top;
+    return Number.isFinite(calendarTop) && Number.isFinite(buttonTop) && Math.abs(buttonTop-calendarTop) < 220;
+  }
+
   function pageRoot(source) {
-    const calendarPanel = source?.closest?.('[data-share-scope="calendar-integration"],#t2Integrations');
-    if (calendarPanel) return calendarPanel;
+    if (isCalendarShareButton(source)) {
+      const calendar = calendarShareRoot(source);
+      if (calendar) return calendar;
+    }
+    if (source?.closest?.("#t2Integrations")) return $("#t2Integrations");
     const reservation = source?.closest?.(".booking,.reservation-card");
     if (reservation) return reservation;
     if (source?.id === "monthlyReport" || source?.closest?.("#monthlyReport"))
@@ -212,33 +240,36 @@
     return true;
   }
 
+  async function tryNativeShare(file, note, appLabel) {
+    if (!canShareFile(file)) return false;
+    try {
+      await navigator.share({ files: [file] });
+      return true;
+    } catch (error) {
+      if (error?.name === "AbortError") {
+        note.textContent = "Compartilhamento cancelado.";
+        return true;
+      }
+      console.warn("[Stay native share]", appLabel || "share", error);
+      return false;
+    }
+  }
+
 
   async function shareWhatsApp(file, title, text, note) {
-    if (canShareFile(file)) {
-      note.textContent = "Escolha o WhatsApp para enviar a imagem.";
-      await nativeShare(file);
-      return;
-    }
-    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
-    note.textContent =
-      "WhatsApp aberto. Este navegador não permite anexar a imagem automaticamente; use Baixar imagem para anexá-la.";
+    note.textContent = "Abrindo opções para enviar a imagem pelo WhatsApp…";
+    if (await tryNativeShare(file, note, "WhatsApp")) return;
+    download(file);
+    window.open("https://web.whatsapp.com/", "_blank", "noopener,noreferrer");
+    note.textContent = "WhatsApp aberto. A imagem também foi baixada para você anexar.";
   }
 
   async function shareEmail(file, title, text, note) {
-    if (canShareFile(file)) {
-      note.textContent = "Escolha o aplicativo de e-mail para enviar a imagem.";
-      await nativeShare(file);
-      return;
-    }
+    note.textContent = "Abrindo opções para enviar a imagem por e-mail…";
+    if (await tryNativeShare(file, note, "E-mail")) return;
     download(file);
-    window.location.href = `mailto:?subject=${encodeURIComponent(
-      `Stay in Control — ${title}`,
-    )}&body=${encodeURIComponent(
-      `${text}\n\nA imagem do painel foi baixada para ser anexada.`,
-    )}`;
-    note.textContent =
-      "E-mail aberto. Anexe a imagem que acabou de ser baixada.";
+    window.location.href = `mailto:?subject=${encodeURIComponent(`Stay in Control — ${title}`)}&body=${encodeURIComponent("A imagem foi baixada. Anexe o arquivo PNG a este e-mail.")}`;
+    note.textContent = "E-mail aberto. A imagem também foi baixada para você anexar.";
   }
 
   function installCss() {
@@ -318,10 +349,10 @@
     };
 
     const share = button(TEXT.share, "t2-share-primary", async () => {
-      if (await nativeShare(file, title, bodyText)) return;
+      note.textContent = "Abrindo o compartilhamento da imagem…";
+      if (await tryNativeShare(file, note, "Compartilhar")) return;
       download(file);
-      note.textContent =
-        "Este navegador não possui o menu de compartilhamento. A imagem foi baixada.";
+      note.textContent = "O navegador não aceitou compartilhar o arquivo. A imagem foi baixada.";
     });
     const whatsapp = button(TEXT.whatsapp, "t2-share-whatsapp", () =>
       shareWhatsApp(file, title, bodyText, note),
@@ -377,7 +408,7 @@
           /whatsapp|imagem|dados/i.test(label)
         )
           return;
-        const root = pageRoot(button);
+        const root = isCalendarShareButton(button) ? calendarShareRoot(button) : pageRoot(button);
         if (!root) return;
         event.preventDefault();
         event.stopImmediatePropagation();
