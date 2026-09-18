@@ -1471,8 +1471,12 @@
     elements.reportYear.addEventListener("change", renderMonthlyReport);
     elements.generateReportButton.addEventListener("click", () => {
       renderMonthlyReport();
-      document.body.classList.add("printing-report");
-      window.print();
+      window.dispatchEvent(new CustomEvent("stay:report-updated", {
+        detail: {
+          month: elements.reportMonth.value,
+          year: elements.reportYear.value
+        }
+      }));
     });
     window.addEventListener("afterprint", () =>
       document.body.classList.remove("printing-report"),
