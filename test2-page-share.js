@@ -33,7 +33,8 @@
   }
 
   function pageRoot(source) {
-    if (source?.closest?.("#t2Integrations")) return $("#t2Integrations");
+    const calendarPanel = source?.closest?.('[data-share-scope="calendar-integration"],#t2Integrations');
+    if (calendarPanel) return calendarPanel;
     const reservation = source?.closest?.(".booking,.reservation-card");
     if (reservation) return reservation;
     if (source?.id === "monthlyReport" || source?.closest?.("#monthlyReport"))
@@ -133,7 +134,7 @@
     copyComputedStyles(source, clone);
     clone
       .querySelectorAll(
-        "#t2V2Sponsor,#t2FloatingSponsor,#t2UniversalShareModal,.t2-overview-sharebar,.t2-page-sharebar,.t2-support,.stay-share-modal,[data-share-capture-hide]",
+        "#t2V2Sponsor,#t2FloatingSponsor,#t2UniversalShareModal,.t2-overview-sharebar,.t2-page-sharebar,.t2-support,.stay-share-modal,[data-share-capture-hide],[data-share-capture]",
       )
       .forEach((element) => element.remove());
     clone
@@ -173,7 +174,7 @@
       scrollY: -window.scrollY,
       ignoreElements: (element) =>
         element.matches?.(
-          "#t2V2Share,#t2V2Report,#t2FloatingSponsor,#t2UniversalShareModal,.t2-overview-sharebar,.t2-page-sharebar,.t2-support,.stay-share-modal,[data-share-capture-hide]",
+          "#t2V2Share,#t2V2Report,#t2FloatingSponsor,#t2UniversalShareModal,.t2-overview-sharebar,.t2-page-sharebar,.t2-support,.stay-share-modal,[data-share-capture-hide],[data-share-capture]",
         ),
     });
     const blob = await new Promise((resolve) =>
@@ -356,7 +357,7 @@
     if (root?.id === "t2ContractPayments")
       return "Pagamentos, recebimentos e repasses";
     if (root?.id === "t2OwnerPayouts") return "Repasses ao proprietário";
-    if (root?.id === "t2Integrations") return "Integração de calendário";
+    if (root?.id === "t2Integrations" || root?.dataset?.shareScope === "calendar-integration") return "Integração de calendário";
     return (button?.textContent || "Compartilhar")
       .replace(/^↗\s*/, "")
       .trim();
