@@ -626,6 +626,7 @@
           if (txt[savedLanguage]) lang.value = savedLanguage;
         } catch {}
         paint();
+        (async()=>{try{const {data:{session}}=await client.auth.getSession();if(!session?.user)return;let cached=null;try{cached=JSON.parse(localStorage.getItem(AUTH)||"null")}catch{}if(cached?.profile?.id===session.user.id&&cached.profile.active!==false){localStorage.setItem(ACT,String(Date.now()));location.replace("./index.html");return}await profile(session.user);location.replace("./index.html")}catch{}})();
       })();
     </script>
   </body>
