@@ -34,6 +34,8 @@
   }
 
   function pageRoot(source) {
+    const reservation = source?.closest?.(".booking,.reservation-card");
+    if (reservation) return reservation;
     if (source?.id === "monthlyReport" || source?.closest?.("#monthlyReport"))
       return $("#monthlyReport");
     if (
@@ -43,6 +45,8 @@
       return (
         $("#t2SuperDashboardV2 .t2v2-content") || $("#t2SuperDashboardV2")
       );
+    if (source?.closest?.("#t2Analytics")) return $("#t2Analytics");
+    if (source?.closest?.("#t2Banners")) return $("#t2Banners");
     if (source?.closest?.('[data-screen-panel="home"]')) {
       return (
         $("#t2SuperDashboardV2 .t2v2-content") ||
@@ -51,7 +55,7 @@
     }
     return (
       source?.closest?.(
-        "#t2ContractPayments,#t2OwnerPayouts,.app-screen,.t2-card,section",
+        "#t2ContractPayments,#t2OwnerPayouts,#t2Analytics,#t2Banners,.app-screen,.t2-card,section",
       ) || $("main.container")
     );
   }
