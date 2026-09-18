@@ -33,6 +33,7 @@
   }
 
   function pageRoot(source) {
+    if (source?.closest?.("#t2Integrations")) return $("#t2Integrations");
     const reservation = source?.closest?.(".booking,.reservation-card");
     if (reservation) return reservation;
     if (source?.id === "monthlyReport" || source?.closest?.("#monthlyReport"))
@@ -355,6 +356,7 @@
     if (root?.id === "t2ContractPayments")
       return "Pagamentos, recebimentos e repasses";
     if (root?.id === "t2OwnerPayouts") return "Repasses ao proprietário";
+    if (root?.id === "t2Integrations") return "Integração de calendário";
     return (button?.textContent || "Compartilhar")
       .replace(/^↗\s*/, "")
       .trim();
