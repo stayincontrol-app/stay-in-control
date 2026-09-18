@@ -40,12 +40,19 @@
     const c = window.AP207Supabase;
     if (c?.from) {
       try {
-        const p = await c
-          .from("profiles")
-          .select("id,email,name,role,active,cpf,phone,login_identifier_type")
-          .eq("role", "admin");
+        const [p, a, commercial] = await Promise.all([
+          c
+            .from("profiles")
+            .select("id,email,name,role,active,cpf,phone,login_identifier_type")
+            .eq("role", "admin"),
+          c.from("property_access").select("user_id,property_id"),
+          c
+            .from("commercial_access")
+            .select(
+              "administrator_id,property_limit,monthly_price,access_type,courtesy_until,payment_status,blocked",
+            ),
+        ]);
         if (!p.error) rows = p.data || [];
-        const a = await c.from("property_access").select("user_id,property_id");
         const map = new Map();
         if (!a.error)
           (a.data || []).forEach((x) => {
@@ -53,9 +60,15 @@
             v.push(String(x.property_id));
             map.set(String(x.user_id), v);
           });
+        const commercialMap = new Map();
+        if (!commercial.error)
+          (commercial.data || []).forEach((x) =>
+            commercialMap.set(String(x.administrator_id), x),
+          );
         rows = rows.map((x) => ({
           ...x,
-          propertyIds: map.get(String(x.id)) || [],
+          propertyIds: [...new Set(map.get(String(x.id)) || [])],
+          commercialAccess: commercialMap.get(String(x.id)) || null,
         }));
       } catch {
         rows = [];
@@ -91,13 +104,22 @@
         .filter(Boolean)
         .map(String),
       a = (s.accounts || []).find((x) => keys.includes(String(x.adminId))),
-      units = Number(a?.units ?? (u.propertyIds || []).length),
-      courtesy = Boolean(a?.courtesy);
+      remote = u.commercialAccess,
+      units = new Set((u.propertyIds || []).map(String)).size,
+      planUnits = Math.max(
+        1,
+        Number(remote?.property_limit ?? a?.units ?? units ?? 1) || 1,
+      ),
+      courtesy = remote
+        ? remote.access_type === "courtesy"
+        : Boolean(a?.courtesy),
+      price = Number(remote?.monthly_price ?? s.pricePerProperty ?? 0);
     return {
       units,
+      planUnits,
       courtesy,
-      until: a?.courtesyUntil || "",
-      total: courtesy ? 0 : units * Number(s.pricePerProperty || 0),
+      until: remote?.courtesy_until || a?.courtesyUntil || "",
+      total: courtesy ? 0 : planUnits * price,
     };
   }
   function initials(name) {
@@ -238,9 +260,11 @@
     }
     const rows = await fetchAdmins(),
       commercial = rows.map(commercialFor),
-      totalUnits = commercial.reduce((s, x) => s + x.units, 0),
+      totalUnits = new Set(
+        rows.flatMap((u) => (u.propertyIds || []).map(String)),
+      ).size,
       monthly = commercial.reduce((s, x) => s + x.total, 0);
-    shell.innerHTML = `<div class="t2ad-top"><div><h2>Administradores</h2><p>Gerencie administradores, acessos, quantidade de unidades e cortesia.</p></div><button type="button" class="button button-primary t2ad-new">+ Novo administrador</button></div><div class="t2ad-metrics"><article class="t2ad-card"><span class="t2ad-icon">👥</span><div><strong>${rows.length}</strong><span>Administradores</span></div></article><article class="t2ad-card"><span class="t2ad-icon">🏠</span><div><strong>${totalUnits}</strong><span>Total de unidades</span></div></article><article class="t2ad-card"><span class="t2ad-icon">$</span><div><strong>${money(monthly)}</strong><span>Receita mensal estimada</span></div></article></div><div class="t2ad-tools"><input type="search" placeholder="Buscar por nome, e-mail ou CPF…"><select><option value="all">Todos os status</option><option value="active">Ativos</option><option value="courtesy">Cortesia</option><option value="inactive">Inativos</option></select></div><div class="t2ad-table-wrap"><table class="t2ad-table"><thead><tr><th>Nome</th><th>Contato</th><th>CPF</th><th>Unidades</th><th>Valor mensal</th><th>Status</th><th>Cortesia</th><th>Ações</th></tr></thead><tbody></tbody></table><div class="t2ad-empty" hidden>Nenhum administrador encontrado.</div></div>`;
+    shell.innerHTML = `<div class="t2ad-top"><div><h2>Administradores</h2><p>Gerencie administradores, acessos, unidades vinculadas e cortesia.</p></div><button type="button" class="button button-primary t2ad-new">+ Novo administrador</button></div><div class="t2ad-metrics"><article class="t2ad-card"><span class="t2ad-icon">👥</span><div><strong>${rows.length}</strong><span>Administradores</span></div></article><article class="t2ad-card"><span class="t2ad-icon">🏠</span><div><strong>${totalUnits}</strong><span>Unidades cadastradas</span></div></article><article class="t2ad-card"><span class="t2ad-icon">$</span><div><strong>${money(monthly)}</strong><span>Receita mensal estimada</span></div></article></div><div class="t2ad-tools"><input type="search" placeholder="Buscar por nome, e-mail ou CPF…"><select><option value="all">Todos os status</option><option value="active">Ativos</option><option value="courtesy">Cortesia</option><option value="inactive">Inativos</option></select></div><div class="t2ad-table-wrap"><table class="t2ad-table"><thead><tr><th>Nome</th><th>Contato</th><th>CPF</th><th>Unidades vinculadas</th><th>Valor mensal</th><th>Status</th><th>Cortesia</th><th>Ações</th></tr></thead><tbody></tbody></table><div class="t2ad-empty" hidden>Nenhum administrador encontrado.</div></div>`;
     shell.querySelector(".t2ad-new").onclick = () =>
       window.Test2UnifiedInviteUser?.open?.("admin");
     const body = shell.querySelector("tbody");
