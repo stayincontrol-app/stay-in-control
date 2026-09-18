@@ -50,5 +50,21 @@ test("painel aceita mais de um administrador por unidade", () => {
   assert.match(scope, /administratorNames/);
   assert.match(dashboard, /function adminNames\(p\)/);
   assert.deepEqual(property.administratorNames, ["Juliana", "Zico"]);
+  assert.equal(property.administratorId, "user-juliana");
   assert.equal(property.ownerName, "Marcelo Estevão");
+});
+
+test("administradores exibem unidades reais e cortesia do serviço", () => {
+  const dashboard = read("test2-admins-dashboard.js");
+  assert.match(dashboard, /commercial_access/);
+  assert.match(dashboard, /new Set\(\(u\.propertyIds \|\| \[\]\)\.map\(String\)\)\.size/);
+  assert.match(dashboard, /Unidades vinculadas/);
+  assert.match(dashboard, /access_type === "courtesy"/);
+});
+
+test("banners preservam a imagem completa e scripts reutilizam cache", () => {
+  const scenery = read("monthly-scenery.js");
+  assert.match(scenery, /backgroundSize = "contain"/);
+  assert.match(scenery, /\?v=20260918-performance/);
+  assert.doesNotMatch(scenery, /src\}\\\?ts=\$\{Date\.now\(\)\}/);
 });
