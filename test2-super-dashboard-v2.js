@@ -138,7 +138,12 @@
   }
   function adminName(p) {
     const names = adminNames(p);
-    if (names.length) return names.join(", ");
+    const ids = Array.isArray(p.administratorIds)
+        ? p.administratorIds.map(String)
+        : [],
+      primaryIndex = ids.indexOf(String(p.administratorId || p.adminId || ""));
+    if (primaryIndex >= 0 && names[primaryIndex]) return names[primaryIndex];
+    if (names.length) return names[0];
     const id = String(p.administratorId || p.adminId || "");
     return id && /removed/i.test(id)
       ? "Administrador removido"
