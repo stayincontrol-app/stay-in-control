@@ -61,9 +61,12 @@
         Carregando dados…
       </div>
       <div class="app-screen" data-screen-panel="home">
-        <div class="screen-heading">
+        <div class="screen-heading overview-top-heading">
           <p class="eyebrow">Visão geral</p>
           <h2>Início</h2>
+          <div class="overview-top-filters no-print" aria-label="Filtros da visão geral">
+            <span>Os filtros de Perfil, Propriedade e período ficam no topo da tela.</span>
+          </div>
         </div>
         <section class="cards">
           <article>
@@ -293,10 +296,14 @@
       </div>
       <div class="app-screen" data-screen-panel="expenses" hidden>
         <section class="panel expenses-section" id="expensesSection">
-          <div class="panel-heading">
+          <div class="panel-heading expenses-heading">
             <div>
               <p class="eyebrow">Controle financeiro</p>
               <h2>Despesas</h2>
+            </div>
+            <div class="expense-period-filters no-print">
+              <div class="field"><label for="expenseMonthFilter">Mês</label><select id="expenseMonthFilter"></select></div>
+              <div class="field"><label for="expenseYearFilter">Ano</label><select id="expenseYearFilter"></select></div>
             </div>
             <button
               class="button button-primary"
