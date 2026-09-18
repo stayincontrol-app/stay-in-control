@@ -156,7 +156,9 @@
     const pr = profile();
     if (pr.role === "admin") return pr.name || pr.email || "—";
     const entries = adminEntries(p);
-    if (entries.length) return entries.map((entry) => entry.name).join(", ");
+    const primary = entries.find((entry) => entry.id === adminId(p));
+    if (primary) return primary.name;
+    if (entries.length) return entries[0].name;
     const id = adminId(p),
       u = users().find(
         (x) =>
