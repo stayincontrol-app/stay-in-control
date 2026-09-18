@@ -429,6 +429,8 @@
         const root = isCalendarShareButton(button) ? calendarShareRoot(button) : pageRoot(button);
         if (!root) return;
         event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
         event.stopImmediatePropagation();
         openShare(titleFor(button, root), cleanText(root), root);
       },
