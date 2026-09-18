@@ -6,7 +6,6 @@
     whatsapp: "WhatsApp",
     email: "E-mail",
     download: "Baixar imagem",
-    copy: "Copiar dados",
     close: "Fechar",
   };
 
@@ -211,26 +210,6 @@
     return true;
   }
 
-  async function copyImage(file) {
-    if (!navigator.clipboard?.write || !window.ClipboardItem) return false;
-    await navigator.clipboard.write([new ClipboardItem({ "image/png": file })]);
-    return true;
-  }
-
-  async function copyText(text) {
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(text);
-      return true;
-    }
-    const area = document.createElement("textarea");
-    area.value = text;
-    area.style.cssText = "position:fixed;opacity:0;pointer-events:none";
-    document.body.append(area);
-    area.select();
-    const copied = document.execCommand("copy");
-    area.remove();
-    return copied;
-  }
 
   async function shareWhatsApp(file, title, text, note) {
     if (canShareFile(file)) {
@@ -238,18 +217,10 @@
       await nativeShare(file, title, text);
       return;
     }
-    const popup = window.open("about:blank", "_blank");
-    let copied = false;
-    try {
-      copied = await copyImage(file);
-    } catch {}
-    if (!copied) download(file);
-    const url = `https://web.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-    if (popup) popup.location.href = url;
-    else window.open(url, "_blank", "noopener,noreferrer");
-    note.textContent = copied
-      ? "Imagem copiada. No WhatsApp, escolha a conversa e cole com Ctrl+V."
-      : "Imagem baixada. No WhatsApp, escolha a conversa e anexe o arquivo.";
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+    note.textContent =
+      "WhatsApp aberto. Este navegador não permite anexar a imagem automaticamente; use Baixar imagem para anexá-la.";
   }
 
   async function shareEmail(file, title, text, note) {
@@ -328,7 +299,7 @@
       item.type = "button";
       item.className = `button ${className}`;
       item.textContent = label;
-      item.disabled = !file && label !== TEXT.close && label !== TEXT.copy;
+      item.disabled = !file && label !== TEXT.close;
       item.onclick = async () => {
         item.disabled = true;
         try {
@@ -364,15 +335,11 @@
         note.textContent = "Imagem baixada.";
       },
     );
-    const copy = button(TEXT.copy, "button-secondary", async () => {
-      await copyText(`${title}\n\n${bodyText}`);
-      note.textContent = "Dados copiados.";
-    });
     const close = button(TEXT.close, "button-secondary", () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       modal.remove();
     });
-    actions.append(share, whatsapp, email, downloadButton, copy, close);
+    actions.append(share, whatsapp, email, downloadButton, close);
     modal.addEventListener("click", (event) => {
       if (event.target === modal) close.click();
     });
