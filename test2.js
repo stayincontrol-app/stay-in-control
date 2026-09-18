@@ -174,7 +174,7 @@
     [
       ["./test2-inactivity-logout.js", "inactivity-logout"],
       ["./test2-admin-mobile-stability.js", "admin-mobile-stability"],
-      ["./test2-suite.js?v=20260918-contract-receipts3", "suite-core"],
+      ["./test2-suite.js?v=20260918-contract-full4", "suite-core"],
       ["./test2-performance-guard.js", "performance-guard"],
       ["./test2-pro-shell.js?v=20260918-no-plan&charts=1", "pro-shell"],
       ["./test2-ui-stability.js", "ui-stability"],
