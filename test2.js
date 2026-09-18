@@ -181,7 +181,7 @@
       ["./test2-features.js", "features"],
       ["./test2-access.js", "access"],
       ["./test2-page-share.js?v=20260918-global-standard3", "page-share"],
-      ["./test2-report.js", "report"],
+      ["./test2-report.js?v=20260918-no-legacy-actions", "report"],
       ["./test2-report-share-override.js", "report-share-override"],
       ["./test2-official-branding.js?v=20260916-principal", "official-branding"],
       ["./test2-pro-internals.js", "pro-internals"],
