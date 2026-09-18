@@ -113,15 +113,38 @@
     }
     add.click();
   }
-  function properties() {
+  async function properties() {
     const p = panel(
       "t2ProfessionalProperties",
       "Propriedades",
       "Gerencie todas as unidades e acompanhe o desempenho de cada uma.",
     );
-    if (!p || p.dataset.ready) return;
+    if (!p || p.dataset.ready || p.dataset.loading) return;
+    p.dataset.loading = "1";
+    let data = read(PROPS, { properties: [] }).properties || [];
+    const client = window.AP207Supabase;
+    if (client?.from) {
+      try {
+        const { data: live, error } = await client
+          .from("properties")
+          .select(
+            "id,name,unit,owner_name,owner_id,city,state,country,address,administrator_id,deleted_at",
+          )
+          .is("deleted_at", null);
+        if (!error && Array.isArray(live)) {
+          data = live.map((x) => ({
+            ...x,
+            ownerName: x.owner_name || "Sem proprietário",
+            ownerId: x.owner_id || "unassigned-owner",
+            administratorId: x.administrator_id || "unassigned-admin",
+            active: true,
+          }));
+          write(PROPS, { version: 1, properties: data });
+        }
+      } catch {}
+    }
     p.dataset.ready = "1";
-    const data = read(PROPS, { properties: [] }).properties || [];
+    delete p.dataset.loading;
     const grid = el("div", "t2pm-grid");
     grid.append(
       card("Total de propriedades", data.length),
