@@ -16,6 +16,8 @@ test("captura a página real com filtros, gráficos e tabela", () => {
   assert.match(sharing, /useCORS: true/);
   assert.match(sharing, /t2v2-donut/);
   assert.match(sharing, /image\/png/);
+  assert.match(sharing, /\.booking,\.reservation-card/);
+  assert.match(sharing, /#t2Analytics/);
 });
 
 test("oferece compartilhamento com arquivo, WhatsApp, e-mail e download", () => {
