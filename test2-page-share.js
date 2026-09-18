@@ -240,6 +240,10 @@
     return true;
   }
 
+  function chromeOsLike() {
+    return /CrOS/i.test(navigator.userAgent || "");
+  }
+
   async function tryNativeShare(file, note, appLabel) {
     if (!canShareFile(file)) return false;
     try {
@@ -255,21 +259,32 @@
     }
   }
 
+  function openPopup(url, name) {
+    const w = window.open(url, name || "_blank", "noopener,noreferrer");
+    return !!w;
+  }
+
 
   async function shareWhatsApp(file, title, text, note) {
-    note.textContent = "Abrindo opções para enviar a imagem pelo WhatsApp…";
-    if (await tryNativeShare(file, note, "WhatsApp")) return;
+    note.textContent = "Abrindo o WhatsApp…";
+    if (!chromeOsLike() && await tryNativeShare(file, note, "WhatsApp")) return;
     download(file);
-    window.open("https://web.whatsapp.com/", "_blank", "noopener,noreferrer");
-    note.textContent = "WhatsApp aberto. A imagem também foi baixada para você anexar.";
+    const opened = openPopup("https://web.whatsapp.com/", "_blank");
+    note.textContent = opened
+      ? "WhatsApp Web aberto. A imagem foi baixada para anexar na conversa."
+      : "A imagem foi baixada. Permita pop-ups para abrir o WhatsApp Web.";
   }
 
   async function shareEmail(file, title, text, note) {
-    note.textContent = "Abrindo opções para enviar a imagem por e-mail…";
-    if (await tryNativeShare(file, note, "E-mail")) return;
+    note.textContent = "Abrindo o e-mail…";
+    if (!chromeOsLike() && await tryNativeShare(file, note, "E-mail")) return;
     download(file);
-    window.location.href = `mailto:?subject=${encodeURIComponent(`Stay in Control — ${title}`)}&body=${encodeURIComponent("A imagem foi baixada. Anexe o arquivo PNG a este e-mail.")}`;
-    note.textContent = "E-mail aberto. A imagem também foi baixada para você anexar.";
+    const subject = encodeURIComponent(`Stay in Control — ${title}`);
+    const body = encodeURIComponent("Segue a imagem gerada pelo Stay in Control. O arquivo PNG foi baixado para ser anexado.");
+    const gmail = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`;
+    const opened = openPopup(gmail, "_blank");
+    if (!opened) window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    note.textContent = "E-mail aberto. A imagem foi baixada para anexar.";
   }
 
   function installCss() {
@@ -349,10 +364,13 @@
     };
 
     const share = button(TEXT.share, "t2-share-primary", async () => {
-      note.textContent = "Abrindo o compartilhamento da imagem…";
-      if (await tryNativeShare(file, note, "Compartilhar")) return;
+      note.textContent = "Preparando a imagem para compartilhar…";
+      if (!chromeOsLike() && await tryNativeShare(file, note, "Compartilhar")) return;
       download(file);
-      note.textContent = "O navegador não aceitou compartilhar o arquivo. A imagem foi baixada.";
+      const opened = openPopup("https://web.whatsapp.com/", "_blank");
+      note.textContent = opened
+        ? "A imagem foi baixada e o WhatsApp Web foi aberto para você escolher a conversa."
+        : "A imagem foi baixada. Permita pop-ups para abrir o aplicativo de compartilhamento.";
     });
     const whatsapp = button(TEXT.whatsapp, "t2-share-whatsapp", () =>
       shareWhatsApp(file, title, bodyText, note),
