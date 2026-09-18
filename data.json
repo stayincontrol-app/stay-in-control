@@ -38,7 +38,7 @@
       "state": "PR",
       "address": "Endereço a atualizar",
       "commissionRate": 0.15,
-      "administratorId": "user-zico",
+      "administratorId": "user-juliana",
       "administratorIds": ["user-juliana", "user-zico"],
       "administratorNames": ["Juliana", "Zico"],
       "ownerId": "user-marcelo"
