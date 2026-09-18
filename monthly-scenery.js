@@ -97,8 +97,9 @@
     banner.style.height = window.innerWidth <= 480 ? "120px" : "150px";
     banner.style.marginBottom = "20px";
     banner.style.borderRadius = "18px";
-    banner.style.backgroundPosition = "center";
-    banner.style.backgroundSize = "cover";
+    banner.style.backgroundColor = "#fff";
+    banner.style.backgroundPosition = "center center";
+    banner.style.backgroundSize = "contain";
     banner.style.backgroundRepeat = "no-repeat";
     banner.style.transition =
       "background-image .5s ease-in-out,opacity .35s ease";
@@ -167,7 +168,7 @@
   function loadScript(src, attr) {
     if (document.querySelector(`script[${attr}]`)) return;
     const s = document.createElement("script");
-    s.src = `./${src}?ts=${Date.now()}`;
+    s.src = `./${src}?v=20260918-performance`;
     s.defer = true;
     s.setAttribute(attr, "true");
     document.head.append(s);
