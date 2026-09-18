@@ -205,9 +205,9 @@
     }
   }
 
-  async function nativeShare(file, title, text) {
+  async function nativeShare(file) {
     if (!canShareFile(file)) return false;
-    await navigator.share({ title, text, files: [file] });
+    await navigator.share({ files: [file] });
     return true;
   }
 
@@ -215,7 +215,7 @@
   async function shareWhatsApp(file, title, text, note) {
     if (canShareFile(file)) {
       note.textContent = "Escolha o WhatsApp para enviar a imagem.";
-      await nativeShare(file, title, text);
+      await nativeShare(file);
       return;
     }
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
@@ -227,7 +227,7 @@
   async function shareEmail(file, title, text, note) {
     if (canShareFile(file)) {
       note.textContent = "Escolha o aplicativo de e-mail para enviar a imagem.";
-      await nativeShare(file, title, text);
+      await nativeShare(file);
       return;
     }
     download(file);
