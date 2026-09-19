@@ -176,7 +176,7 @@
       ["./test2-admin-mobile-stability.js", "admin-mobile-stability"],
       ["./test2-suite.js?v=20260918-contract-full4", "suite-core"],
       ["./test2-performance-guard.js", "performance-guard"],
-      ["./test2-pro-shell.js?v=20260918-production-main", "pro-shell"],
+      ["./test2-pro-shell.js?v=20260918-month-values-v6", "pro-shell"],
       ["./test2-ui-stability.js", "ui-stability"],
       ["./test2-features.js", "features"],
       ["./test2-access.js", "access"],
