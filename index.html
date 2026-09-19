@@ -503,6 +503,7 @@
     <script src="./session-property-switcher.js"></script>
     <script src="./permissions.js" defer></script>
     <script src="./merge-ap207-history.js"></script>
+    <script>fetch('./data.json?overviewSeed='+Date.now(),{cache:'no-store'}).then(r=>r.json()).then(d=>{window.__staySeedReservations=Array.isArray(d.reservations)?d.reservations:[];window.dispatchEvent(new Event('stay:data-change'))}).catch(()=>{})</script>
     <script src="./app.js?v=20260918-report-refresh-only" defer></script>
     <script src="./global-month-selector.js" defer></script>
     <script src="./property-manager.js" defer></script>
