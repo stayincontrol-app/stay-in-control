@@ -83,14 +83,7 @@
     document.title = NAME;
   }
   syncDocumentLanguage();
-  function updateSupport() {
-    const a = document.querySelector(".t2-support");
-    if (!a) return;
-    const pair = supportLabels[currentLang()] || supportLabels["pt-BR"];
-    const b = a.querySelector("b");
-    if (b) b.textContent = pair[0];
-    a.setAttribute("aria-label", pair[1]);
-  }
+  function updateSupport() {}
   function loadScript(src, key) {
     if (document.querySelector('script[data-t2="' + key + '"]')) return;
     const s = document.createElement("script");
