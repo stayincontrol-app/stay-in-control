@@ -219,7 +219,8 @@
         "properties-owners-layout",
       ],
       ["./test2-i18n-catalog.js?v=20260916-authority", "i18n-catalog"],
-      ["./test2-i18n-unified.js?v=20260916-authority", "i18n-unified"],
+      ["./test2-i18n-supplement.js?v=20260920-full-audit", "i18n-supplement"],
+      ["./test2-i18n-unified.js?v=20260920-full-audit", "i18n-unified"],
       [
         "./test2-white-screen-recovery.js?v=20260915-navigation",
         "white-screen-recovery",
