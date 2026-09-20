@@ -26,3 +26,10 @@
 .test2.ap207-authenticated [data-screen-panel="calendar"] .calendar-section{margin-top:0!important}
 .t2-pro-kpi[data-tone=green]{border-top:3px solid #169b62}.t2-pro-kpi[data-tone=purple]{border-top:3px solid #7c3aed}.t2-pro-kpi[data-tone=red]{border-top:3px solid #dc3f4f}.t2-pro-kpi[data-tone=blue]{border-top:3px solid #2952cc}
 @media(max-width:720px){.test2.ap207-authenticated [data-screen-panel="home"]{gap:10px}.t2-pro-mobilebar{grid-template-columns:repeat(4,1fr)}}
+
+/* Test 2 final cleanup: keep the approved dashboard concise without touching calendar behavior. */
+.test2.ap207-authenticated [data-screen-panel="home"]>.home-grid>.summary{display:none!important}
+.test2.ap207-authenticated [data-screen-panel="home"]>.home-grid{grid-template-columns:1fr!important}
+.test2.ap207-authenticated [data-screen-panel="home"]>.home-grid>.next-stays{margin:0!important}
+.test2.ap207-authenticated [data-screen-panel="home"]>.t2-pro-tablewrap{display:none!important}
+@media(max-width:720px){.test2.ap207-authenticated [data-screen-panel="home"]>.home-grid{display:block!important}}
