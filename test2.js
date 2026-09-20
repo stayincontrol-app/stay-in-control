@@ -211,16 +211,8 @@
       badge.textContent = "PRINCIPAL";
       document.body.append(badge);
     }
-    if (!document.querySelector(".t2-support")) {
-      const support = document.createElement("a");
-      support.className = "t2-support";
-      support.href = "https://wa.me/15612756810";
-      support.target = "_blank";
-      support.rel = "noopener noreferrer";
-      support.innerHTML = "<span>◉</span><b></b>";
-      document.body.append(support);
-    }
-    updateSupport();
+    // Support is exposed in the approved role-aware sidebar; avoid a duplicate floating button.
+    document.querySelectorAll(".t2-support").forEach((node) => node.remove());
     window.addEventListener("stay:unified-navigation", removePageShare);
     watchInitialMenu();
     loadStableSuite();
