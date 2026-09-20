@@ -118,33 +118,8 @@
   function applyUnifiedMenuImmediately() {
     const nav = document.querySelector(".t2-pro-menu");
     if (!nav) return false;
-    const pt = currentLang() === "pt-BR" || currentLang() === "pt-PT";
-    const labels = pt
-      ? {
-          properties: "Propriedades / Proprietários",
-          expenses: "Despesas / Receitas adicionais",
-          settings: "Configurações / Central de Atendimento",
-        }
-      : { properties: null, expenses: null, settings: null };
-    if (labels.properties)
-      setMenuText(
-        nav.querySelector('[data-route="properties"]'),
-        labels.properties,
-      );
-    if (labels.expenses)
-      setMenuText(
-        nav.querySelector('[data-route="expenses"]'),
-        labels.expenses,
-      );
-    if (labels.settings)
-      setMenuText(
-        nav.querySelector('[data-route="settings"]'),
-        labels.settings,
-      );
-    ["owners", "extras", "integrations", "support"].forEach((r) => {
-      const b = nav.querySelector(`[data-route="${r}"]`);
-      if (b) b.style.setProperty("display", "none", "important");
-    });
+    // Test 2: the pro shell owns role-aware navigation. Do not merge
+    // Proprietários/Propriedades or hide iCal behind another module.
     return true;
   }
   function watchInitialMenu() {
@@ -167,7 +142,7 @@
       l.dataset.t2Suite = "1";
       document.head.append(l);
     }
-    loadCss("./test2-pro-shell.css?v=20260916-charts", "pro-shell");
+    loadCss("./test2-pro-shell.css?v=20260920-approved-v2", "pro-shell");
     loadCss("./test2-pro-internals.css", "pro-internals");
     loadCss("./test2-pro-management.css", "pro-management");
     loadCss("./test2-super-dashboard-v2.css?v=20260916-charts", "super-dashboard-v2");
@@ -176,7 +151,7 @@
       ["./test2-admin-mobile-stability.js", "admin-mobile-stability"],
       ["./test2-suite.js?v=20260918-contract-full4", "suite-core"],
       ["./test2-performance-guard.js", "performance-guard"],
-      ["./test2-pro-shell.js?v=20260918-month-values-v8", "pro-shell"],
+      ["./test2-pro-shell.js?v=20260920-approved-v2", "pro-shell"],
       ["./test2-ui-stability.js", "ui-stability"],
       ["./test2-features.js", "features"],
       ["./test2-access.js", "access"],
