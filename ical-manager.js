@@ -67,20 +67,14 @@
     const sec = document.createElement("section");
     sec.id = "icalManager";
     sec.className = "panel ical-manager";
-    sec.innerHTML = `<div class="panel-heading"><div><p class="eyebrow">Integração de calendário</p><h2>iCal por propriedade/unidade</h2><p class="admin-intro">Cada link fica ligado somente à unidade selecionada.</p></div></div><div class="ical-grid"><div class="field" id="icalAdminWrap"><label>Administrador</label><select id="icalAdmin"></select></div><div class="field"><label>Proprietário</label><select id="icalOwner"></select></div><div class="field"><label>Propriedade / unidade</label><select id="icalProperty"></select></div><div class="field"><label>Plataforma</label><select id="icalPlatform"><option>Airbnb</option><option>Booking.com</option><option>Vrbo</option><option>Expedia</option><option>Agoda</option><option>Outro</option></select></div><div class="field"><label>Como a limpeza é cobrada?</label><select id="icalCleaningMode"><option value="included">Dentro do valor bruto</option><option value="separate">Cobrada separadamente</option><option value="none">Sem taxa de limpeza</option></select></div><div class="field"><label>Valor da limpeza (R$)</label><input id="icalCleaningFee" type="number" min="0" step=".01" value="0"></div><div class="field ical-wide"><label>Link iCal desta propriedade</label><input id="icalUrl" type="url" placeholder="https://.../calendar.ics"></div><div class="form-actions ical-wide"><button id="icalSave" class="button button-primary" type="button">Salvar iCal desta unidade</button></div></div><p id="icalMsg"></p><div id="icalList" class="ical-list"></div>`;
+    sec.innerHTML = `<div class="panel-heading"><div><p class="eyebrow">Integração de calendário</p><h2>iCal por propriedade/unidade</h2><p class="admin-intro">Cada link fica ligado somente à unidade selecionada.</p></div></div><div class="ical-grid"><div class="field" id="icalAdminWrap"><label>Administrador</label><select id="icalAdmin"></select></div><div class="field"><label>Proprietário</label><select id="icalOwner"></select></div><div class="field"><label>Propriedade / unidade</label><select id="icalProperty"></select></div><div class="field"><label>Plataforma</label><select id="icalPlatform"><option>Airbnb</option><option>Booking.com</option><option>Vrbo</option><option>Expedia</option><option>Agoda</option><option>Outro</option></select></div><div class="field ical-wide"><label>Link iCal desta propriedade</label><input id="icalUrl" type="url" placeholder="https://.../calendar.ics"></div><div class="form-actions ical-wide"><button id="icalSave" class="button button-primary" type="button">Salvar iCal desta unidade</button></div></div><p id="icalMsg"></p><div id="icalList" class="ical-list"></div>`;
     home.append(sec);
     const admin = sec.querySelector("#icalAdmin"),
       owner = sec.querySelector("#icalOwner"),
       property = sec.querySelector("#icalProperty"),
       url = sec.querySelector("#icalUrl"),
       platform = sec.querySelector("#icalPlatform"),
-      cleaningMode = sec.querySelector("#icalCleaningMode"),
-      cleaningFee = sec.querySelector("#icalCleaningFee"),
       msg = sec.querySelector("#icalMsg");
-    cleaningMode.onchange = () => {
-      cleaningFee.disabled = cleaningMode.value === "none";
-      if (cleaningFee.disabled) cleaningFee.value = "0";
-    };
     function fillAdmins() {
       const admins = users().filter((u) => u.role === "admin");
       admin.innerHTML =
@@ -139,9 +133,7 @@
         ? rows
             .map((x) => {
               const p = ps.get(x.propertyId) || {};
-              const mode = ["included", "separate", "none"].includes(x.cleaningMode) ? x.cleaningMode : "included";
-              const cleaningLabel = mode === "separate" ? "Cobrada separadamente" : mode === "none" ? "Sem taxa" : "Dentro do valor bruto";
-              return `<div class="ical-row"><strong>${esc(p.unit || p.name || x.propertyId)} — ${esc(x.platform)}</strong><small>Proprietário: ${esc(x.ownerName || x.ownerEmail || "—")}</small>${role() === "super_admin" ? `<small>Administrador: ${esc(x.adminName || x.adminEmail || "—")}</small>` : ""}<small>Limpeza: ${cleaningLabel}${mode === "none" ? "" : ` • ${Number(x.cleaningFee || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`}</small><small>${esc(x.url)}</small><div class="ical-actions"><button class="button button-secondary" type="button" data-edit="${esc(x.id)}">Editar</button><button class="button" style="background:#dc2626;color:#fff" type="button" data-del="${esc(x.id)}">Remover iCal</button></div></div>`;
+              return `<div class="ical-row"><strong>${esc(p.unit || p.name || x.propertyId)} — ${esc(x.platform)}</strong><small>Proprietário: ${esc(x.ownerName || x.ownerEmail || "—")}</small>${role() === "super_admin" ? `<small>Administrador: ${esc(x.adminName || x.adminEmail || "—")}</small>` : ""}<small>${esc(x.url)}</small><div class="ical-actions"><button class="button button-secondary" type="button" data-edit="${esc(x.id)}">Editar</button><button class="button" style="background:#dc2626;color:#fff" type="button" data-del="${esc(x.id)}">Remover iCal</button></div></div>`;
             })
             .join("")
         : "<small>Nenhum iCal cadastrado ainda.</small>";
@@ -156,9 +148,6 @@
             fillProps();
             property.value = x.propertyId;
             platform.value = x.platform;
-            cleaningMode.value = ["included", "separate", "none"].includes(x.cleaningMode) ? x.cleaningMode : "included";
-            cleaningFee.value = String(Math.max(0, Number(x.cleaningFee) || 0));
-            cleaningMode.onchange();
             url.value = x.url;
             sec.dataset.edit = x.id;
             sec.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -218,11 +207,6 @@
         adminEmail: a?.email || admin.value || auth()?.profile?.email || "",
         adminName: a?.name || auth()?.profile?.name || "",
         platform: platform.value,
-        cleaningMode: cleaningMode.value,
-        cleaningFee:
-          cleaningMode.value === "none"
-            ? 0
-            : Math.max(0, Number(cleaningFee.value) || 0),
         url: u,
         updatedAt: new Date().toISOString(),
       };
