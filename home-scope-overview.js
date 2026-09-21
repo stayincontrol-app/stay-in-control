@@ -232,8 +232,8 @@
               : "included",
             rawCleaning = Math.max(0, Number(r.cleaningFee ?? r.cleaning) || 0),
             c = cleaningMode === "included" ? rawCleaning : 0,
-            rate =
-              Number(r.commissionRate ?? p.commissionRate ?? p.commission) || 0;
+            rawRate = Number(r.commissionRate ?? p.commissionRate ?? p.commission) || 0,
+            rate = rawRate > 0 && rawRate <= 1 ? rawRate * 100 : rawRate;
           clean += c;
           commission += ((Number(r.gross || 0) - c) * rate) / 100;
           const a = new Date(r.checkIn),
@@ -352,10 +352,7 @@
       "margin:0 0 16px;padding:0;background:transparent;border:0;box-shadow:none";
     box.innerHTML =
       '<p class="eyebrow">Visão geral</p><h2 style="margin:4px 0 14px">Selecionar visão da conta</h2><div class="reservation-form" style="margin-top:8px"><div class="field" id="homeAdminField" hidden><label>Administrador</label><select id="homeAdmin"></select></div><div class="field"><label>Proprietário</label><select id="homeOwner"></select></div><div class="field"><label>Propriedade / unidade</label><select id="homeUnit"></select></div><div class="field"><label>Mês</label><select id="homeMonth"></select></div><div class="field"><label>Ano</label><select id="homeYear"></select></div></div><p id="homeScopeLabel" style="margin:12px 0 0;color:#64748b;font-weight:700"></p>';
-    const administration = document.getElementById("propertySettings");
-    if (administration)
-      administration.insertAdjacentElement("beforebegin", box);
-    else heading.insertAdjacentElement("afterend", box);
+    header.insertAdjacentElement("afterend", box);
     const af = box.querySelector("#homeAdminField"),
       as = box.querySelector("#homeAdmin"),
       os = box.querySelector("#homeOwner"),
