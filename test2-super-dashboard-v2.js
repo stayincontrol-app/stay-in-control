@@ -244,7 +244,7 @@
     content.append(alert);
     const charts = create("section", "t2v2-charts");
     charts.innerHTML =
-      '<article><h3>Receitas x Despesas</h3><div class="t2v2-chart-legend"><span><i class="revenue"></i>Receita bruta</span><span><i class="expense"></i>Despesas</span></div><div class="t2v2-bars" id="t2V2Bars"></div></article><article><h3>Distribuição das Despesas</h3><div class="t2v2-donut-wrap"><div class="t2v2-donut" id="t2V2Donut"><span>Total<br><b id="t2V2ExpenseTotal">R$ 0,00</b></span></div><ul><li data-slice="commission"><i class="commission"></i>Comissão <b id="t2V2CommissionPct">0%</b></li><li data-slice="recurring"><i class="recurring"></i>Despesas recorrentes <b id="t2V2RecurringPct">0%</b></li><li data-slice="other"><i class="other"></i>Outras despesas <b id="t2V2OtherPct">0%</b></li><li data-slice="net"><i class="revenue"></i>Repasse líquido <b id="t2V2NetPct">0%</b></li></ul></div></article>';
+      '<article><h3>Receitas x Despesas</h3><div class="t2v2-chart-legend"><span><i class="revenue"></i>Receita bruta</span><span><i class="expense"></i>Despesas</span></div><div class="t2v2-bars" id="t2V2Bars"></div></article><article><h3>Distribuição das Despesas</h3><div class="t2v2-donut-wrap"><div class="t2v2-donut" id="t2V2Donut"><span>Total<br><b id="t2V2ExpenseTotal">R$ 0,00</b></span></div><ul><li data-slice="commission"><i class="commission"></i>Comissão <b id="t2V2CommissionPct">0%</b></li><li data-slice="recurring"><i class="recurring"></i>Despesas recorrentes <b id="t2V2RecurringPct">0%</b></li><li data-slice="other"><i class="other"></i>Outras despesas <b id="t2V2OtherPct">0%</b></li><li data-slice="net"><i class="revenue"></i>Repasse final <b id="t2V2NetPct">0%</b></li></ul></div></article>';
     content.append(charts);
     const actions = create("div", "t2v2-actions");
     actions.innerHTML =
@@ -450,7 +450,7 @@
           pct: pct(recurring),
         },
         other: { label: "Outras despesas", value: other, pct: pct(other) },
-        net: { label: "Repasse líquido", value: Math.max(0,t.net), pct: pct(Math.max(0,t.net)) },
+        net: { label: "Repasse final", value: Math.max(0,t.net), pct: pct(Math.max(0,t.net)) },
       };
     document.getElementById("t2V2ExpenseTotal").textContent = money.format(sum);
     document.getElementById("t2V2CommissionPct").textContent =
