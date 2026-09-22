@@ -183,8 +183,8 @@
           ...x,
           sponsored: true,
           active: true,
-          intervalSeconds: 10,
-          durationSeconds: 10,
+          intervalSeconds: 6,
+          durationSeconds: 6,
         });
         changed = true;
       }
@@ -244,7 +244,7 @@
     content.append(alert);
     const charts = create("section", "t2v2-charts");
     charts.innerHTML =
-      '<article><h3>Receitas x Despesas</h3><div class="t2v2-chart-legend"><span><i class="revenue"></i>Receita bruta</span><span><i class="expense"></i>Despesas</span></div><div class="t2v2-bars" id="t2V2Bars"></div></article><article><h3>Distribuição das Despesas</h3><div class="t2v2-donut-wrap"><div class="t2v2-donut" id="t2V2Donut"><span>Total<br><b id="t2V2ExpenseTotal">R$ 0,00</b></span></div><ul><li data-slice="commission"><i class="commission"></i>Comissão <b id="t2V2CommissionPct">0%</b></li><li data-slice="recurring"><i class="recurring"></i>Despesas recorrentes <b id="t2V2RecurringPct">0%</b></li><li data-slice="other"><i class="other"></i>Outras despesas <b id="t2V2OtherPct">0%</b></li></ul></div></article>';
+      '<article><h3>Receitas x Despesas</h3><div class="t2v2-chart-legend"><span><i class="revenue"></i>Receita bruta</span><span><i class="expense"></i>Despesas</span></div><div class="t2v2-bars" id="t2V2Bars"></div></article><article><h3>Distribuição das Despesas</h3><div class="t2v2-donut-wrap"><div class="t2v2-donut" id="t2V2Donut"><span>Total<br><b id="t2V2ExpenseTotal">R$ 0,00</b></span></div><ul><li data-slice="commission"><i class="commission"></i>Comissão <b id="t2V2CommissionPct">0%</b></li><li data-slice="recurring"><i class="recurring"></i>Despesas recorrentes <b id="t2V2RecurringPct">0%</b></li><li data-slice="other"><i class="other"></i>Outras despesas <b id="t2V2OtherPct">0%</b></li><li data-slice="net"><i class="revenue"></i>Repasse líquido <b id="t2V2NetPct">0%</b></li></ul></div></article>';
     content.append(charts);
     const actions = create("div", "t2v2-actions");
     actions.innerHTML =
@@ -436,7 +436,7 @@
         document.getElementById("summaryRecurringExpenses")?.textContent,
       ),
       other = Math.max(0, t.expenses - recurring),
-      sum = t.commission + recurring + other,
+      sum = t.commission + recurring + other + Math.max(0,t.net),
       pct = (x) => (sum ? Math.round((x / sum) * 100) : 0),
       parts = {
         commission: {
@@ -450,6 +450,7 @@
           pct: pct(recurring),
         },
         other: { label: "Outras despesas", value: other, pct: pct(other) },
+        net: { label: "Repasse líquido", value: Math.max(0,t.net), pct: pct(Math.max(0,t.net)) },
       };
     document.getElementById("t2V2ExpenseTotal").textContent = money.format(sum);
     document.getElementById("t2V2CommissionPct").textContent =
@@ -457,6 +458,7 @@
     document.getElementById("t2V2RecurringPct").textContent =
       parts.recurring.pct + "%";
     document.getElementById("t2V2OtherPct").textContent = parts.other.pct + "%";
+    document.getElementById("t2V2NetPct").textContent = parts.net.pct + "%";
     document
       .getElementById("t2V2Donut")
       .style.setProperty("--a", parts.commission.pct + "%");
@@ -498,11 +500,12 @@
     const b = list[adIndex],
       seconds = Math.max(
         5,
-        Number(b.durationSeconds || b.intervalSeconds) || 10,
+        Number(b.durationSeconds || b.intervalSeconds) || 6,
       );
-    host.innerHTML = `<span class="tag">PATROCINADO</span><a class="image" ${b.link ? `href="${b.link}" target="_blank" rel="noopener"` : ""}><img alt="" src="${b.imageUrl}"><span><b></b><small></small></span></a><div class="controls"><button type="button" data-prev>‹</button><strong>${adIndex + 1} de ${list.length}</strong><button type="button" data-next>›</button></div><p>◷ ${seconds} segundos</p>`;
+    host.innerHTML = `<span class="tag">PATROCINADO</span><button type="button" data-close aria-label="Fechar anúncio" style="position:absolute;right:8px;top:8px;z-index:5;border:0;border-radius:50%;width:32px;height:32px;background:#111827;color:#fff;font-size:20px">×</button><a class="image" ${b.link ? `href="${b.link}" target="_blank" rel="noopener"` : ""}><img alt="" src="${b.imageUrl}"><span><b></b><small></small></span></a><div class="controls"><button type="button" data-prev>‹</button><strong>${adIndex + 1} de ${list.length}</strong><button type="button" data-next>›</button></div>`;
     host.querySelector(".image span b").textContent = b.title || "Publicidade";
     host.querySelector(".image span small").textContent = b.subtitle || "";
+    host.querySelector("[data-close]").onclick=()=>{host.hidden=true;clearTimeout(adTimer);setTimeout(()=>renderAd(1),180000)};
     host.querySelector("[data-prev]").onclick = () => renderAd(-1);
     host.querySelector("[data-next]").onclick = () => renderAd(1);
     clearTimeout(adTimer);
