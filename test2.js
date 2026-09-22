@@ -96,9 +96,16 @@
     const s = document.createElement("script");
     s.src = src;
     s.async = false;
-    s.defer = false;
+    s.defer = true;
     s.dataset.t2 = key;
     document.body.append(s);
+  }
+  function loadScriptsInBatches(items) {
+    const critical = items.slice(0, 9), rest = items.slice(9);
+    critical.forEach(([src,key])=>loadScript(src,key));
+    const loadRest=()=>rest.forEach(([src,key])=>loadScript(src,key));
+    if("requestIdleCallback" in window) requestIdleCallback(loadRest,{timeout:1200});
+    else setTimeout(loadRest,80);
   }
   function loadCss(src, key) {
     if (document.querySelector(`link[data-t2-css="${key}"]`)) return;
@@ -171,7 +178,7 @@
     loadCss("./test2-pro-internals.css", "pro-internals");
     loadCss("./test2-pro-management.css", "pro-management");
     loadCss("./test2-super-dashboard-v2.css?v=20260916-charts", "super-dashboard-v2");
-    [
+    loadScriptsInBatches([
       ["./test2-inactivity-logout.js", "inactivity-logout"],
       ["./test2-admin-mobile-stability.js", "admin-mobile-stability"],
       ["./test2-suite.js?v=20260918-contract-full4", "suite-core"],
@@ -226,7 +233,7 @@
         "./test2-white-screen-recovery.js?v=20260915-navigation",
         "white-screen-recovery",
       ],
-    ].forEach(([src, key]) => loadScript(src, key));
+    ]);
   }
   document.addEventListener("DOMContentLoaded", () => {
     document.body.classList.add("test2");
