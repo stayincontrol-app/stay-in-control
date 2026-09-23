@@ -465,6 +465,9 @@
     document
       .getElementById("t2V2Donut")
       .style.setProperty("--b", pct(t.commission + recurring) + "%");
+    document
+      .getElementById("t2V2Donut")
+      .style.setProperty("--c", pct(t.commission + recurring + other) + "%");
     document.querySelectorAll(".t2v2-donut-wrap [data-slice]").forEach((li) => {
       const q = parts[li.dataset.slice];
       if (q) { li.title = `${q.label}: ${money.format(q.value)} (${q.pct}%)`; const value = li.querySelector('b'); if (value) value.textContent = `${q.pct}% · ${money.format(q.value)}`; }
