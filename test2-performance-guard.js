@@ -6,11 +6,11 @@ window.setInterval=function(fn,delay,...args){
     if(ms===1800&&src.includes('lang()')&&src.includes('sync()'))return nativeSetInterval(()=>{},2147483647);
     if(ms===300&&src.includes('ap207-authenticated')&&src.includes('properties()')){
       queueMicrotask(()=>{try{fn(...args)}catch(e){console.error(e)}});
-      return nativeSetInterval(fn,60,...args);
+      return nativeSetInterval(fn,300,...args);
     }
     if(ms===120&&src.includes('newPropertyButton')){
       queueMicrotask(()=>{try{fn(...args)}catch(e){console.error(e)}});
-      return nativeSetInterval(fn,40,...args);
+      return nativeSetInterval(fn,120,...args);
     }
   }catch{}
   return nativeSetInterval(fn,delay,...args);
