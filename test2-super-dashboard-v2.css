@@ -38,7 +38,7 @@
 .t2v2-bar-pair i.expense{background:#ef3f4e}
 .t2v2-bar-pair small{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);color:#667085}
 .t2v2-donut-wrap{display:flex;align-items:center;justify-content:center;gap:25px;min-height:190px}
-.t2v2-donut{--a:30%;--b:75%;width:150px;height:150px;border-radius:50%;background:conic-gradient(#6d28d9 0 var(--a),#ef3f4e var(--a) var(--b),#f59e0b var(--b));position:relative;flex:0 0 auto}
+.t2v2-donut{--a:30%;--b:75%;width:150px;height:150px;border-radius:50%;background:conic-gradient(#6d28d9 0 var(--a),#ef3f4e var(--a) var(--b),#f59e0b var(--b) var(--c),#16a34a var(--c) 100%);position:relative;flex:0 0 auto}
 .t2v2-donut:after{content:"";position:absolute;inset:30px;background:#fff;border-radius:50%}
 .t2v2-donut span{position:absolute;inset:0;z-index:1;display:grid;place-content:center;text-align:center;font-size:11px}
 .t2v2-donut b{font-size:15px}
@@ -46,7 +46,7 @@
 .t2v2-donut-wrap li{display:grid;grid-template-columns:10px 1fr auto;gap:7px;align-items:center}
 .t2v2-donut-wrap i{width:9px;height:9px;border-radius:3px;background:#6d28d9}
 .t2v2-donut-wrap i.recurring{background:#ef3f4e}
-.t2v2-donut-wrap i.other{background:#f59e0b}
+.t2v2-donut-wrap i.other{background:#f59e0b}.t2v2-donut-wrap i.revenue{background:#16a34a}
 .t2v2-actions{display:flex;gap:8px;margin:10px 0}
 .t2v2-actions button{color:#5b21d1}
 .t2v2-table-card table{width:100%;border-collapse:collapse;font-size:11px}
