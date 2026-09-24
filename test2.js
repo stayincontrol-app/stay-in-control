@@ -215,6 +215,7 @@
       ["./test2-i18n-dynamic.js?v=20260921-ads", "i18n-dynamic"],
       ["./test2-admins-dashboard.js?v=20260915-final", "admins-dashboard"],
       ["./test2-plans-v2.js", "plans-v2"],
+      ["./test2-automatic-payments-gate.js?v=20260924-super-access", "automatic-payments-gate"],
       ["./test2-regional-analytics.js", "regional-analytics"],
       ["./test2-unified-runtime.js?v=20260918-share-deepfix1", "unified-runtime"],
       ["./test2-owner-modal-v2.js?v=20260912-2056", "owner-modal-v2"],
