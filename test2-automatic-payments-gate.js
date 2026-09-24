@@ -53,7 +53,7 @@
     box.replaceChildren();
     if (p.role === 'admin' && !enabled) {
       box.append(document.createTextNode('Pagamentos automáticos aguardam liberação do Super Administrador. '));
-      if (requestStatus !== 'pending') {
+      if (requestStatus !== 'pending' && requestStatus !== 'approved') {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'button button-secondary';
@@ -73,7 +73,7 @@
           finally { button.disabled = false; }
         };
         box.append(button, document.createTextNode(' '));
-      } else box.append(document.createTextNode('Pedido enviado. '));
+      } else box.append(document.createTextNode(requestStatus === 'approved' ? 'O acesso anterior está desativado. Contate o Super Administrador. ' : 'Pedido enviado. '));
       const link = document.createElement('a');
       link.href = 'https://wa.me/15612756810?text=' + encodeURIComponent('Olá, gostaria de solicitar a liberação dos pagamentos automáticos no Stay in Control.');
       link.target = '_blank';
