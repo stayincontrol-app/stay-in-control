@@ -33,8 +33,11 @@
       box.dataset.automaticAccessNote = '1';
       parent.append(box);
     }
-    box.replaceChildren();
     const p = profile();
+    const state = p.role + ':' + String(checked) + ':' + String(enabled);
+    if (box.dataset.state === state) return;
+    box.dataset.state = state;
+    box.replaceChildren();
     if (p.role === 'admin' && !enabled) {
       box.append(document.createTextNode('Pagamentos automáticos aguardam liberação do Super Administrador. '));
       const link = document.createElement('a');
