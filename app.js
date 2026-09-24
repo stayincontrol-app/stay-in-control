@@ -1444,6 +1444,20 @@
       );
     elements.reservationForm.addEventListener("submit", submitReservation);
     elements.reservationForm.addEventListener("input", updatePreview);
+    // Date inputs do not fire "input" consistently in every browser/device.
+    // Keep nights preview synchronized for administrators as soon as either date changes.
+    const syncReservationDates = () => {
+      if (elements.checkIn.value) {
+        elements.checkOut.min = elements.checkIn.value;
+      } else {
+        elements.checkOut.removeAttribute("min");
+      }
+      updatePreview();
+    };
+    elements.checkIn.addEventListener("change", syncReservationDates);
+    elements.checkOut.addEventListener("change", syncReservationDates);
+    elements.checkIn.addEventListener("blur", syncReservationDates);
+    elements.checkOut.addEventListener("blur", syncReservationDates);
     elements.cancelEditButton.addEventListener("click", resetForm);
     elements.newReservationButton.addEventListener("click", () => {
       resetForm();
