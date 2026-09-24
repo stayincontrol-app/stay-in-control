@@ -178,6 +178,7 @@
     loadCss("./test2-pro-internals.css", "pro-internals");
     loadCss("./test2-pro-management.css", "pro-management");
     loadCss("./test2-super-dashboard-v2.css?v=20260916-charts", "super-dashboard-v2");
+    loadCss("./test2-contract-legibility.css?v=20260924", "contract-legibility");
     loadScriptsInBatches([
       ["./test2-inactivity-logout.js", "inactivity-logout"],
       ["./test2-admin-mobile-stability.js", "admin-mobile-stability"],
