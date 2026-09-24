@@ -1,0 +1,39 @@
+/* Readable contract and payment controls in Test 1. */
+#t2Contracts {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+#t2Contracts h2 { font-size: 1.45rem; line-height: 1.3; }
+#t2Contracts h3 { font-size: 1.2rem; line-height: 1.35; }
+#t2Contracts h4 { font-size: 1.05rem; }
+#t2Contracts p,
+#t2Contracts .t2-muted,
+#t2Contracts small { font-size: .95rem; line-height: 1.5; }
+
+#t2Contracts .t2-table th,
+#t2Contracts .t2-table td,
+#t2Contracts .t2-contract-ledger th,
+#t2Contracts .t2-contract-ledger td {
+  font-size: .95rem;
+  line-height: 1.45;
+  padding: 12px;
+}
+#t2Contracts .t2-table th { font-size: .875rem; }
+
+#t2Contracts label,
+#t2Contracts .t2-contract-payments label { font-size: .95rem; line-height: 1.4; }
+#t2Contracts input,
+#t2Contracts select,
+#t2Contracts textarea,
+#t2Contracts button { font-size: 1rem; }
+#t2Contracts input,
+#t2Contracts select { min-height: 46px; }
+#t2Contracts .t2-contract-file-note { font-size: .875rem; }
+#t2Contracts .t2-contract-ledger table { font-size: .95rem; }
+
+@media (max-width: 700px) {
+  #t2Contracts .t2-contract-payments form { grid-template-columns: minmax(0, 1fr); }
+  #t2Contracts .t2-table,
+  #t2Contracts .t2-contract-ledger { display: block; overflow-x: auto; }
+}
