@@ -82,6 +82,9 @@
       );
     const sync = () => {
       const cpf = f.elements.mode.value === "cpf";
+      const adminRole = f.elements.role?.value === "admin";
+      box.hidden = adminRole;
+      box.querySelectorAll("input[type=checkbox]").forEach(x=>{x.disabled=adminRole;if(adminRole)x.checked=false});
       m.querySelector("[data-email]").hidden = cpf;
       m.querySelector("[data-cpf]").hidden = !cpf;
       f.elements.email.disabled = cpf;
@@ -90,7 +93,7 @@
       f.elements.cpf.required = cpf;
     };
     f.addEventListener("change", (e) => {
-      if (e.target.name === "mode") sync();
+      if (e.target.name === "mode" || e.target.name === "role") sync();
     });
     sync();
     m.querySelector("[data-close]").onclick = () => m.remove();
@@ -114,7 +117,7 @@
         msg.textContent = "Informe o nome.";
         return;
       }
-      if (!propertyIds.length) {
+      if (role !== "admin" && !propertyIds.length) {
         msg.className = "t2ui-msg bad";
         msg.textContent = "Selecione pelo menos uma propriedade ou unidade.";
         return;
@@ -147,7 +150,7 @@
                   identifierType: "cpf",
                   cpf,
                   phone,
-                  propertyIds,
+                  propertyIds: role === "admin" ? [] : propertyIds,
                   resend: false,
                 }
               : {
@@ -156,7 +159,7 @@
                   identifierType: "email",
                   email,
                   phone,
-                  propertyIds,
+                  propertyIds: role === "admin" ? [] : propertyIds,
                   redirectTo,
                   resend: false,
                 };
