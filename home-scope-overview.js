@@ -97,6 +97,8 @@
     }
   }
   async function props() {
+    const client=window.AP207Supabase,pr=profile();
+    if(client?.from){try{let q=client.from('properties').select('id,name,unit,owner_name,owner_id,administrator_id,city,state,country,address,commission_rate,deleted_at').is('deleted_at',null);if(pr.role==='admin')q=q.eq('administrator_id',pr.id);else if(pr.role==='owner')q=q.eq('owner_id',pr.id);const {data,error}=await q;if(!error&&Array.isArray(data)){const live=data.map(x=>({id:x.id,name:x.name||'',unit:x.unit||'',ownerName:x.owner_name||'',ownerId:x.owner_id||'',administratorId:x.administrator_id||'',city:x.city||'',state:x.state||'',country:x.country||'',address:x.address||'',commissionRate:Number(x.commission_rate||0),active:true}));save(PROPS,{version:1,properties:live});return attachLiveAdministrators(normalizeProps(live))}}catch(e){console.warn('home live properties',e)}}
     const x = read(PROPS, null);
     let list =
       Array.isArray(x?.properties) && x.properties.length ? x.properties : [];
@@ -489,6 +491,10 @@
     return true;
   }
   function boot() {
+    const rebuild=()=>{document.getElementById('homeScopePanel')?.remove();liveAdmins=[];void install()};
+    window.addEventListener('stay:properties-changed',rebuild);
+    window.addEventListener('stay:property-updated',rebuild);
+    window.addEventListener('pageshow',()=>{if(document.getElementById('homeScopePanel'))rebuild()});
     window.addEventListener("stay:roles-changed", () => {
       document.getElementById("homeScopePanel")?.remove();
       liveAdmins = [];
