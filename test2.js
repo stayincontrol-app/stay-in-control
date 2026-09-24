@@ -183,6 +183,7 @@
       ["./test2-inactivity-logout.js", "inactivity-logout"],
       ["./test2-admin-mobile-stability.js", "admin-mobile-stability"],
       ["./test2-suite.js?v=20260918-contract-full4", "suite-core"],
+      ["./test2-proper-name-inputs.js?v=20260924-titlecase", "proper-name-inputs"],
       ["./test2-contract-payments.js?v=20260924-property-payments", "property-payments"],
       ["./test2-performance-guard.js", "performance-guard"],
       ["./test2-pro-shell.js?v=20260918-month-values-v8", "pro-shell"],
