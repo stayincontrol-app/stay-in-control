@@ -505,7 +505,7 @@
         5,
         Number(b.durationSeconds || b.intervalSeconds) || 6,
       );
-    host.innerHTML = `<span class="tag">PATROCINADO</span><button type="button" data-close aria-label="Fechar anúncio" style="position:absolute;right:8px;top:8px;z-index:5;border:0;border-radius:50%;width:32px;height:32px;background:#111827;color:#fff;font-size:20px">×</button><a class="image" ${b.link ? `href="${b.link}" target="_blank" rel="noopener"` : ""}><img alt="" src="${b.imageUrl}"><span><b></b><small></small></span></a><div class="controls"><button type="button" data-prev>‹</button><strong>${adIndex + 1} de ${list.length}</strong><button type="button" data-next>›</button></div>`;
+    host.innerHTML = `<span class="tag">PATROCINADO</span><button type="button" data-close aria-label="Fechar anúncio" style="position:absolute;right:8px;top:8px;z-index:5;border:0;border-radius:50%;width:32px;height:32px;background:#111827;color:#fff;font-size:20px">×</button><a class="image" ${b.link ? `href="${b.link}" target="_blank" rel="noopener"` : ""}><img alt="" src="${b.imageUrl}"><span><b></b><small></small></span></a><div class="controls"><button type="button" data-prev>‹</button><strong>${adIndex + 1} / ${list.length}</strong><button type="button" data-next>›</button></div>`;
     host.querySelector(".image span b").textContent = b.title || "Publicidade";
     host.querySelector(".image span small").textContent = b.subtitle || "";
     host.querySelector("[data-close]").onclick=()=>{host.hidden=true;clearTimeout(adTimer);setTimeout(()=>renderAd(1),180000)};
