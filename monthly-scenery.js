@@ -211,7 +211,7 @@
       "data-stay-reservation-property-link",
     );
     loadScript("expense-property-link.js", "data-stay-expense-property-link");
-    loadScript("home-scope-overview.js", "data-stay-home-scope-overview");
+    loadScript("home-scope-overview.js?v=20260924-account-language", "data-stay-home-scope-overview");
     loadScript("global-scope-hierarchy.js", "data-stay-global-scope-hierarchy");
     loadScript("global-period-sync.js", "data-stay-global-period-sync");
     loadScript("ical-manager.js", "data-stay-ical-manager");
