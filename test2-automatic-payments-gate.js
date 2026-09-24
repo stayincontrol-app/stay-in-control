@@ -157,19 +157,37 @@
       const mode = box.querySelector('#t2PaymentMode');
       if (mode) {
         const option = mode.querySelector('option[value="asaas"]');
-        if (option) option.disabled = !checked || !enabled;
+        if (option) { option.disabled = !checked || !enabled; option.hidden = p.role === 'admin' && !enabled; }
         if (mode.value === 'asaas' && !enabled) mode.value = 'manual';
-        contact(box.querySelector('.t2-contract-pay-head') || box);
-        showRequests(box.querySelector('.t2-contract-pay-head') || box);
+        const card = box.querySelector('.t2-contract-pay-head .t2-contract-receipt');
+        if (card) {
+          const create = card.querySelector('a[href="https://www.asaas.com/"]');
+          const configure = card.querySelector('a[href*="docs.asaas.com"]');
+          if (create) { create.hidden = p.role === 'admin' && !enabled; create.style.display = create.hidden ? 'none' : ''; }
+          if (configure) { configure.hidden = p.role !== 'super_admin'; configure.style.display = configure.hidden ? 'none' : ''; }
+          const help = card.querySelector('p');
+          if (help && p.role === 'admin') {
+            const message = enabled
+              ? 'Acesso liberado pelo Super Administrador. Crie sua conta Asaas; a conexão bancária ainda precisa ser concluída.'
+              : 'Para usar pagamentos automáticos, peça primeiro a liberação ao Super Administrador. Você pode continuar registrando pagamentos manuais.';
+            if (help.textContent !== message) help.textContent = message;
+          }
+          contact(card);
+          showRequests(card);
+        }
       }
     }
     const form = document.getElementById('ltForm');
     if (form && ['admin', 'super_admin'].includes(p.role)) {
       const mode = form.elements.namedItem('paymentMode');
       const option = mode?.querySelector('option[value="automatic"]');
-      if (option) option.disabled = !checked || !enabled;
+      if (option) { option.disabled = !checked || !enabled; option.hidden = p.role === 'admin' && !enabled; }
       if (mode?.value === 'automatic' && !enabled) mode.value = 'manual';
-      contact(form);
+      const create = form.querySelector('a[href="https://www.asaas.com/"]');
+      const configure = form.querySelector('a[href*="docs.asaas.com"]');
+      if (create) { create.hidden = p.role === 'admin' && !enabled; create.style.display = create.hidden ? 'none' : ''; }
+      if (configure) { configure.hidden = p.role !== 'super_admin'; configure.style.display = configure.hidden ? 'none' : ''; }
+      contact(create?.closest('.panel') || form);
     }
   }
 
