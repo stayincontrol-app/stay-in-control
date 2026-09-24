@@ -448,22 +448,35 @@
       if (us.value !== "all") syncActiveProperty(us.value);
       syncHeader(list);
       applyMetrics(t);
-      const period =
-        m === "all" ? `Todos os meses de ${y}` : `${MONTHS[Number(m)]} de ${y}`;
+      const language = read("system-control-test2-suite-v1", { language: "pt-BR" }).language || "pt-BR";
+      const translate = (value) => window.Test2I18nUnified?.translate(value) || value;
+      const allMonths = {
+        "pt-BR": "Todos os meses de", en: "All months of", es: "Todos los meses de",
+        fr: "Tous les mois de", de: "Alle Monate", it: "Tutti i mesi del",
+        "pt-PT": "Todos os meses de", "zh-CN": "全年", ja: "通年", ko: "모든 달",
+      };
+      const period = m === "all"
+        ? `${allMonths[language] || allMonths["pt-BR"]} ${y}`
+        : new Intl.DateTimeFormat(language, { month: "long", year: "numeric" })
+          .format(new Date(y, Number(m), 1));
       label.textContent =
         period +
         " • " +
         (us.value !== "all"
-          ? `Unidade: ${us.selectedOptions[0]?.textContent}`
+          ? `${translate("Unidade")}: ${us.selectedOptions[0]?.textContent}`
           : os.value !== "all"
-            ? `Proprietário: ${os.selectedOptions[0]?.textContent}`
+            ? `${translate("Proprietário")}: ${os.selectedOptions[0]?.textContent}`
             : pr.role === "super_admin" && as.value !== "all"
-              ? `Administrador: ${as.selectedOptions[0]?.textContent}`
-              : "Visão geral da conta");
+              ? `${translate("Administrador")}: ${as.selectedOptions[0]?.textContent}`
+              : translate("Visão geral da conta"));
       const detail = { ...scope, metrics: t };
       window.__stayHomeScope = detail;
       window.dispatchEvent(new CustomEvent("stay:scope-change", { detail }));
     }
+    document.addEventListener("change", (event) => {
+      if (["t2AppLanguage", "t2V2Language"].includes(event.target?.id)) setTimeout(render, 80);
+    });
+    window.addEventListener("stay:language-change", () => setTimeout(render, 80));
     as.addEventListener("change", owners);
     os.addEventListener("change", () => {
       const oid = os.value,
