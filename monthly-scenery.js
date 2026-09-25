@@ -222,6 +222,10 @@
     );
   }
   if (document.readyState === "loading")
-    document.addEventListener("DOMContentLoaded", apply, { once: true });
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.StaySharedState) window.StaySharedState.ready.then(apply).catch(() => {});
+      else apply();
+    }, { once: true });
+  else if (window.StaySharedState) window.StaySharedState.ready.then(apply).catch(() => {});
   else apply();
 })();
