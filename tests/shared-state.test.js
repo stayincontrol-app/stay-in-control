@@ -20,20 +20,20 @@ function browser(records, user, propertyIds, role = 'admin') {
     assert.equal(table, 'shared_records');
     return {
       select() { return Promise.resolve({data:[...records.values()].filter(x => role === 'super_admin' || propertyIds.includes(x.property_id)),error:null}); },
-      async upsert(row) { records.set([row.collection,row.property_id,row.id].join(':'),row); return {error:null}; },
+      async upsert(row) { if(client.failNext) {client.failNext=false;return {error:new Error('offline')};} records.set([row.collection,row.property_id,row.id].join(':'),row); return {error:null}; },
     };
   }};
   const document = {
     body:{classList:{contains:()=>true},append(){}},
     visibilityState:'visible',
     getElementById:()=>null,
-    createElement:()=>({setAttribute(){},style:{},hidden:false}),
+    createElement:()=>({setAttribute(){},append(){},style:{},hidden:false}),
     addEventListener(){},
   };
   const window = {AP207Supabase:client,addEventListener(){}};
   const context = vm.createContext({window,document,Storage,localStorage,location:{reload(){}},setTimeout,Date,console});
   vm.runInContext(code,context);
-  return {window,localStorage};
+  return {window,localStorage,client};
 }
 
 test('records persist by property across browsers and remain visible to super administrator',async()=>{
@@ -51,6 +51,17 @@ test('records persist by property across browsers and remain visible to super ad
   const other=browser(records,'admin-c',['unit-207']);
   await other.window.StaySharedState.ready;
   assert.equal(JSON.parse(other.localStorage.getItem('system-control-test2-suite-v1')).contracts.length,0);
+});
+
+test('a failed save remains pending and can be retried',async()=>{
+  const records=new Map();
+  const laptop=browser(records,'admin-a',['unit-206']);
+  await laptop.window.StaySharedState.ready;
+  laptop.client.failNext=true;
+  laptop.localStorage.setItem('system-control-test2-suite-v1',JSON.stringify({contracts:[{id:'retry',propertyId:'unit-206'}]}));
+  await assert.rejects(laptop.window.StaySharedState.flush());
+  await laptop.window.StaySharedState.retry();
+  assert.equal(records.size,1);
 });
 
 test('expense changes and deletions remain consistent across devices', async()=>{
