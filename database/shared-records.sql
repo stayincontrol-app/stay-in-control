@@ -12,7 +12,7 @@ create table if not exists public.shared_records (
   constraint shared_records_collection check (collection in (
     'expenses','contracts','contractPayments','ownerPayouts','extraRevenue','ical',
     'featuresContracts','featuresExtraRevenue','icalConnections','recurringExpenses',
-    'contractDetails','guestDetails','extraAttachments'
+    'contractDetails','guestDetails','extraAttachments','audit'
   )),
   constraint shared_records_payload check (jsonb_typeof(payload) = 'object')
 );
