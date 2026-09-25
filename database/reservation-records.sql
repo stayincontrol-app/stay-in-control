@@ -23,21 +23,21 @@ create policy reservation_records_read on public.reservation_records for select 
     where pa.property_id = reservation_records.property_id and pa.user_id = (select auth.uid())
   ));
 create policy reservation_records_insert on public.reservation_records for insert to authenticated
-  with check (created_by = (select auth.uid()) and (private.is_super_admin() or exists (
-    select 1 from public.properties p
-    where p.id = property_id and p.administrator_id = (select auth.uid())
-  )));
+  with check (created_by = (select auth.uid()) and (private.is_super_admin() or (private.is_admin() and exists (
+    select 1 from public.property_access pa
+    where pa.property_id = reservation_records.property_id and pa.user_id = (select auth.uid())
+  ))));
 create policy reservation_records_update on public.reservation_records for update to authenticated
-  using (private.is_super_admin() or exists (
-    select 1 from public.properties p
-    where p.id = property_id and p.administrator_id = (select auth.uid())
-  ))
-  with check (created_by = (select auth.uid()) and (private.is_super_admin() or exists (
-    select 1 from public.properties p
-    where p.id = property_id and p.administrator_id = (select auth.uid())
+  using (private.is_super_admin() or (private.is_admin() and exists (
+    select 1 from public.property_access pa
+    where pa.property_id = reservation_records.property_id and pa.user_id = (select auth.uid())
+  )))
+  with check (private.is_super_admin() or (private.is_admin() and exists (
+    select 1 from public.property_access pa
+    where pa.property_id = reservation_records.property_id and pa.user_id = (select auth.uid())
   )));
 create policy reservation_records_delete on public.reservation_records for delete to authenticated
-  using (private.is_super_admin() or exists (
-    select 1 from public.properties p
-    where p.id = property_id and p.administrator_id = (select auth.uid())
-  ));
+  using (private.is_super_admin() or (private.is_admin() and exists (
+    select 1 from public.property_access pa
+    where pa.property_id = reservation_records.property_id and pa.user_id = (select auth.uid())
+  )));
