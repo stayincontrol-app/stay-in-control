@@ -1193,7 +1193,7 @@
       value: elements.expenseValue.value,
     });
   }
-  function submitExpense(event) {
+  async function submitExpense(event) {
     event.preventDefault();
     elements.expenseFormError.hidden = true;
     try {
@@ -1202,6 +1202,7 @@
       requireAccess(editing ? "expense:update" : "expense:create");
       dashboard.expenses = upsertExpense(dashboard.expenses, expense);
       saveExpenses();
+      if (window.StaySharedState) await window.StaySharedState.flush();
       render();
       resetExpenseForm();
       announce(
@@ -1231,7 +1232,7 @@
       block: "nearest",
     });
   }
-  function deleteExpense(id) {
+  async function deleteExpense(id) {
     requireAccess("expense:delete");
     const item = dashboard.expenses.find((expense) => expense.id === id);
     if (
@@ -1243,6 +1244,13 @@
       return;
     dashboard.expenses = removeExpense(dashboard.expenses, id);
     saveExpenses();
+    try {
+      if (window.StaySharedState) await window.StaySharedState.flush();
+    } catch {
+      elements.expenseFormError.textContent = "Não foi possível excluir a despesa no sistema. Tente novamente.";
+      elements.expenseFormError.hidden = false;
+      return;
+    }
     render();
     if (elements.expenseId.value === id) resetExpenseForm();
     announce("Despesa excluída com sucesso.");
@@ -1597,6 +1605,7 @@
   }
   async function initialize() {
     try {
+      if (window.StaySharedState) await window.StaySharedState.ready;
       getElements();
       const response = await fetch(`./data.json?ts=${Date.now()}`, {
         cache: "no-store",
