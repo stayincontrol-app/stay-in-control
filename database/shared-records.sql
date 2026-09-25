@@ -25,16 +25,16 @@ create policy shared_records_read on public.shared_records for select to authent
     where pa.property_id = shared_records.property_id and pa.user_id = (select auth.uid())
   ));
 create policy shared_records_insert on public.shared_records for insert to authenticated
-  with check (created_by = (select auth.uid()) and (private.is_super_admin() or exists (
-    select 1 from public.properties p
-    where p.id = property_id and p.administrator_id = (select auth.uid())
-  )));
+  with check (created_by = (select auth.uid()) and (private.is_super_admin() or (private.is_admin() and exists (
+    select 1 from public.property_access pa
+    where pa.property_id = shared_records.property_id and pa.user_id = (select auth.uid())
+  ))));
 create policy shared_records_update on public.shared_records for update to authenticated
-  using (private.is_super_admin() or exists (
-    select 1 from public.properties p
-    where p.id = property_id and p.administrator_id = (select auth.uid())
-  ))
-  with check (private.is_super_admin() or exists (
-    select 1 from public.properties p
-    where p.id = property_id and p.administrator_id = (select auth.uid())
-  ));
+  using (private.is_super_admin() or (private.is_admin() and exists (
+    select 1 from public.property_access pa
+    where pa.property_id = shared_records.property_id and pa.user_id = (select auth.uid())
+  )))
+  with check (private.is_super_admin() or (private.is_admin() and exists (
+    select 1 from public.property_access pa
+    where pa.property_id = shared_records.property_id and pa.user_id = (select auth.uid())
+  )));
