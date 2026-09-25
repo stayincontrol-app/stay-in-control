@@ -497,14 +497,15 @@
     </main>
     <script src="./long-term-contracts-test.js?v=20260919-payments" defer></script>
     <script src="./view-mode-test.js?v=20260918-native-scope"></script>
-    <script src="./monthly-scenery.js"></script>
+    <script src="./monthly-scenery.js?v=20260925-shared"></script>
     <script src="./session-property-switcher.js"></script>
     <script src="./permissions.js" defer></script>
+    <script src="./shared-state.js?v=20260925-shared" defer></script>
     <script src="./merge-ap207-history.js"></script>
     <script>fetch('./data.json?overviewSeed='+Date.now(),{cache:'no-store'}).then(r=>r.json()).then(d=>{window.__staySeedReservations=Array.isArray(d.reservations)?d.reservations:[];window.dispatchEvent(new Event('stay:data-change'))}).catch(()=>{})</script>
-    <script src="./app.js?v=20260918-report-refresh-only" defer></script>
+    <script src="./app.js?v=20260925-shared" defer></script>
     <script src="./global-month-selector.js" defer></script>
-    <script src="./property-manager.js" defer></script>
+    <script src="./property-manager.js?v=20260925-shared" defer></script>
     <script src="./consolidated-reports.js" defer></script>
     <script src="./all-months-reports.js" defer></script>
     <script src="./platform-integrations.js" defer></script>
@@ -515,7 +516,7 @@
       src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"
       defer
     ></script>
-    <script src="./test2.js?v=20260918-share-fix2" defer></script>
+    <script src="./test2.js?v=20260925-shared" defer></script>
     <script
       src="./test2-email-resend-restore.js?v=20260910-2200"
       defer

@@ -601,11 +601,49 @@
       JSON.stringify({ version: 1, reservations: records }),
     );
   }
+  async function saveRemoteReservation(reservation) {
+    const client = globalThis.AP207Supabase;
+    const auth = JSON.parse(localStorage.getItem("ap207-auth-profile-v1") || "null");
+    if (!client?.from || !auth?.profile?.id)
+      throw new Error("Conexão indisponível. A reserva não foi salva; tente novamente.");
+    const { error } = await client.from("reservation_records").upsert({
+      id: reservation.id,
+      property_id: currentProperty.id,
+      payload: { ...reservation, cleaningFee: reservation.cleaning ?? reservation.cleaningFee },
+      created_by: auth.profile.id,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) throw new Error("Não foi possível salvar a reserva no sistema. Tente novamente.");
+  }
+  async function loadRemoteReservations(defaults) {
+    const client = globalThis.AP207Supabase;
+    if (!client?.from) return defaults;
+    const { data, error } = await client.from("reservation_records")
+      .select("payload").eq("property_id", currentProperty.id);
+    if (error) throw new Error("Não foi possível carregar as reservas desta unidade.");
+    const signature = item => [item?.guest, item?.checkIn, item?.checkOut, Number(item?.gross || 0)].join('|');
+    const seedSignatures = currentProperty.id === "property-ap207"
+      ? new Set(dashboard.reservations.map(signature)) : new Set();
+    const remoteIds = new Set((data || []).map((row) => String(row.payload?.id || "")));
+    for (const item of defaults) {
+      if (access.hasPermission(currentUser, "reservation:create") && item.id &&
+          !remoteIds.has(String(item.id)) && !seedSignatures.has(signature(item)))
+        await saveRemoteReservation(item);
+    }
+    const merged = new Map(defaults.map((item) => [item.id, item]));
+    for (const row of data || []) {
+      if (row.payload?.id) {
+        for (const [id, item] of merged) if (id !== row.payload.id && signature(item) === signature(row.payload)) merged.delete(id);
+        merged.set(row.payload.id, row.payload);
+      }
+    }
+    return [...merged.values()];
+  }
   function loadStoredReservations(defaults) {
     if (!storageAvailable()) return defaults;
     const scopedKey = `${STORAGE_KEY}:${currentProperty.id}`;
-    const stored =
-      localStorage.getItem(scopedKey) || localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(scopedKey) ||
+      (currentProperty.id === "property-ap207" ? localStorage.getItem(STORAGE_KEY) : null);
     if (!stored) return defaults;
     try {
       const parsed = JSON.parse(stored);
@@ -630,9 +668,8 @@
   function loadStoredExpenses() {
     if (!storageAvailable()) return [];
     const scopedKey = `${EXPENSES_STORAGE_KEY}:${currentProperty.id}`;
-    const stored =
-      localStorage.getItem(scopedKey) ||
-      localStorage.getItem(EXPENSES_STORAGE_KEY);
+    const stored = localStorage.getItem(scopedKey) ||
+      (currentProperty.id === "property-ap207" ? localStorage.getItem(EXPENSES_STORAGE_KEY) : null);
     if (!stored) return [];
     try {
       const parsed = JSON.parse(stored);
@@ -667,6 +704,37 @@
       localStorage.removeItem(PROPERTIES_STORAGE_KEY);
       return defaults;
     }
+  }
+  async function loadAccessibleProperties(defaults) {
+    let client = globalThis.AP207Supabase;
+    for (let i = 0; !client && i < 20; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      client = globalThis.AP207Supabase;
+    }
+    if (!client?.from) return loadStoredProperties(defaults);
+    const { data, error } = await client.from("properties")
+      .select("id,owner_name,name,unit,city,state,address,commission_rate,administrator_id,owner_id")
+      .is("deleted_at", null);
+    if (error) return loadStoredProperties(defaults);
+    const byId = new Map(loadStoredProperties(defaults).map((p) => [String(p.id), p]));
+    for (const row of data || []) {
+      const old = byId.get(String(row.id)) || {};
+      byId.set(String(row.id), validateProperty({
+        id: row.id,
+        ownerName: row.owner_name || old.ownerName || "Sem proprietário",
+        name: row.name || old.name || row.unit || "Propriedade",
+        unit: row.unit || old.unit || row.name || "Unidade",
+        city: row.city || old.city || "Não informado",
+        state: row.state || old.state || "—",
+        address: row.address || old.address || "Não informado",
+        commissionRate: Number(row.commission_rate ?? old.commissionRate ?? 0),
+        administratorId: row.administrator_id || old.administratorId || "unassigned-admin",
+        ownerId: row.owner_id || old.ownerId || "unassigned-owner",
+      }));
+    }
+    const properties = [...byId.values()];
+    localStorage.setItem(PROPERTIES_STORAGE_KEY, JSON.stringify({ version: 1, properties }));
+    return properties;
   }
   function createElement(tag, className, text) {
     const element = document.createElement(tag);
@@ -1131,7 +1199,7 @@
       value: elements.expenseValue.value,
     });
   }
-  function submitExpense(event) {
+  async function submitExpense(event) {
     event.preventDefault();
     elements.expenseFormError.hidden = true;
     try {
@@ -1140,6 +1208,7 @@
       requireAccess(editing ? "expense:update" : "expense:create");
       dashboard.expenses = upsertExpense(dashboard.expenses, expense);
       saveExpenses();
+      if (window.StaySharedState) await window.StaySharedState.flush();
       render();
       resetExpenseForm();
       announce(
@@ -1169,7 +1238,7 @@
       block: "nearest",
     });
   }
-  function deleteExpense(id) {
+  async function deleteExpense(id) {
     requireAccess("expense:delete");
     const item = dashboard.expenses.find((expense) => expense.id === id);
     if (
@@ -1181,6 +1250,13 @@
       return;
     dashboard.expenses = removeExpense(dashboard.expenses, id);
     saveExpenses();
+    try {
+      if (window.StaySharedState) await window.StaySharedState.flush();
+    } catch {
+      elements.expenseFormError.textContent = "Não foi possível excluir a despesa no sistema. Tente novamente.";
+      elements.expenseFormError.hidden = false;
+      return;
+    }
     render();
     if (elements.expenseId.value === id) resetExpenseForm();
     announce("Despesa excluída com sucesso.");
@@ -1266,14 +1342,16 @@
     elements.appStatus.textContent = message;
     elements.appStatus.hidden = false;
   }
-  function submitReservation(event) {
+  async function submitReservation(event) {
     event.preventDefault();
+    elements.saveReservationButton.disabled = true;
     try {
       const reservation = readForm();
       const index = dashboard.reservations.findIndex(
         (item) => item.id === reservation.id,
       );
       requireAccess(index >= 0 ? "reservation:update" : "reservation:create");
+      await saveRemoteReservation(reservation);
       dashboard.reservations = upsertReservation(
         dashboard.reservations,
         reservation,
@@ -1286,12 +1364,15 @@
           ? "Reserva atualizada com sucesso."
           : "Reserva cadastrada com sucesso.",
       );
+      window.dispatchEvent(new Event("stay:reservation-saved"));
     } catch (error) {
       showFormError(
         error instanceof Error
           ? error
           : new Error("Não foi possível salvar a reserva."),
       );
+    } finally {
+      elements.saveReservationButton.disabled = false;
     }
   }
   function editReservation(id) {
@@ -1322,7 +1403,7 @@
     });
     elements.guest.focus({ preventScroll: true });
   }
-  function deleteReservation(id) {
+  async function deleteReservation(id) {
     requireAccess("reservation:delete");
     const item = dashboard.reservations.find(
       (reservation) => reservation.id === id,
@@ -1334,11 +1415,20 @@
       )
     )
       return;
-    dashboard.reservations = removeReservation(dashboard.reservations, id);
-    saveReservations();
-    render();
-    if (elements.reservationId.value === id) resetForm();
-    announce("Reserva excluída com sucesso.");
+    try {
+      const client = globalThis.AP207Supabase;
+      if (!client?.from) throw new Error("Conexão indisponível.");
+      const { error } = await client.from("reservation_records").delete()
+        .eq("id", id).eq("property_id", currentProperty.id);
+      if (error) throw error;
+      dashboard.reservations = removeReservation(dashboard.reservations, id);
+      saveReservations();
+      render();
+      if (elements.reservationId.value === id) resetForm();
+      announce("Reserva excluída com sucesso.");
+    } catch {
+      showFormError(new Error("Não foi possível excluir a reserva no sistema."));
+    }
   }
   function fillPropertyForm() {
     elements.propertyOwnerName.value = currentProperty.ownerName;
@@ -1521,6 +1611,7 @@
   }
   async function initialize() {
     try {
+      if (window.StaySharedState) await window.StaySharedState.ready;
       getElements();
       const response = await fetch(`./data.json?ts=${Date.now()}`, {
         cache: "no-store",
@@ -1531,7 +1622,7 @@
         );
       dashboard = validateDashboard(await response.json());
       users = dashboard.users;
-      properties = loadStoredProperties(dashboard.properties);
+      properties = await loadAccessibleProperties(dashboard.properties);
       currentUser =
         users.find(
           (user) =>
@@ -1540,12 +1631,22 @@
       if (!currentUser)
         throw new Error("Não existe usuário ativo para acessar o sistema.");
       currentProperty = access.visibleProperties(currentUser, properties)[0];
-      if (!currentProperty)
-        throw new Error("O usuário não possui propriedades atribuídas.");
+      if (!currentProperty) {
+        preparePropertySelector();
+        elements.newReservationButton.hidden = true;
+        elements.adminSection.hidden = true;
+        elements.newExpenseButton.hidden = true;
+        elements.appStatus.className = "app-status";
+        elements.appStatus.textContent = "Nenhuma unidade cadastrada para sua conta. Abra Propriedades e escolha + Nova propriedade para cadastrar a primeira.";
+        elements.appStatus.hidden = false;
+        showScreen("home", false);
+        return;
+      }
       dashboard.property = currentProperty.name;
       dashboard.city = currentProperty.city;
       dashboard.commissionRate = currentProperty.commissionRate;
-      const source = loadStoredReservations(dashboard.reservations);
+      const seed = currentProperty.id === "property-ap207" ? dashboard.reservations : [];
+      const source = await loadRemoteReservations(loadStoredReservations(seed));
       dashboard.reservations = source.map((item, index) =>
         normalizeReservation(item, index, dashboard),
       );
@@ -1595,6 +1696,7 @@
       getCalendarDays,
       getNextStay,
       validateProperty,
+      loadAccessibleProperties,
     };
   if (typeof document !== "undefined") initialize();
 })();
