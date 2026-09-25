@@ -201,7 +201,6 @@
     loadScript("user-manager.js", "data-stay-user-manager");
     loadScript("role-manager.js", "data-stay-role-manager");
     loadScript("role-live-sync.js", "data-stay-role-live-sync");
-    loadScript("property-create-fix.js", "data-stay-property-create-fix");
     loadScript("password-recovery.js", "data-stay-password-recovery");
     loadScript("share-pages.js", "data-stay-share-pages");
     loadScript("data-protection-expenses.js", "data-stay-data-protection");
