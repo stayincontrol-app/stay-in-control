@@ -198,7 +198,7 @@
         "unified-invite-user",
       ],
       ["./test2-attachment-ui.js?v=20260915-final", "attachment-ui"],
-      ["./test2-reservations-ux.js?v=20260912-2202", "reservations-ux"],
+      ["./test2-reservations-ux.js?v=20260925-shared", "reservations-ux"],
       [
         "./test2-reservation-payouts.js?v=20260916-final2",
         "reservation-payouts",
@@ -235,7 +235,10 @@
       ],
     ]);
   }
-  document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("DOMContentLoaded", async () => {
+    if (window.StaySharedState) {
+      try { await window.StaySharedState.ready; } catch { return; }
+    }
     document.body.classList.add("test2");
     syncDocumentLanguage();
     removePageShare();
