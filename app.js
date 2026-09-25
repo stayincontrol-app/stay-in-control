@@ -621,15 +621,21 @@
     const { data, error } = await client.from("reservation_records")
       .select("payload").eq("property_id", currentProperty.id);
     if (error) throw new Error("Não foi possível carregar as reservas desta unidade.");
-    if (currentProperty.id !== "property-ap207") {
-      const remoteIds = new Set((data || []).map((row) => String(row.payload?.id || "")));
-      for (const item of defaults) {
-        if (item.id && !remoteIds.has(String(item.id))) await saveRemoteReservation(item);
-      }
+    const signature = item => [item?.guest, item?.checkIn, item?.checkOut, Number(item?.gross || 0)].join('|');
+    const seedSignatures = currentProperty.id === "property-ap207"
+      ? new Set(dashboard.reservations.map(signature)) : new Set();
+    const remoteIds = new Set((data || []).map((row) => String(row.payload?.id || "")));
+    for (const item of defaults) {
+      if (access.hasPermission(currentUser, "reservation:create") && item.id &&
+          !remoteIds.has(String(item.id)) && !seedSignatures.has(signature(item)))
+        await saveRemoteReservation(item);
     }
     const merged = new Map(defaults.map((item) => [item.id, item]));
     for (const row of data || []) {
-      if (row.payload?.id) merged.set(row.payload.id, row.payload);
+      if (row.payload?.id) {
+        for (const [id, item] of merged) if (id !== row.payload.id && signature(item) === signature(row.payload)) merged.delete(id);
+        merged.set(row.payload.id, row.payload);
+      }
     }
     return [...merged.values()];
   }
