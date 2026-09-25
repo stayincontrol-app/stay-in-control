@@ -2,7 +2,7 @@
   'use strict';
   const AUTH = 'ap207-auth-profile-v1';
   const SUITE = 'system-control-test2-suite-v1';
-  const COLLECTIONS = ['contracts', 'contractPayments', 'ownerPayouts', 'extraRevenue', 'ical'];
+  const COLLECTIONS = ['contracts', 'contractPayments', 'ownerPayouts', 'extraRevenue', 'ical', 'audit'];
   const ARRAYS = new Map([
     ['system-control-test2-contracts-v1', 'featuresContracts'],
     ['system-control-test2-extra-revenues-v1', 'featuresExtraRevenue'],
@@ -26,13 +26,14 @@
     return p.role === 'super_admin' || (a.propertyIds || p.propertyIds || p.property_ids || []).map(String).includes(String(propertyId));
   };
   const keyOf = (collection, propertyId, id) => `${collection}\u0000${propertyId}\u0000${id}`;
-  const identity = (item, index) => String(item?.id ?? item?.url ?? item?.key ?? index);
+  const identity = (item, index, collection) => String(item?.id ?? item?.url ?? item?.key ??
+    (collection === 'audit' ? `${item?.at}:${item?.user}:${item?.action}` : index));
   function entries(key, raw) {
     if (!raw) return [];
     const result = [];
     const add = (collection, propertyId, item, index) => {
       if (!item || typeof item !== 'object' || !authorized(propertyId)) return;
-      const id = identity(item, index);
+      const id = identity(item, index, collection);
       result.push({ collection, property_id: String(propertyId), id, payload: item });
     };
     if (key.startsWith(EXPENSE)) {
