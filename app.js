@@ -609,7 +609,7 @@
     const { error } = await client.from("reservation_records").upsert({
       id: reservation.id,
       property_id: currentProperty.id,
-      payload: { ...reservation, cleaningFee: reservation.cleaning },
+      payload: { ...reservation, cleaningFee: reservation.cleaning ?? reservation.cleaningFee },
       created_by: auth.profile.id,
       updated_at: new Date().toISOString(),
     });
@@ -621,6 +621,12 @@
     const { data, error } = await client.from("reservation_records")
       .select("payload").eq("property_id", currentProperty.id);
     if (error) throw new Error("Não foi possível carregar as reservas desta unidade.");
+    if (currentProperty.id !== "property-ap207") {
+      const remoteIds = new Set((data || []).map((row) => String(row.payload?.id || "")));
+      for (const item of defaults) {
+        if (item.id && !remoteIds.has(String(item.id))) await saveRemoteReservation(item);
+      }
+    }
     const merged = new Map(defaults.map((item) => [item.id, item]));
     for (const row of data || []) {
       if (row.payload?.id) merged.set(row.payload.id, row.payload);
