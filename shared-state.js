@@ -16,6 +16,7 @@
   const ownSet = Storage.prototype.setItem;
   let hydrated = false;
   let pending = Promise.resolve();
+  const unsaved = new Map();
   let remoteSnapshot = new Map();
   const read = key => { try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch { return null; } };
   const auth = () => read(AUTH);
@@ -66,6 +67,13 @@
       document.body.append(el);
     }
     el.textContent = message;
+    if (failed && unsaved.size) {
+      const retry = document.createElement('button');
+      retry.type = 'button'; retry.textContent = 'Tentar salvar novamente';
+      retry.style.cssText = 'margin-left:10px;border:0;background:#fee4e2;color:#912018;padding:5px 8px;border-radius:6px;cursor:pointer';
+      retry.onclick = retryPending;
+      el.append(retry);
+    }
     el.style.color = failed ? '#b42318' : '#344054';
     el.hidden = !message;
   }
@@ -78,7 +86,19 @@
       }, { onConflict: 'collection,property_id,id' });
       if (error) throw error;
       remoteSnapshot.set(keyOf(change.collection, change.property_id, change.id), change);
+      unsaved.delete(keyOf(change.collection, change.property_id, change.id));
     }
+  }
+  function retryPending() {
+    if (!unsaved.size) return pending;
+    notifyStatus('Salvando dados na conta…');
+    pending = pending.catch(() => {}).then(() => persist([...unsaved.values()])).then(() => notifyStatus('')).catch(error => {
+      console.error('Stay shared data sync', error);
+      notifyStatus('Não foi possível salvar na conta. Mantenha esta tela aberta e tente novamente.', true);
+      throw error;
+    });
+    pending.catch(() => {});
+    return pending;
   }
   function schedule(oldEntries, newEntries) {
     const before = new Map(oldEntries.map(x => [keyOf(x.collection, x.property_id, x.id), x]));
@@ -89,13 +109,8 @@
     }
     for (const [key, item] of before) if (!after.has(key)) changes.push({ ...item, deleted_at: new Date().toISOString() });
     if (!changes.length) return;
-    notifyStatus('Salvando dados na conta…');
-    pending = pending.catch(() => {}).then(() => persist(changes)).then(() => notifyStatus('')).catch(error => {
-      console.error('Stay shared data sync', error);
-      notifyStatus('Não foi possível salvar na conta. Mantenha esta tela aberta e tente novamente.', true);
-      throw error;
-    });
-    pending.catch(() => {});
+    for (const item of changes) unsaved.set(keyOf(item.collection, item.property_id, item.id), item);
+    retryPending();
   }
   Storage.prototype.setItem = function (key, value) {
     const capture = hydrated && this === localStorage && tracked(String(key));
@@ -177,6 +192,11 @@
     } catch (error) { console.warn('Stay shared data refresh', error); }
   }
   window.addEventListener('focus', refreshOnReturn);
+  window.addEventListener('beforeunload', event => {
+    if (!unsaved.size) return;
+    event.preventDefault();
+    event.returnValue = '';
+  });
   document.addEventListener('visibilitychange', refreshOnReturn);
-  window.StaySharedState = { ready, flush: () => pending, hydrated: () => hydrated };
+  window.StaySharedState = { ready, flush: () => pending, retry: retryPending, hydrated: () => hydrated };
 })();
